@@ -1,0 +1,3 @@
+
+class BBBalkException(Exception):
+    pass
