@@ -1,6 +1,3 @@
-HOME = 1
-VISITOR = 0
-
 import weakref
 
 from bbbalk.exceptionsBB import RetrosheetException

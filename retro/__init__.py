@@ -1,1 +1,1 @@
-__ALL__ = 'baseParser basic datatypeBase parser pitch play player test'.split()
+__ALL__ = 'basic datatypeBase parser pitch play player test'.split()

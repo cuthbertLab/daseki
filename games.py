@@ -3,15 +3,10 @@ VISITOR = 0
 
 DEBUG = False
 
-import os
-import codecs
-import csv
+from bbbalk.retro import basic, play, player, parser
 
 from collections import namedtuple
 Runs = namedtuple('Runs', 'visitor home')
-
-from bbbalk.retro import basic, play, player
-from bbbalk.exceptionsBB import RetrosheetException
 
 eventsToClasses = {
                    'id': basic.Id,
@@ -27,105 +22,56 @@ eventsToClasses = {
                    'play': play.Play,
                    }
 
-class YearDirectory(object):
+class GameCollection(object):
     '''
-    parses a directory of all the files for a year.
+    a collection of games, in some order...
     '''
-    def __init__(self, dirName):
-        self.dirName = dirName
-        files = os.listdir(dirName)
-        self.files = files
-        self.eventFileNames = []
-        self.rosterFileNames = []
-        self.eventFiles = []
-        
-        self.teamFileName = None
-        for f in files:
-            if f.endswith('.EVA') or f.endswith('.EVN'):
-                self.eventFileNames.append(f)
-            elif f.endswith('.ROS'):
-                self.rosterFileNames.append(f)
-            elif f.startswith('TEAM'):
-                self.teamFileName = f
-    
-    def parseEventFiles(self):
-        errors = []
-        for efn in self.eventFileNames: 
-            try:
-                self.eventFiles.append(EventFile(os.path.join(self.dirName, efn)))
-            except Exception:
-                errors.append(efn)
-        if len(errors) > 0:
-            print("These files had errors: ", errors)
-                
-
-class EventFile(object):
-    '''
-    parses one .EVN or .EVA file
-    '''
-    def __init__(self, filename, data=None):
-        self.filename = filename
-        self.records = []
+    def __init__(self):
         self.games = []
-        self.data = data
-        if self.data is None:
-            self.readParse()
-        else:
-            self.parseData()
+        self.yearStart = 2014
+        self.yearEnd = 2014
+        self.team = None
+        self.park = None
         
-    def readParse(self):
-        with codecs.open(self.filename, 'r', 'latin-1') as f:
-            data = f.readlines()
-        self.data = data
-        self.parseData()
-        
-    def parseData(self):
-        game = None
-        try:
-            for d in csv.reader(self.data):
-                eventType = d[0]
-                eventData = d[1:]
-                eventClass = eventsToClasses[eventType]
-                try:
-                    if game is not None:
-                        parent = game
-                    else:
-                        parent = self
-                    rec = eventClass(parent, *eventData)
-                except TypeError:
-                    print("Could not parse event: %r in file %s" % (d, self.filename))
-                except RetrosheetException as e:
-                    print("For file %s got an error: %r " % (self.filename, e))
-                    
-                self.records.append(rec)
-                if rec.record == 'id':
-                    if game is not None:
-                        if DEBUG:
-                            print("\n\n\nParsing Game %s" % game.id)
-                        game.finalizeParsing()
-                        self.games.append(game)
-                    game = Game(rec.id)
-                if game is not None:
-                    game.records.append(rec)
-                elif rec.record != 'com':
-                    raise("Found a non-comment before id: %r" % d)
-            if game is not None:
-                game.finalizeParsing()
-                self.games.append(game)
-        except AttributeError as e:
-            raise RetrosheetException("Error in file: %s: %r " % (self.filename, e))
+    def parse(self):
+        for y in range(self.yearStart, self.yearEnd + 1):
+            yd = parser.YearDirectory(y)
+            pgs = []
+            if self.team is not None:
+                pgs = yd.byTeam(self.team)
+            elif self.park is not None:
+                pgs = yd.byPark(self.park)
+            else:
+                pgs = yd.protoGames
+            for pg in pgs:
+                g = Game()
+                g.mergeProto(pg)
+                self.games.append(g)
+        return self.games
+
 
 class Game(object):
     '''
     records information about a game.
     '''
-    def __init__(self, gameId):
+    def __init__(self, gameId=None):
         self.id = gameId
         self.records = []
         self._hasDH = None
         self._startersHome = []
         self._startersVisitor = []
         self.halfInnings = []
+
+    def mergeProto(self, protoGame, finalize=True):
+        self.id = protoGame.id
+        for d in protoGame.records:
+            eventType = d[0]
+            eventData = d[1:]
+            eventClass = eventsToClasses[eventType]
+            rec = eventClass(self, *eventData)
+            self.records.append(rec)
+        if finalize is True:
+            self.finalizeParsing()
 
     def finalizeParsing(self):
         lastInning = 0
@@ -216,3 +162,13 @@ class Game(object):
             return self._startersHome
         else:
             return self._startersVisitor
+
+
+if __name__ == '__main__':
+    gc = GameCollection()
+    gc.yearStart = 2013
+    gc.yearEnd = 2014
+    gc.team = 'SDN'
+    games = gc.parse()
+    for g in games:
+        print(g.id, g.runs)

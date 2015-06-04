@@ -16,7 +16,7 @@ The title comes from baseball, obviously, and balk, as in what you should
 expect traditional baseball heads to do when you present the results you
 get from these objects.
 '''
-__ALL__ = ['base', 'retrosheet', 'testRunner', 'exceptionsBB']
+__ALL__ = ['base', 'retro', 'games', 'testRunner', 'exceptionsBB']
 __VERSION__ = '0.2.0'
 
 from bbbalk import base

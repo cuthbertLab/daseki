@@ -21,7 +21,7 @@ def sourceFilePath():
     import bbbalk # pylint: disable=redefined-outer-name
     fpBalk = bbbalk.__path__[0] # list, get first item 
     # use corpus as a test case
-    if 'retrosheet.py' not in os.listdir(fpBalk):
+    if 'retro' not in os.listdir(fpBalk):
         raise Exception('cannot find expected bbbalk directory: %s' % fpBalk)
     return fpBalk
 

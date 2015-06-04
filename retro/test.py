@@ -3,13 +3,16 @@ VISITOR = 0
 
 
 from bbbalk import common
-from bbbalk.retro.baseParser import EventFile, YearDirectory # @UnresolvedImport
+from bbbalk.retro.parser import EventFile, YearDirectory # @UnresolvedImport
+from bbbalk.games import Game # @UnresolvedImport
 
 class Test():
     def sdAttendance(self):
-        ev = EventFile(common.dataDirByYear(2014) + '/2014SDN.EVN')
+        yd = YearDirectory(2014)
         attd = 0
-        for g in ev.games:
+        for pg in yd.byTeam('SDN'):
+            g = Game()
+            g.mergeProto(pg)
             att = g.infoByType('attendance')
             print(g.id, att)
             attd += int(att)
@@ -18,11 +21,11 @@ class Test():
     def yearsList(self):
         for thisYear in range(1995, 2015):
             print("Parsing: ", thisYear)
-            yd = YearDirectory(common.dataDirByYear(thisYear))
+            yd = YearDirectory(thisYear)
             yd.parseEventFiles()
             
     def yearList(self, year=2014):
-        yd = YearDirectory(common.dataDirByYear(year))
+        yd = YearDirectory(year)
         yd.parseEventFiles()
     
     def pitcherBats(self):
@@ -41,11 +44,12 @@ class Test():
         gamesPitched = {}
         
         for thisYear in range(2010, 2015):
-            yd = YearDirectory(common.dataDirByYear(thisYear))
+            yd = YearDirectory(thisYear)
             yd.parseEventFiles()
             
             for ev in yd.eventFiles:
-                for g in ev.games:
+                for pg in ev.protoGames:
+                    g = pg.parse()
                     visitorTeam = g.visitingTeam
                     if visitorTeam not in gamesPitched:
                         gamesPitched[visitorTeam] = [0, 0, 0]
@@ -80,7 +84,8 @@ class Test():
     
     def events(self):
         ev = EventFile(common.dataDirByYear(2014) + '/2014SDN.EVN')
-        g = ev.games[0]
+        g = Game()
+        g.mergeProto(ev.protoGames[0])
         for p in g.recordsByType('play'):
             e = p.playEvent
             print(p.inning, p.visitOrHome, p.playerId, e.basicBatter, e.isOut, e.isSafe, e.raw)
@@ -90,7 +95,9 @@ class Test():
         global DEBUG
         DEBUG = True
         ev = EventFile(common.dataDirByYear(2014) + '/2014SDN.EVN')
-        for g in ev.games:
+        for pg in ev.protoGames:
+            g = Game()
+            g.mergeProto(pg)
             print(g.id, g.runs)        
             
     
@@ -100,5 +107,5 @@ if __name__ == '__main__':
     #t.events()
     #t.pitcherBats()
     #t.yearList(1999)
-    t.yearsList()
-    #t.sdAttendance()
+    #t.yearsList()
+    t.sdAttendance()
