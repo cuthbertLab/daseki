@@ -8,12 +8,13 @@
 # Copyright:    Copyright © 2014-15 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
+from __future__ import print_function
+from __future__ import division
 
 
 import copy
-import sys
 
-from testRunner import mainTest
+from bbbalk.testRunner import mainTest
 #from exceptionsBB import BBBalkException
 
 

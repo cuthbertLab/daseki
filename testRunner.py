@@ -12,7 +12,7 @@
 import sys
 import unittest
 import doctest
-from ext import six
+from bbbalk.ext import six
 
 
 def mainTest(*testClasses, **kwargs):
