@@ -103,9 +103,9 @@ class Test():
     
 if __name__ == '__main__':
     t = Test()
-    #t.checkScores()
+    t.checkScores()
     #t.events()
     #t.pitcherBats()
     #t.yearList(1999)
     #t.yearsList()
-    t.sdAttendance()
+    #t.sdAttendance()

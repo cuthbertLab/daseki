@@ -7,6 +7,7 @@ from bbbalk.retro import basic, play, player, parser
 
 from collections import namedtuple
 Runs = namedtuple('Runs', 'visitor home')
+LineupCard = namedtuple('LineupCard', 'visitor home')
 
 eventsToClasses = {
                    'id': basic.Id,
@@ -24,7 +25,10 @@ eventsToClasses = {
 
 class GameCollection(object):
     '''
-    a collection of games, in some order...
+    a collection of Game objects, in some order...
+    
+    Set .yearStart, .yearEnd, .team, and .park before running `.parse()`
+    to limit parsing.
     '''
     def __init__(self):
         self.games = []
@@ -34,6 +38,9 @@ class GameCollection(object):
         self.park = None
         
     def parse(self):
+        '''
+        Parse all the files in the 
+        '''
         for y in range(self.yearStart, self.yearEnd + 1):
             yd = parser.YearDirectory(y)
             pgs = []
@@ -45,14 +52,17 @@ class GameCollection(object):
                 pgs = yd.protoGames
             for pg in pgs:
                 g = Game()
-                g.mergeProto(pg)
+                g.mergeProto(pg, finalize=True)
                 self.games.append(g)
         return self.games
 
 
 class Game(object):
     '''
-    records information about a game.
+    A Game records information about a game.
+    
+    Each game record is held somewhere in the `.records` list.
+    Each half-inning is stored in the halfInnings list.
     '''
     def __init__(self, gameId=None):
         self.id = gameId
@@ -63,6 +73,10 @@ class Game(object):
         self.halfInnings = []
 
     def mergeProto(self, protoGame, finalize=True):
+        '''
+        The mergeProto function takes a ProtoGame object and loads all of these records into the
+        .records list as event objects.
+        '''
         self.id = protoGame.id
         for d in protoGame.records:
             eventType = d[0]
@@ -84,8 +98,8 @@ class Game(object):
             if r.record == 'sub':
                 if DEBUG:
                     print("@#%&^$*# SUB")
-            else:
-                if r.inning != lastInning or r.visitOrHome != lastVisitOrHome:
+            elif r.record == 'play':
+                if r.inning != lastInning or r.visitOrHome != lastVisitOrHome: # new half-inning
                     if DEBUG:
                         print("*** " + self.id + " Inning: " + str(r.inning) + " " + str(r.visitOrHome))
                     if thisHalfInning != None:
@@ -93,15 +107,18 @@ class Game(object):
                     thisHalfInning = []
                     lastRunners = [False, False, False]                
                     lastInning = r.inning
-                    lastVisitOrHome = r.visitOrHome            
-                r.runnersBefore = lastRunners
-                r.playEvent
-                r.runnerEvent
-                lastRunners = r.runnersAfter
-                thisHalfInning.append(r)
+                    lastVisitOrHome = r.visitOrHome
+                r.runnersBefore = lastRunners[:]
+                r.playEvent # TODO -- this just forces parsing... should call explicitly...
+                r.runnerEvent # TODO -- this just forces parsing...should call explicitly...
+                lastRunners = r.runnersAfter[:]
+            else:
+                raise Exception("should only have play and sub records.")
+            thisHalfInning.append(r)
                 
         if thisHalfInning != None:
             halfInnings.append(thisHalfInning)
+        self.halfInnings = halfInnings
 
     @property
     def homeTeam(self):
@@ -124,11 +141,19 @@ class Game(object):
     
 
     def infoByType(self, infotype):
+        '''
+        Finds the first info record to have a given info type
+        
+        
+        '''
         for i in self.recordsByType('info'):
             if i.recordType == infotype:
                 return i.dataInfo
 
     def recordsByType(self, recordTypeOrTypes):
+        '''
+        Iterates through all records which fits a single type or list of types, such as "play" or "info" etc.
+        '''
         if isinstance(recordTypeOrTypes, (list, tuple)):
             for r in self.records:
                 if r.record in recordTypeOrTypes:
@@ -139,6 +164,9 @@ class Game(object):
                     yield r
                 
     def hasDH(self):
+        '''
+        Returns True or False about whether the game used a designated hitter.
+        '''
         if self._hasDH is not None:
             return self._hasDH
         useDH = self.infoByType('usedh')
@@ -148,20 +176,20 @@ class Game(object):
             self._hasDH = False
         return self._hasDH
         
-    def starters(self, whichOne = HOME):
-        if whichOne == HOME and self._startersHome != []:
-            return self._startersHome
-        elif whichOne == VISITOR and self._startersVisitor != []:
-            return self._startersVisitor
+    def starters(self):
+        '''
+        Gives the named tuple of two lists of starters for visitor and home.
+        '''
+        
+        if self._startersHome != []:
+            return LineupCard(visitor=self._startersVisitor, home=self._startersHome)
+
         for r in self.recordsByType('start'):
             if r.visitOrHome == HOME:
                 self._startersHome.append(r)
             else:
                 self._startersVisitor.append(r)
-        if whichOne == HOME:
-            return self._startersHome
-        else:
-            return self._startersVisitor
+        return LineupCard(visitor=self._startersVisitor, home=self._startersHome)
 
 
 if __name__ == '__main__':

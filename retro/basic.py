@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------
+# Name:         basic.py
+# Purpose:      Basic retrosheet game record parsing
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#------------------------------------------------------------------------------
+'''
+Basic retrosheet record types.  Everything except play and roster/substitution entries.
+'''
+
 import weakref
 
 from bbbalk.exceptionsBB import RetrosheetException
@@ -9,8 +23,12 @@ class Id(RetroData):
     '''
     record = 'id'
     def __init__(self, parent, retroId):
+        super(Id, self).__init__()
         self.parent = weakref.ref(parent)
         self.id = retroId
+
+    def __repr__(self):
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, self.id)
 
 class Version(RetroData):
     '''
@@ -18,32 +36,51 @@ class Version(RetroData):
     '''
     record = 'version'
     def __init__(self, parent, version=1):
+        super(Version, self).__init__()
         self.parent = weakref.ref(parent)
         self.version = version
+
+    def __repr__(self):
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, self.version)
+
 
 class Adjustment(RetroData):
     '''
     for when a player bats or pitches with the opposite hand or player bats out of order
     '''
     def __init__(self, parent, playerId, hand=None):
+        super(Adjustment, self).__init__()
         self.parent = weakref.ref(parent)
         self.playerId = playerId
         self.hand = hand
 
+    def __repr__(self):
+        return "<%s.%s %s: %s>" % (self.__module__, self.__class__.__name__, self.playerId, self.hand)
+
+        
+
 class BattingAdjustment(Adjustment):
     record = 'badj'
+    def __init__(self, parent, playerId, hand=None):
+        super(BattingAdjustment, self).__init__(parent, playerId, hand)
 
 class PitchingAdjustment(Adjustment):
     '''
     to date has happened once, Greg Harris, 9-28-1995
+    
+    Will have more evidence of this in 2015 data
     '''
     record = 'padj'
+    def __init__(self, parent, playerId, hand=None):
+        super(PitchingAdjustment, self).__init__(parent, playerId, hand)
 
 class OutOfOrderAdjustment(Adjustment):
     '''
     TO-DO: need example of this
     '''
     record = 'ladj'
+    def __init__(self, parent, playerId, hand=None): # is hand necessary here?
+        super(OutOfOrderAdjustment, self).__init__(parent, playerId, hand)
 
 class Data(RetroData):
     '''
@@ -51,6 +88,7 @@ class Data(RetroData):
     '''
     record = 'data'
     def __init__(self, parent, dataType, playerId, runs):
+        super(Data, self).__init__()
         self.parent = weakref.ref(parent)
         if dataType != 'er':
             raise RetrosheetException("data other than earned runs encountered: %s !" % dataType)
@@ -58,16 +96,25 @@ class Data(RetroData):
         self.playerId = playerId
         self.runs = runs
 
+    def __repr__(self):
+        return "<%s.%s EarnedRuns, %s:%s>" % (self.__module__, self.__class__.__name__, self.playerId, self.runs)
+
+
 class Comment(RetroData):
     '''
     Records a single comment entry
     '''
     record = 'com'
     def __init__(self, parent, comment, *junk):
+        super(Comment, self).__init__()
         self.parent = weakref.ref(parent)
         self.comment = comment
         # a very few comments such as 2006MIN.EVA have extra information after the , 
         # com,puntn001,R -- seems to be a miscoded badj
+
+    def __repr__(self):
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, self.comment)
+
 
 class Info(RetroData):
     '''
@@ -87,6 +134,7 @@ class Info(RetroData):
     del(_administrativeTypes)
     
     def __init__(self, parent, recordType, *dataInfo):
+        super(Info, self).__init__()
         self.parent = weakref.ref(parent)
         self.recordType = recordType
         if recordType not in self.knownTypes:
@@ -94,3 +142,7 @@ class Info(RetroData):
         if len(dataInfo) > 1:
             raise RetrosheetException("should only have one entry for dataInfo, not %r" % dataInfo)
         self.dataInfo = dataInfo[0] 
+
+    def __repr__(self):
+        return "<%s.%s %s:%s>" % (self.__module__, self.__class__.__name__, self.recordType, self.dataInfo)
+

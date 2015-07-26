@@ -15,7 +15,7 @@ import os
 # tools for setup.py
 def sourceFilePath():
     '''
-    Get the music21 directory that contains source files. This is not the same as the
+    Get the BBBalk directory that contains source files. This is not the same as the
     outermost package development directory.
     '''
     import bbbalk # pylint: disable=redefined-outer-name

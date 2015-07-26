@@ -7,10 +7,15 @@ import weakref
 from bbbalk.exceptionsBB import RetrosheetException
 from bbbalk.retro.datatypeBase import RetroData
 
-
 class Player(RetroData):
     '''
-    a player
+    a player.  It has information such as:
+    
+    .id -- playerId
+    .name -- name
+    .visitOrHome -- 0 = visitor, 1 = home
+    .visitName -- "visitor" or "home"
+    .battingOrder -- 
     '''
     _positionNames = "unknown pitcher catcher firstbase secondbase " + \
         "thirdbase shortstop leftfield centerfield rightfield " + \
@@ -20,6 +25,7 @@ class Player(RetroData):
     del(_positionNames)
     
     def __init__(self, parent, playerId, playerName, visitOrHome, battingOrder, position):
+        super(Player, self).__init__()
         self.parent = weakref.ref(parent)
         try:
             self.id = playerId
@@ -34,9 +40,21 @@ class Player(RetroData):
         except ValueError:
             raise RetrosheetException("Parse something for player %s " % playerName)
 
+    def __repr__(self):
+        return "<%s.%s %s,%s: %s (%s):%s>" % (self.__module__, self.__class__.__name__, 
+                                  self.visitName, self.battingOrder, 
+                                  self.name, self.id, self.positionName)
+
 
 class Start(Player):
     record = 'start'
+    
+    def __init__(self, parent, playerId, playerName, visitOrHome, battingOrder, position):
+        super(Start, self).__init__(parent, playerId, playerName, visitOrHome, battingOrder, position)
 
 class Sub(Player):
     record = 'sub'
+    def __init__(self, parent, playerId, playerName, visitOrHome, battingOrder, position):
+        super(Sub, self).__init__(parent, playerId, playerName, visitOrHome, battingOrder, position)
+    
+    

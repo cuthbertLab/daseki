@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------
+# Name:        parser.py
+# Purpose:     retrosheet file parsing
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#------------------------------------------------------------------------------
+
 HOME = 1
 VISITOR = 0
 
@@ -12,7 +23,19 @@ from bbbalk.exceptionsBB import RetrosheetException
 
 class YearDirectory(object):
     '''
-    parses a directory of all the files for a year.
+    A YearDirectory represents and parses a directory of all the files for a year.
+    
+    You can optionally call `.parseEventFiles()` to load them all into ProtoGames, however calling
+    any of the methods below will parse them automatically.
+    
+    It has these attributes:
+    
+    year -- four-digit year code
+    dirName -- path to the directory containing files for that year
+    files -- list of (short) filenames in the directory.
+    eventFileNames -- list of (short) filenames in the directory that contain game events
+    rosterFileNames -- list of (short) filenames in the directory that contain rosters for teams
+    teamFileName -- string of the filename that gives the list of teams playing thatyear.
     '''
     def __init__(self, year):
         self.year = year
@@ -22,9 +45,9 @@ class YearDirectory(object):
         self.files = files
         self.eventFileNames = []
         self.rosterFileNames = []
+        self.teamFileName = None
         self._eventFiles = []
         
-        self.teamFileName = None
         for f in files:
             if f.endswith('.EVA') or f.endswith('.EVN'):
                 self.eventFileNames.append(f)
@@ -34,6 +57,9 @@ class YearDirectory(object):
                 self.teamFileName = f
     
     def parseEventFiles(self):
+        '''
+        Parses all the event files and returns them as a list.
+        '''
         if len(self._eventFiles) > 0:
             return self._eventFiles
         errors = []
@@ -47,30 +73,56 @@ class YearDirectory(object):
                 
     @property
     def eventFiles(self):
+        '''
+        returns all EventFiles in the directory.
+        '''
         if len(self._eventFiles) > 0:
             return self._eventFiles
         self.parseEventFiles()
         return self._eventFiles
                 
     def byTeam(self, teamCode):
+        '''
+        Returns a list of all ProtoGames (in any event file) representing a game played by a single team
+        (home or away).
+        
+        The teamCode is a three-letter abbreviation such as "ANA", "HOU" etc.
+        
+        TODO: allow for other team names.
+        '''
         ret = []
         for ev in self.eventFiles:
             ret += ev.byTeam(teamCode)
         return ret
 
     def byPark(self, teamCode):
+        '''
+        Returns a list of all ProtoGames (in any event file) representing a game played by a single team
+        at home -- does not actually distinguish between the few cases where a 
+        team might play a "home" game at a different ballpark, such as the Montreal
+        Expos in San Juan.
+        '''
         ret = []
         for ev in self.eventFiles:
             ret += ev.byPark(teamCode)
         return ret
 
     def byUsesDH(self, usedh):
+        '''
+        Returns a list of all ProtoGames representing a game played with a designated hitter
+        (if usedh is True) or without a designated hitter (if usedh is False).
+        '''
         ret = []
         for ev in self.eventFiles:
             ret += ev.byUsesDH(usedh)
         return ret
 
     def byDate(self, dateField):
+        '''
+        Returns a list of all ProtoGames representing games played on a given date.
+        
+        See the EventFile.byDate method for explanation of dateField object
+        '''
         ret = []
         for ev in self.eventFiles:
             ret += ev.byDate(dateField)
@@ -79,7 +131,12 @@ class YearDirectory(object):
 
 class EventFile(object):
     '''
-    parses one .EVN or .EVA file
+    parses one .EVN or .EVA file, which usually represents all games played by a team at home.
+    
+    Parses them in ProtoGames, stored in the `.protoGames` list.
+    
+    The other attribute is the "startComments" list which is a list of Comment objects that
+    describe the .EVN or .EVA file but not any particular game (such as the encoder's name).
     '''
     def __init__(self, filename, data=None):
         self.filename = filename
@@ -92,6 +149,12 @@ class EventFile(object):
             self.parseData()
     
     def byTeam(self, teamCode):
+        '''
+        Returns a list of all ProtoGames representing a game played by a single team
+        (home or away).
+        
+        Teams are represented by a three-letter code.
+        '''
         ret = []
         for pg in self.protoGames:
             if pg.hometeam == teamCode or pg.visteam == teamCode:
@@ -99,6 +162,12 @@ class EventFile(object):
         return ret
 
     def byPark(self, teamCode):
+        '''
+        Returns a list of all ProtoGames representing a game played by a single team
+        at home -- does not actually distinguish between the few cases where a 
+        team might play a "home" game at a different ballpark, such as the Montreal
+        Expos in San Juan.
+        '''
         ret = []
         for pg in self.protoGames:
             if pg.hometeam == teamCode:
@@ -106,6 +175,10 @@ class EventFile(object):
         return ret
 
     def byUsesDH(self, usedh):
+        '''
+        Returns a list of all ProtoGames representing a game played with a designated hitter
+        (if usedh is True) or without a designated hitter (if usedh is False).
+        '''
         ret = []
         for pg in self.protoGames:
             if pg.usedh == usedh:
@@ -113,6 +186,11 @@ class EventFile(object):
         return ret
 
     def byDate(self, dateField):
+        '''
+        Returns a list of all ProtoGames representing games played on a given date.
+        
+        The date filed should be something like: 1999/04/12
+        '''
         ret = []
         for pg in self.protoGames:
             if pg.date == dateField:
@@ -120,13 +198,23 @@ class EventFile(object):
         return ret
 
     
-    def readParse(self):
+    def readParse(self, filename=None):
+        '''
+        Read in the file set in filename or self.filename.
+        
+        Assumes that the file is encoded as latin-1.
+        '''
+        if filename is None:
+            filename = self.filename
         with codecs.open(self.filename, 'r', 'latin-1') as f:
             data = f.readlines()
         self.data = data
         self.parseData()
 
     def parseData(self):
+        '''
+        Populates self.protoGames by reading in the CSV data in self.data.
+        '''
         protoGame = None
         for d in csv.reader(self.data):
             eventType = d[0]
@@ -147,6 +235,21 @@ class EventFile(object):
 class ProtoGame(object):
     '''
     A collection of barely parsed game data to be turned into a Game file.
+    
+    It is distinct from a real Game object because we have only parsed enough
+    information to be able to filter out whether this object is worth parsing fuller.
+    
+    For instance, if you are only interested in games of a particular team or played
+    at a particular park, then there's no need to parse every file in a directory. Instead
+    we just parse all the files quickly into ProtoGames and filter out games further.
+    
+    Attributes are:
+    
+    id -- gameId
+    hometeam -- home team 3-letter code
+    visteam -- visiting team 3-letter code
+    usedh -- used designated hitter (True or False)
+    date -- date of the game in the form 2003/10/01 
     '''
     def __init__(self, gameId=None):
         self.id = gameId
@@ -157,6 +260,9 @@ class ProtoGame(object):
         self.records = []
     
     def append(self, rec):
+        '''
+        Append a record into self.records but update team information in the process.
+        '''
         if rec[0] == 'info':
             if rec[1] == 'visteam':
                 self.visteam = rec[2]

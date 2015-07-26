@@ -1,3 +1,32 @@
+# -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------
+# Name:        play.py
+# Purpose:     retrosheet Play event
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#------------------------------------------------------------------------------
+'''
+The most important, but also the most complex Retrosheet field, a play represents a single play
+in a game.  An example play could be as simple as:
+
+    play,2,1,lemkm001,12,BCSS,K
+    
+Which means that in the second inning, home half (1), the player "lemkm001", after a 1-2 count,
+with pitches "ball, called strike, strike swinging, strike swinging", struck out (K).
+
+Or it could be as complex as:
+
+    play,7,0,mcrab001,12,FF*BX,S9/L34D/R932/U1.2-H;1-H(E3/TH)(UR)(NR);B-2
+    
+Which I won't describe here!  :-)
+
+Notice in both these cases, it is the last column in the csv entry that contains all the
+information about the outcome of the play.  This information will be parsed and
+stored in the RunnerEvent and PlayEvent objects associated with each Play object.
+'''
 import re
 import weakref
 
@@ -15,10 +44,15 @@ from bbbalk.retro.datatypeBase import RetroData
 class Play(RetroData):
     '''
     The most important and most complex record: records a play.
+    
+    The playEvent potentially has two main sections separated by "." -- the PlayEvent
+    (batter information) and optionally the RunnerEvent (showing changes of bases because
+    of errors, advancing on throws, etc.).
     '''
     record = 'play'
     visitorNames = ["visitor", "home"]
     def __init__(self, parent, inning, visitOrHome, playerId, count, pitches, playEvent):
+        super(Play, self).__init__()
         self.parent = weakref.ref(parent)
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
@@ -39,6 +73,18 @@ class Play(RetroData):
             self._rawRunners = rs[1]
         else:
             self._rawRunners = None
+
+    def __repr__(self):
+        return "<%s.%s %s%s: %s:%s>" % (self.__module__, self.__class__.__name__, 
+                                  self.topBottom[0], self.inning, 
+                                  self.playerId, self.raw)
+
+    @property
+    def topBottom(self):
+        if self.visitOrHome == 0:
+            return "top"
+        else:
+            return "bottom"
 
     @property
     def runnerEvent(self):
@@ -80,6 +126,13 @@ def _sortRunnerEvents(rEvt):
     
 
 class RunnerEvent(object):
+    '''
+    An object that, given the information from a Play object and a list of runners before the event
+    can figure out who is on each base after the event.
+    
+    Needs a reference to the parent Play object to look at the Play object's PlayEvent which
+    contains information about stolenBases etc.
+    '''
     def __init__(self, parent, raw, runnersBefore):
         self.raw = raw
         self.parent = weakref.ref(parent)
@@ -88,7 +141,6 @@ class RunnerEvent(object):
         if DEBUG:
             print(runnersBefore)
         
-
         if raw is not None:
             ra = raw.split(';')
         else:
@@ -130,7 +182,7 @@ class RunnerEvent(object):
                 elif iba == 4:
                     bEvent = 'B-H'
                 else:
-                    raise RetrosheetException("Huhhh??? Implied batter advance is strange")
+                    raise RetrosheetException("Huhhh??? Implied batter advance (%s) is strange" % iba)
                 ra.append(bEvent)
 
         # in case of implied advances, we may get the same data twice.
@@ -233,6 +285,14 @@ class RunnerEvent(object):
         parent.runnersAfter = self.runnersAfter
         
     def hasRunnerAdvance(self, letter):
+        '''
+        Takes in a letter (or int) representing a base that may have a runner ("1", "2", "3")
+        and returns True or False about whether a runner has advanced (or is out trying to advance,
+        including required advances such as force outs) from that base. 
+        
+        :type letter: str
+        :rtype: bool
+        '''
         if isinstance(letter, int):
             letter = str(letter)
         for r in self._runnersAdvance:
@@ -241,6 +301,8 @@ class RunnerEvent(object):
         return False
 
 class PlayEvent(object):
+    '''
+    '''
     def __init__(self, parent, raw):
         self.raw = raw
         self.parent = weakref.ref(parent)      

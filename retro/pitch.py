@@ -1,4 +1,17 @@
+# -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------
+# Name:         pitch.py
+# Purpose:      a single pitch event in a retrosheet eventfile event
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#------------------------------------------------------------------------------
 class Pitch(object):
+    '''
+    A single Pitch in a game.  Not used yet.
+    '''
     pitchEvents = {'+': "following pickoff throw by catcher",
                    '*': "following pitch was blocked by catcher",
                    ".": "play not invovlving the batter",
