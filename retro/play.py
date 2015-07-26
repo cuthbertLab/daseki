@@ -38,10 +38,11 @@ DEBUG = False
 ERROR_PAREN_RE = re.compile('\(\d*E\d*[\/A-Z]*\)')
 ERROR_RE = re.compile('\d*E\d*[\/A-Z]*')
 
+import bbbalk.retro.datatypeBase 
 from bbbalk.exceptionsBB import RetrosheetException
-from bbbalk.retro.datatypeBase import RetroData
+from bbbalk.testRunner import mainTest
 
-class Play(RetroData):
+class Play(bbbalk.retro.datatypeBase.RetroData):
     '''
     The most important and most complex record: records a play.
     
@@ -51,9 +52,9 @@ class Play(RetroData):
     '''
     record = 'play'
     visitorNames = ["visitor", "home"]
-    def __init__(self, parent, inning, visitOrHome, playerId, count, pitches, playEvent):
-        super(Play, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, parent=None, inning="", visitOrHome="", playerId="", count="", pitches="", playEvent=""):
+        super(Play, self).__init__(parent)
+        
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
         self.visitName = self.visitorNames[int(visitOrHome)]
@@ -103,7 +104,13 @@ class Play(RetroData):
 
 def _sortRunnerEvents(rEvt):
     '''
-    helper function so that events beginning on 3rd sort first, then 2nd, then 1st, then B (batter)
+    helper function so that events beginning on 3rd sort first, then 2nd, then 1st, then B (batter).
+    That way, say you have 1-3,3XH, the events get sorted as 3XH (runner on third out at home)
+    then 1-3 (runner on first goes to third), rather than runner on 1st goes to 3rd and then thrown
+    out at home. 
+    
+    Handles a few strange sorting moments, such as Segura's "advance" from 2nd to 1st in April 2013.
+    Put any similar events here.
     '''
     if rEvt == "2-1":
         # Just for Segura, Milwaukee 19 April 2013 -- Segura steals second then runs back to first
@@ -125,7 +132,7 @@ def _sortRunnerEvents(rEvt):
     
     
 
-class RunnerEvent(object):
+class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
     '''
     An object that, given the information from a Play object and a list of runners before the event
     can figure out who is on each base after the event.
@@ -133,22 +140,175 @@ class RunnerEvent(object):
     Needs a reference to the parent Play object to look at the Play object's PlayEvent which
     contains information about stolenBases etc.
     '''
-    def __init__(self, parent, raw, runnersBefore):
+    def __init__(self, parent=None, raw="", runnersBefore=None):
+        super(RunnerEvent, self).__init__(parent)
         self.raw = raw
-        self.parent = weakref.ref(parent)
-        self.runnersBefore = runnersBefore
+        if runnersBefore is not None:
+            self.runnersBefore = runnersBefore
+        else:
+            self.runnersBefore = [False, False, False]
+            
         self.runnersAfter = runnersBefore[:]
+        self.runnersAdvance = None
+        self.outs = 0
+        self.runs = 0
+        self.scoringRunners = []
         if DEBUG:
             print(runnersBefore)
+        self._parse()
+    
+    def __repr__(self):
+        return "<%s.%s %s%s: %s:%s>" % (self.__module__, self.__class__.__name__, 
+                                  self.topBottom[0], self.inning, 
+                                  self.playerId, self.raw)
         
+    
+    def _parse(self):
+        raw = self.raw
         if raw is not None:
             ra = raw.split(';')
         else:
             ra = []
-        self._runnersAdvance = ra
+        self.runnersAdvance = ra
+        self.updateRunnersAdvanceBasedOnPlayEvent(self.parent.playEvent)
+        self.setRunnersAfter(runnersAdvanceList=ra, runnersBefore=self.runnersBefore)
 
-        if parent.playEvent.stolenBase:
-            for b in parent.playEvent.basesStolen:
+    def setRunnersAfter(self, runnersAdvanceList=None, runnersBefore=None):
+        '''
+        Consults the runnersAdvanceList and runnersBefore to set the names of runners afterwards.
+        
+        also sets the number of outs and number of runs.
+        
+        >>> 
+        
+        '''
+        parent = self.parent
+        if runnersAdvanceList is None:
+            runnersAdvanceList = self.runnersAdvance
+            
+        if runnersBefore is None:
+            runnersBefore = self.runnersBefore
+
+        runnersAfter = runnersBefore[:]
+        # in case of implied advances, we may get the same data twice.
+        alreadyTakenCareOf = [False, False, False, False] # batter, first, second, third...
+                
+        for oneRunnerAdvance in runnersAdvanceList:
+            isOut = False
+            oneRunnerAdvance = re.sub('\(\dX\)$', '', oneRunnerAdvance)  # very few cases of 2X3(1X) such as COL200205190; redundant
+            if '-' in oneRunnerAdvance:
+                before, after = oneRunnerAdvance.split('-')
+                #print("safe: %s %s" % (before, after))
+            elif 'X' in oneRunnerAdvance:
+                try:
+                    before, after = oneRunnerAdvance.split('X')
+                except ValueError:
+                    print("Error in runnerAdvance: %s" % oneRunnerAdvance)
+                    print("Context: ", runnersAdvanceList)
+                    print("Inning", parent.inning)
+                    print("Game Id", parent.parent.id)
+                    raise
+                isOut = True
+                #print("out: %s %s" % (before, after))
+            else:
+                raise RetrosheetException("Something wrong with runner: %s: %s: %s" % 
+                                          (oneRunnerAdvance, self.raw, parent.raw))
+            beforeBase = before[0] # "Base" refers to the first letter/number which identifies the baserunner.
+            #beforeMods = before[1:]
+            afterBase = after[0]
+            afterMods = after[1:]
+            if ERROR_PAREN_RE.search(afterMods):
+                # error occurred, do not mark out...
+                isOut = False
+                # TODO: do something with errors
+            
+            runnerIdOrFalse = None
+            if beforeBase == '1':
+                if alreadyTakenCareOf[1]:
+                    continue
+                runnerIdOrFalse = runnersBefore[0]
+                alreadyTakenCareOf[1] = True
+                runnersAfter[0] = False # assumes proper encoding order of advancement
+            elif beforeBase == '2':
+                if alreadyTakenCareOf[2]:
+                    continue
+                runnerIdOrFalse = runnersBefore[1]
+                alreadyTakenCareOf[2] = True
+                runnersAfter[1] = False # assumes proper encoding order of advancement
+            elif beforeBase == '3':
+                if alreadyTakenCareOf[3]:
+                    continue
+                runnerIdOrFalse = runnersBefore[2]
+                alreadyTakenCareOf[3] = True
+                runnersAfter[2] = False # assumes proper encoding order of advancement
+            elif beforeBase == 'B':
+                if alreadyTakenCareOf[0]:
+                    continue # implied batter but also given explicitly
+                runnerIdOrFalse = parent.playerId
+                alreadyTakenCareOf[0] = True
+            else:
+                raise RetrosheetException("Runner Advance without a base!: %s: %s: %s" % 
+                                          (oneRunnerAdvance, self.raw, parent.raw))
+                
+
+            if isOut is False:
+                if runnerIdOrFalse is False:
+                    print("\n****\nError about to occur!")
+                    print("it is in Inning " + str(parent.inning))
+                    print(runnersAdvanceList)
+                    print(runnersBefore)
+                    print(runnersAfter)
+                    print(parent.parent.id)
+                    pass # debug
+                if afterBase == '1':
+                    runnersAfter[0] = runnerIdOrFalse
+                    if DEBUG:
+                        print(runnerIdOrFalse + " goes to First")
+                elif afterBase == '2':
+                    runnersAfter[1] = runnerIdOrFalse
+                    if DEBUG: 
+                        print(runnerIdOrFalse + " goes to Second")
+                elif afterBase == '3':
+                    runnersAfter[2] = runnerIdOrFalse
+                    if DEBUG:
+                        print(runnerIdOrFalse + " goes to Third")
+                elif afterBase == 'H':
+                    self.scoringRunners.append(runnerIdOrFalse)
+                    if DEBUG:
+                        print(runnerIdOrFalse + " scores!")
+                    self.runs += 1
+            else: # out is made...
+                if runnerIdOrFalse is False:
+                    print("\n****\nError about to occur -- someone is out but we do not know who!")
+                    print("it is in Inning " + str(parent.inning) + ": " + str(parent.visitOrHome))
+                    print(runnersAdvanceList)
+                    print(runnersBefore)
+                    print(runnersAfter)
+                    print(parent.parent.id)
+                    pass # debug
+                if DEBUG:
+                    print(runnerIdOrFalse + " is out")
+                self.outs += 1
+        parent.runnersAfter = runnersAfter
+        self.runnersAfter = runnersAfter
+        return runnersAfter
+        
+    def updateRunnersAdvanceBasedOnPlayEvent(self, playEvent=None):
+        '''
+        .runnersAdvance is a list of advances by runners on each base.
+        
+        It is initially populated by information from the running information
+        given after the period in the event list, but there are a lot of cases
+        where the main event has implied runner advances (stolen bases, etc.),
+        so we look at the playEvent (generally in the Play object's playEvent attribute)
+        to see what to update here.
+        '''
+        if playEvent is None:
+            playEvent = self.parent.playEvent
+        ra = self.runnersAdvance
+            
+        if playEvent.stolenBase:
+            for b in playEvent.basesStolen:
                 if b == '3' and not self.hasRunnerAdvance('2'):
                     ra.append('2-3')
                 elif b == '2' and not self.hasRunnerAdvance('1'):
@@ -156,22 +316,19 @@ class RunnerEvent(object):
                 elif b == 'H' and not self.hasRunnerAdvance('3'):
                     ra.append('3-H')
         
-        for b in parent.playEvent.eraseBaseRunners:
+        for b in playEvent.eraseBaseRunners:
             if b == '1' and not self.hasRunnerAdvance('1'):
                 ra.append('1X2')
             elif b == '2' and not self.hasRunnerAdvance('2'):
                 ra.append('2X3')
             elif b == '3' and not self.hasRunnerAdvance('3'):
                 ra.append('3XH')
-
-
-        self.outs = 0
-        self.runs = 0
-        self.scoringRunners = []
                 
-        if parent.playEvent.impliedBatterAdvance != 0:
-            if not self.hasRunnerAdvance('B'):
-                iba = parent.playEvent.impliedBatterAdvance
+        if not self.hasRunnerAdvance('B'): 
+            # if we do not already have information on the batter advance then
+            # look for it in the play event
+            if playEvent.impliedBatterAdvance != 0:
+                iba = playEvent.impliedBatterAdvance
                 bEvent = ""
                 if iba == 1:
                     bEvent = 'B-1'
@@ -185,105 +342,10 @@ class RunnerEvent(object):
                     raise RetrosheetException("Huhhh??? Implied batter advance (%s) is strange" % iba)
                 ra.append(bEvent)
 
-        # in case of implied advances, we may get the same data twice.
-        alreadyTakenCareOf = [False, False, False, False] # batter, first, second, third...
-        
         # sort to make sure order still works...
         ra.sort(key=_sortRunnerEvents)
-        
-        for i in ra:
-            isOut = False
-            i = re.sub('\(\dX\)$', '', i)  # very few cases of 2X3(1X) such as COL200205190; redundant
-            if '-' in i:
-                before, after = i.split('-')
-                #print("safe: %s %s" % (before, after))
-            elif 'X' in i:
-                try:
-                    before, after = i.split('X')
-                except ValueError:
-                    print("Error in runnerAdvance: %s" % i)
-                    print("Context: ", ra)
-                    print("Inning", self.parent().inning)
-                    print("Id", self.parent().parent().id)
-                    raise
-                isOut = True
-                #print("out: %s %s" % (before, after))
-            else:
-                raise RetrosheetException("Something wrong with runner: %s: %s: %s" % (i, raw, parent.raw))
-            beforeSmall = before[0]
-            #beforeMods = before[1:]
-            afterSmall = after[0]
-            afterMods = after[1:]
-            if ERROR_PAREN_RE.search(afterMods):
-                # error, do not mark out...
-                isOut = False
-                # do something with errors
-            
-            batterInfo = True
-            if beforeSmall == '1':
-                if alreadyTakenCareOf[1]:
-                    continue
-                batterInfo = runnersBefore[0]
-                alreadyTakenCareOf[1] = True
-                self.runnersAfter[0] = False # assumes proper encoding order of advancement
-            elif beforeSmall == '2':
-                if alreadyTakenCareOf[2]:
-                    continue
-                batterInfo = runnersBefore[1]
-                alreadyTakenCareOf[2] = True
-                self.runnersAfter[1] = False # assumes proper encoding order of advancement
-            elif beforeSmall == '3':
-                if alreadyTakenCareOf[3]:
-                    continue
-                batterInfo = runnersBefore[2]
-                alreadyTakenCareOf[3] = True
-                self.runnersAfter[2] = False # assumes proper encoding order of advancement
-            elif beforeSmall == 'B':
-                if alreadyTakenCareOf[0]:
-                    continue # implied batter but also given explicitly
-                batterInfo = parent.playerId
-                alreadyTakenCareOf[0] = True
 
-            if isOut is False:
-                if batterInfo is False:
-                    print("\n****\nError about to occur!")
-                    print("it is in Inning " + str(parent.inning))
-                    print(ra)
-                    print(runnersBefore)
-                    print(self.runnersAfter)
-                    print(self.parent().parent().id)
-                    pass # debug
-                if afterSmall == '1':
-                    self.runnersAfter[0] = batterInfo
-                    if DEBUG:
-                        print(batterInfo + " goes to First")
-                elif afterSmall == '2':
-                    self.runnersAfter[1] = batterInfo
-                    if DEBUG: 
-                        print(batterInfo + " goes to Second")
-                elif afterSmall == '3':
-                    self.runnersAfter[2] = batterInfo
-                    if DEBUG:
-                        print(batterInfo + " goes to Third")
-                elif afterSmall == 'H':
-                    self.scoringRunners.append(batterInfo)
-                    if DEBUG:
-                        print(batterInfo + " scores!")
-                    self.runs += 1
-            else:
-                if batterInfo is False:
-                    print("\n****\nError about to occur!")
-                    print("it is in Inning " + str(parent.inning) + ": " + str(parent.visitOrHome))
-                    print(ra)
-                    print(runnersBefore)
-                    print(self.runnersAfter)
-                    print(self.parent().parent().id)
-                    pass # debug
-                if DEBUG:
-                    print(batterInfo + " is out")
-                self.outs += 1
-        parent.runnersAfter = self.runnersAfter
-        
+    
     def hasRunnerAdvance(self, letter):
         '''
         Takes in a letter (or int) representing a base that may have a runner ("1", "2", "3")
@@ -295,17 +357,17 @@ class RunnerEvent(object):
         '''
         if isinstance(letter, int):
             letter = str(letter)
-        for r in self._runnersAdvance:
+        for r in self.runnersAdvance:
             if r[0] == letter:
                 return True
         return False
 
-class PlayEvent(object):
+class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
     '''
     '''
     def __init__(self, parent, raw):
+        super(PlayEvent, self).__init__(parent)
         self.raw = raw
-        self.parent = weakref.ref(parent)      
 
         # split on slashes not in parentheses
         bs = re.findall(r'(?:[^\/(]|\([^)]*\))+', raw)
@@ -569,3 +631,6 @@ class PlayEvent(object):
         self.isPickoff = False
         self.isPassedBall = False
         self.isWildPitch = False
+
+if __name__ == '__main__':
+    mainTest()
