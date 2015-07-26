@@ -413,36 +413,14 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         raw = self.raw
         self.splitBasicBatterModifiers(raw)
         self.parseBasicBatter(self.basicBatter)
-    
+
     def parseBasicBatter(self, bb=None):
         if bb is None:
             bb = self.basicBatter
 
-        if self.matchStrikeout(bb):      return
-        if self.matchBaseOnBalls(bb):    return
-        if self.matchNoPlay(bb):         return
-        if self.matchGeneralOut(bb):     return
-        if self.matchInterference(bb):   return
-        if self.matchSingle(bb):         return 
-        if self.matchDouble(bb):         return 
-        if self.matchTriple(bb):         return 
-        if self.matchHomeRun(bb):        return 
-        # SF / SH affects atBat status, but is in modifier. TODO: catch this.
-        if self.matchErrorOnFoul(bb):    return        # TODO: error on foul fly ball
-        if self.matchFielderError(bb):   return
-        if self.matchFieldersChoice(bb): return
-        # Things that move up a baserunner; all these should have explicit base runner information
-        if self.matchHitByPitch(bb):     return
-        if self.matchBalk(bb):           return
-        if self.matchDefensiveIndifference(bb):    return
-        if self.matchOtherAdvance(bb):   return
-        if self.matchWildPitch(bb):      return
-        if self.matchPassedBall(bb):     return
-        if self.matchStolenBase(bb):     return
-        # things that eliminate a base runner
-        if self.matchCaughtStealing(bb): return 
-        if self.matchPickoffCaughtStealing(bb):    return
-        if self.matchPickoff(bb):        return
+        for matchMethod in self.parseMethodOrder:
+            if matchMethod(self, bb):
+                return
         raise RetrosheetException('did not parse %s' % (bb,))
 
     
@@ -786,7 +764,19 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
             return True
         return False
 
-    
+    parseMethodOrder = (matchStrikeout, matchBaseOnBalls, matchNoPlay,
+                        # SF / SH affects atBat status, but is in modifier. TODO: catch this.
+                        matchGeneralOut, matchInterference,
+                        matchSingle, matchDouble, matchTriple, matchHomeRun,
+                        matchErrorOnFoul, matchFielderError, matchFieldersChoice,
+                        # Things that move up a baserunner; all these should have explicit base runner information
+                        matchHitByPitch, matchBalk, matchDefensiveIndifference, 
+                        matchOtherAdvance, matchWildPitch, matchPassedBall, matchStolenBase,
+                        # things that eliminate a base runner
+                        matchCaughtStealing, matchPickoffCaughtStealing, matchPickoff
+                        )
+
+
     def splitBasicBatterModifiers(self, raw=""):
         '''
         Split on slashes not in parentheses and put the first group in
