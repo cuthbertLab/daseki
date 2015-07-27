@@ -81,6 +81,13 @@ class YearDirectory(object):
         self.parseEventFiles()
         return self._eventFiles
                 
+                
+    def all(self):
+        ret = []
+        for ev in self.eventFiles:
+            ret += ev.protoGames
+        return ret
+        
     def byTeam(self, teamCode):
         '''
         Returns a list of all ProtoGames (in any event file) representing a game played by a single team

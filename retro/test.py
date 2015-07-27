@@ -99,7 +99,7 @@ class Test():
             g = Game()
             g.mergeProto(pg)
             print(g.id, g.runs)        
-            
+    
     
 if __name__ == '__main__':
     t = Test()

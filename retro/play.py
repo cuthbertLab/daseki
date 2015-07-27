@@ -34,6 +34,7 @@ VISITOR = 0
 
 DEBUG = False
 
+NON_ERROR_PAREN_THROW_RE = re.compile('\(\d+\/?T?H?\)')
 ERROR_PAREN_RE = re.compile('\(\d*E\d*[\/A-Z]*\)')
 ERROR_RE = re.compile('\d*E\d*[\/A-Z]*')
 
@@ -49,12 +50,23 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
     The playEvent potentially has two main sections separated by "." -- the PlayEvent
     (batter information) and optionally the RunnerEvent (showing changes of bases because
     of errors, advancing on throws, etc.).
+    
+    
+    Tough one:
+    
+    >>> p = retro.play.Play(playerId="batter", playEvent='54(1)/FO/G/DP.3XH(42)')
+    >>> p.runnersBefore = ['A', False, 'C']
+    >>> p.outsMadeOnPlay
+    2
+    >>> p.playEvent
+    <bbbalk.retro.play.PlayEvent 54(1)/FO/G/DP>
+    >>> p.runnerEvent
+    <bbbalk.retro.play.RunnerEvent ['A', False, 'C']['batter', False, False]: 3XH(42)>
     '''
     record = 'play'
     visitorNames = ["visitor", "home"]
-    def __init__(self, parent=None, inning="", visitOrHome="", playerId="", count="", pitches="", playEvent=""):
+    def __init__(self, parent=None, inning=0, visitOrHome=0, playerId="", count="", pitches="", playEvent=""):
         super(Play, self).__init__(parent)
-        
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
         self.visitName = self.visitorNames[int(visitOrHome)]
@@ -69,16 +81,43 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
         self.runnersAfter = [None, None, None] # None, False, (True or a batterId)
         
         rs = self.raw.split('.', 1)
-        self._rawBatter = rs[0]
+        self.rawBatter = rs[0]
         if len(rs) > 1:
-            self._rawRunners = rs[1]
+            self.rawRunners = rs[1]
         else:
-            self._rawRunners = None
+            self.rawRunners = None
 
     def __repr__(self):
         return "<%s.%s %s%s: %s:%s>" % (self.__module__, self.__class__.__name__, 
                                   self.topBottom[0], self.inning, 
                                   self.playerId, self.raw)
+
+    @property
+    def outsMadeOnPlay(self):
+        '''
+        >>> p = retro.play.Play(playEvent='K+CS2(26)/DP')
+        >>> p.playEvent.isOut
+        True
+        >>> p.outsMadeOnPlay
+        2
+
+        >>> p = retro.play.Play(playEvent='K+WP.B-1')
+        >>> p.outsMadeOnPlay
+        0
+        '''
+        # decently complex because of strikeout caught stealing / strikeout wildpitch out
+        # if explicitly coded, use this...
+        if self.playEvent.isDblPlay:
+            return 2
+        if self.playEvent.isTplPlay:
+            return 3
+        outs = 0     
+        if self.playEvent.isOut:
+            outs += 1
+            if self.playEvent.strikeOut is True and self.runnerEvent.hasRunnerAdvance('B'):
+                outs -= 1
+        outs += self.runnerEvent.outs
+        return outs
 
     @property
     def topBottom(self):
@@ -91,14 +130,14 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
     def runnerEvent(self):
         if self._runnerEvent is not None:
             return self._runnerEvent
-        self._runnerEvent = RunnerEvent(self, self._rawRunners, self.runnersBefore)
+        self._runnerEvent = RunnerEvent(self, self.rawRunners, self.runnersBefore)
         return self._runnerEvent
         
     @property
     def playEvent(self):
         if self._playEvent is not None:
             return self._playEvent
-        self._playEvent = PlayEvent(self, self._rawBatter)
+        self._playEvent = PlayEvent(self, self.rawBatter)
         return self._playEvent
 
 
@@ -159,9 +198,9 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
             self._parse()
     
     def __repr__(self):
-        return "<%s.%s %s%s: %s:%s>" % (self.__module__, self.__class__.__name__, 
-                                  self.topBottom[0], self.inning, 
-                                  self.playerId, self.raw)
+        return "<%s.%s %s%s: %s>" % (self.__module__, self.__class__.__name__, 
+                                  self.runnersBefore, self.runnersAfter, 
+                                  self.raw)
         
     
     def _parse(self):
@@ -254,7 +293,9 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
             afterMods = after[1:]
             if ERROR_PAREN_RE.search(afterMods):
                 # error occurred, do not mark out...
-                isOut = False
+                # unless there is also a non-error throw marked
+                if not NON_ERROR_PAREN_THROW_RE.search(afterMods):
+                    isOut = False #-- turns out occasionally the 1XH(E7) is still an out, but with an error.
                 # TODO: do something with errors
             
             runnerIdOrFalse = None
@@ -409,6 +450,10 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         if raw != "":
             self.parse()
 
+    def __repr__(self):
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
+                                  self.raw)
+
     def parse(self):
         raw = self.raw
         self.splitBasicBatterModifiers(raw)
@@ -449,6 +494,8 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         True
         >>> pe.basesStolen
         ['2']
+        
+        # TODO - isOut false if afterEvent matches WP?
         '''
         if bb.startswith('K'):
             self.strikeOut = True
@@ -558,25 +605,43 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
                 self.isOut = True
                 self.fielders = list(out.group(1))
                 numForced = 0
-                for forces in re.finditer('\((\d)\)', bb):  # could be B also...
+                for forces in re.finditer('\((\d)\)', bb):  # could be B also... but that is caught below
                     if DEBUG:
                         print(forces.group(1) + " FORCE OUT")
                     numForced += 1
+                    self.isOut = False # batter is not out... unless GDP or something
                     self.eraseBaseRunners.append(forces.group(1))
                 if numForced > 0:
                     isDblPlay = False
                     isTplPlay = False
                     for m in self.modifiers:
-                        if 'GDP' in m or 'LDP' in m: # includes 'BGDP' for bunted into double play                     
-                            isDblPlay = True
-                        if 'GTP' in m or 'LTP' in m: #
+                        if 'DP' in m and not 'NDP' in m: # includes 'BGDP' for bunted into double play                     
+                            isDblPlay = True # BPDP, DP (unspecified), FDP, GDP, LDP, but not NDP (No double play)
+                        if 'TP' in m and not 'NTP' in m: # NTP does not exist in retrosheet but it could?
                             isTplPlay = True
+                            isDblPlay = False # MIL201108150 - t2: 46(1)3(B)/GDP/TP.2XH(32)
                     if isDblPlay is False and isTplPlay is False:
                         self.impliedBatterAdvance = 1
-                        self.isSafe = True # ?? 
+                        self.isSafe = True 
                     elif isDblPlay is True and numForced == 2:
                         self.impliedBatterAdvance = 1  # he is safe!
-                        self.isSafe = True # ?? 
+                        self.isSafe = True  
+                    elif isDblPlay is True and numForced == 1:
+                        # we need to check to see if in the runner events there is a non-force out
+                        # throw as in top 1st: COL201407130
+                        rr = self.parent.rawRunners
+                        if rr is not None and re.search('\dX[\dH]', rr):
+                            self.impliedBatterAdvance = 1  # he is safe!
+                            self.isSafe = True
+                        else:
+                            self.isOut = True
+                            self.isSafe = False
+                    elif isTplPlay is True and numForced == 2:
+                        # in theory should do the same search as in isDblPlay for two non-force out
+                        # throws, but it doesn't change much and is insanely rare... TODO: do it!
+                        self.isOut = True
+                        self.isSafe = False
+                        
                     self.isDblPlay = isDblPlay
                     self.isTplPlay = isTplPlay
 
@@ -711,7 +776,7 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
     def matchWildPitch(self, bb):
         if bb.startswith('WP'): # needs explicit base runners
             self.isNoPlay = True
-            self.isAtBat = False
+            self.isAtBat = False # what about strikeout wild pitch?
             self.isPlateAppearance = False
             self.isWildPitch = True
             return True
@@ -735,7 +800,6 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
             self.isNoPlay = True
             self.isAtBat = False
             self.isPlateAppearance = False
-            self.isOut = True ## for not a player?
             self.caughtStealing = True
             self.eraseBaseRunnerIfNoError('CS', bb)
             return True
@@ -747,7 +811,6 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
             self.isAtBat = False
             self.isPlateAppearance = False
             self.isPickoff = True
-            self.isOut = True # decide...
             self.caughtStealing = True
             self.eraseBaseRunnerIfNoError('POCS', bb)
             return True
@@ -759,7 +822,6 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
             self.isAtBat = False
             self.isPlateAppearance = False
             self.isPickoff = True
-            self.isOut = True # decide...
             self.eraseBaseRunnerIfNoError('PO', bb)
             return True
         return False
@@ -837,22 +899,16 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         Putout on first
 
         >>> pe = retro.play.PlayEvent()
-        >>> pe.isOut = True
         >>> pe.eraseBaseRunnerIfNoError('PO', 'PO1')
         >>> pe.eraseBaseRunners
         ['1']
-        >>> pe.isOut
-        True
 
         Attemped putout at first, but error:
 
         >>> pe = retro.play.PlayEvent()
-        >>> pe.isOut = True
         >>> pe.eraseBaseRunnerIfNoError('PO', 'PO1(E1)')
         >>> pe.eraseBaseRunners
         []
-        >>> pe.isOut
-        False
         '''
         attemptedBaseSearch = re.search(playCode + '([\dH])', fullPlay)
         if attemptedBaseSearch is None:
@@ -864,7 +920,6 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         if safeOnError:
             if DEBUG:
                 print("On play " + playCode + " =" + fullPlay + "= safe on error, so credit a SB of " + attemptedBase)
-            self.isOut = False  # but out for statistics..
             if playCode != 'PO': # pickoff does not advance a runner...
                 self.stolenBase = False # not for statistical purposes though...
                 self.basesStolen.append(attemptedBase)
@@ -879,8 +934,8 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         
 
     def defaults(self):
-        self.isOut = False
-        self.isSafe = False # in case of, say, a SB play, etc., both can be False
+        self.isOut = False # is the batter out on the play
+        self.isSafe = False # ??? in case of, say, a SB play, etc., both can be False
         self.fielders = []
         
         self.impliedBatterAdvance = 0 # number of bases implied for the batter's single, double, etc.

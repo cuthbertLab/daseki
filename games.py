@@ -39,7 +39,7 @@ class GameCollection(object):
         
     def parse(self):
         '''
-        Parse all the files in the 
+        Parse all the files in the year range, filtered by team or park
         '''
         for y in range(self.yearStart, self.yearEnd + 1):
             yd = parser.YearDirectory(y)
@@ -49,7 +49,7 @@ class GameCollection(object):
             elif self.park is not None:
                 pgs = yd.byPark(self.park)
             else:
-                pgs = yd.protoGames
+                pgs = yd.all()
             for pg in pgs:
                 g = Game()
                 g.mergeProto(pg, finalize=True)
@@ -191,12 +191,46 @@ class Game(object):
                 self._startersVisitor.append(r)
         return LineupCard(visitor=self._startersVisitor, home=self._startersHome)
 
+def testCheckSaneOuts(g):
+    from pprint import pprint as pp
+    totalHalfInnings = len(g.halfInnings)
+    wrong = 0
+    for i, half in enumerate(g.halfInnings):
+        outs = 0
+        if i == totalHalfInnings - 1:
+            continue
+        for p in half:
+            if p.record == 'play':
+                outs += p.outsMadeOnPlay
+        
+        if outs != 3:
+            print(g.id, outs)
+            pp(half)
+            wrong += 1
+            for p in half:
+                if p.record == 'play':
+                    omop = p.outsMadeOnPlay
+                    if omop > 0:
+                        pp((p.outsMadeOnPlay, repr(p)))
+    return wrong
+
+def testLeadoffBatterLedInning(g):
+    for hi in g.halfInnings:
+        for p in hi:
+            if p.record != 'play':
+                continue
+            # finish when we can get player by id.
+            
 
 if __name__ == '__main__':
     gc = GameCollection()
-    gc.yearStart = 2013
+    gc.yearStart = 2000
     gc.yearEnd = 2014
     gc.team = 'SDN'
     games = gc.parse()
+    totalWrong = 0
     for g in games:
-        print(g.id, g.runs)
+        #print(g.id, g.runs)
+        totalWrong += testCheckSaneOuts(g)
+    print(totalWrong, len(games))
+
