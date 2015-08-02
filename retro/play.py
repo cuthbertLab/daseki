@@ -42,6 +42,70 @@ import bbbalk.retro.datatypeBase
 from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
 from bbbalk.testRunner import mainTest
+from bbbalk.common import warn
+
+class BaseRunners(common.ParentType):
+    '''
+    A relatively lightweight object for dealing with baserunners.
+    
+    >>> br = retro.play.BaseRunners(False, 'cuthbert', 'hamilton')
+    >>> br
+    <bbbalk.retro.play.BaseRunners 1:False 2:cuthbert 3:hamilton>
+    >>> str(br)
+    '1:False 2:cuthbert 3:hamilton'
+    >>> br.first
+    False
+    >>> br.third
+    'hamilton'
+    >>> for b in br:
+    ...     print(b)
+    False
+    cuthbert
+    hamilton
+    
+    Can pass in a parent object.
+    
+    >>> br = retro.play.BaseRunners(False, 'cuthbert', 'hamilton', parent=object)
+    '''
+    __slots__ = ('first', 'second', 'third', '_iterindex') 
+    @common.keyword_only_args('parent')
+    def __init__(self, first=False, second=False, third=False, parent=None):
+        super(BaseRunners, self).__init__(parent=parent)
+        self.first = first
+        self.second = second
+        self.third = third
+        self._iterindex = 0
+        if type(first) in (list, tuple):
+            self.first = first[0]
+            self.second = first[1]
+            self.third = first[2]
+    
+    def __repr__(self):
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
+                                  str(self))
+
+    def __str__(self):
+        return "1:%s 2:%s 3:%s" % (self.first, self.second, self.third)
+    
+    def __iter__(self):
+        self._iterindex = 0
+        return self
+    
+    def __next__(self):
+        i = self._iterindex
+        if i >= 3:
+            raise StopIteration        
+        self._iterindex += 1
+        if i == 0:
+            return self.first
+        if i == 1:
+            return self.second
+        if i == 2:
+            return self.third
+    
+    def next(self):
+        return self.__next__()
+
 
 class Play(bbbalk.retro.datatypeBase.RetroData):
     '''
@@ -68,8 +132,9 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
     
     record = 'play'
     visitorNames = ["visitor", "home"]
-    def __init__(self, parent=None, inning=0, visitOrHome=0, playerId="", count="", pitches="", playEvent=""):
-        super(Play, self).__init__(parent)
+    @common.keyword_only_args('parent')
+    def __init__(self, inning=0, visitOrHome=0, playerId="", count="", pitches="", playEvent="", parent=None):
+        super(Play, self).__init__(parent=parent)
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
         self.playerId = playerId
@@ -136,16 +201,26 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
     def runnerEvent(self):
         if self._runnerEvent is not None:
             return self._runnerEvent
-        self._runnerEvent = RunnerEvent(self, self.rawRunners, self.runnersBefore)
+        revt = self.getRunnerEvent()
+        revt.parse()
         return self._runnerEvent
         
     @property
     def playEvent(self):
         if self._playEvent is not None:
             return self._playEvent
-        self._playEvent = PlayEvent(self, self.rawBatter)
+        pevt = self.getPlayEvent()
+        pevt.parse()
         return self._playEvent
 
+    def getPlayEvent(self):
+        self._playEvent = PlayEvent(self.rawBatter, parent=self)
+        return self._playEvent
+
+    def getRunnerEvent(self):
+        self._runnerEvent = RunnerEvent(self.rawRunners, self.runnersBefore, parent=self)
+        #warn(self._runnerEvent.parent, " is the parent")
+        return self._runnerEvent
 
 def _sortRunnerEvents(rEvt):
     '''
@@ -177,7 +252,7 @@ def _sortRunnerEvents(rEvt):
     
     
 
-class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
+class RunnerEvent(common.ParentType):
     '''
     An object that, given the information from a Play object and a list of runners before the event
     can figure out who is on each base after the event.
@@ -187,9 +262,9 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
     '''
     __slots__ = ('runnersBefore', 'runnersAfter', 'runnersAdvance', 'outs', 'runs', 'scoringRunners',
                  'raw')
-    
-    def __init__(self, parent=None, raw="", runnersBefore=None):
-        super(RunnerEvent, self).__init__(parent)
+    @common.keyword_only_args('parent')    
+    def __init__(self, raw="", runnersBefore=None, parent=None):
+        super(RunnerEvent, self).__init__(parent=parent)
         self.raw = raw
         if runnersBefore is not None:
             self.runnersBefore = runnersBefore
@@ -203,8 +278,6 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         self.scoringRunners = []
         if DEBUG:
             print(runnersBefore)
-        if raw != "":
-            self._parse()
     
     def __repr__(self):
         return "<%s.%s %s%s: %s>" % (self.__module__, self.__class__.__name__, 
@@ -212,9 +285,9 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
                                   self.raw)
         
     
-    def _parse(self):
+    def parse(self):
         raw = self.raw
-        if raw is not None:
+        if raw is not None and raw != "":
             ra = raw.split(';')
         else:
             ra = []
@@ -222,6 +295,7 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         try:
             pe = self.parent.playEvent
         except AttributeError:
+            warn("No parent.playEvent!")
             return # no parent.playEvent
         self.updateRunnersAdvanceBasedOnPlayEvent(pe)
         self.setRunnersAfter(runnersAdvanceList=ra, runnersBefore=self.runnersBefore)
@@ -232,10 +306,10 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         
         also sets the number of outs and number of runs.
         
-        >>> ra = ['1-2', '3XH']
+        >>> runnerAdvances = ['1-2', '3XH']
         >>> runnersBefore = ['myke', False, 'jennifer']
         >>> re = retro.play.RunnerEvent()
-        >>> runAfter = re.setRunnersAfter(ra, runnersBefore)
+        >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter is re.runnersAfter
         True
         >>> runAfter
@@ -243,10 +317,10 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         >>> re.outs
         1
 
-        >>> ra = ['B-1', '1-2', '3-H']
+        >>> runnerAdvances = ['B-1', '1-2', '3-H']
         >>> runnersBefore = ['myke', False, 'jennifer']
         >>> re = retro.play.RunnerEvent()
-        >>> runAfter = re.setRunnersAfter(ra, runnersBefore)
+        >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter
         ['unknownBatter', 'myke', False]
         >>> re.outs
@@ -257,6 +331,7 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         ['jennifer']
 
         >>> re = retro.play.RunnerEvent(raw="B-1;1X3;3-H")
+        >>> re.parse()
         >>> re.runnersBefore = ['myke', False, 'jennifer']
         >>> re.setRunnersAfter()
         ['unknownBatter', False, False]
@@ -360,7 +435,8 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
                     print(runnersAdvanceList)
                     print(runnersBefore)
                     print(runnersAfter)
-                    print(parent.parent.id)
+                    if parent is not None and parent.parent is not None:
+                        print(parent.parent.id)
                     pass # debug
                 if DEBUG:
                     print(runnerIdOrFalse + " is out")
@@ -429,6 +505,7 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         including required advances such as force outs) from that base. 
         
         >>> re = retro.play.RunnerEvent(raw="B-1;1X3;3-H")
+        >>> re.parse()
         >>> re.hasRunnerAdvance("1")
         True
         >>> re.hasRunnerAdvance(1)
@@ -444,12 +521,13 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
         '''
         if isinstance(letter, int):
             letter = str(letter)
+        #warn("Runners advance:", self.runnersAdvance)
         for r in self.runnersAdvance:
             if r[0] == letter:
                 return True
         return False
 
-class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
+class PlayEvent(common.ParentType):
     '''
     Definitely the most complex single parsing job. What actually happened in the play, from
     the batter's perspective
@@ -458,15 +536,13 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
                  'isNoPlay', 'fielders','impliedBatterAdvance','single','double','triple',
                  'doubleGroundRule','homeRun','strikeOut','baseOnBalls', 'baseOnBallsIntentional',
                  'error','fieldersChoice','hitByPitch','isHit','totalBases','stolenBase',
-                 'caughtStealing','basesStolen','eraseBaseRunners','isPickoff','isPassedBall','isWildPitch',
-                 'isDblPlay','isTplPlay','modifiers')
+                 'caughtStealing','basesStolen','eraseBaseRunners','isPickoff','isBalk','isPassedBall','isWildPitch',
+                 'isDblPlay','isTplPlay','modifiers','defensiveIndifference')
     
-    def __init__(self, parent=None, raw=""):
+    def __init__(self, raw="", parent=None):
         super(PlayEvent, self).__init__(parent)
         self.defaults()
         self.raw = raw
-        if raw != "":
-            self.parse()
 
     def __repr__(self):
         return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
@@ -904,7 +980,7 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         >>> pe.eraseBaseRunnerIfNoError('CS', 'CS3')
         >>> pe.eraseBaseRunners
         ['2']
-        >>> pe.basesStolen
+        >>> print(pe.basesStolen)
         None
         
         Caught stealing base 3, but error!
@@ -953,8 +1029,11 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
                 eraseRunner = subtractOne[attemptedBase]
             else:
                 eraseRunner = attemptedBase
-            self.eraseBaseRunners.append(eraseRunner)
-            
+            if self.eraseBaseRunners is not None:
+                self.eraseBaseRunners.append(eraseRunner)
+            else:
+                self.eraseBaseRunners = [eraseRunner]
+                
         
 
     def defaults(self):

@@ -11,9 +11,7 @@
 '''
 Basic retrosheet record types.  Everything except play and roster/substitution entries.
 '''
-
-import weakref
-
+from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
 from bbbalk.retro.datatypeBase import RetroData
 
@@ -24,9 +22,8 @@ class Id(RetroData):
     __slots__ = ('id')
     
     record = 'id'
-    def __init__(self, parent, retroId):
-        super(Id, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, retroId, parent=None):
+        super(Id, self).__init__(parent=parent)
         self.id = retroId
 
     def __repr__(self):
@@ -39,9 +36,8 @@ class Version(RetroData):
     __slots__ = ('version')
     
     record = 'version'
-    def __init__(self, parent, version=1):
-        super(Version, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, version=1, parent=None):
+        super(Version, self).__init__(parent=parent)
         self.version = version
 
     def __repr__(self):
@@ -54,9 +50,8 @@ class Adjustment(RetroData):
     '''
     __slots__ = ('playerId', 'hand')
     
-    def __init__(self, parent, playerId, hand=None):
-        super(Adjustment, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, playerId, hand=None, parent=None):
+        super(Adjustment, self).__init__(parent=parent)
         self.playerId = playerId
         self.hand = hand
 
@@ -67,8 +62,8 @@ class Adjustment(RetroData):
 
 class BattingAdjustment(Adjustment):
     record = 'badj'
-    def __init__(self, parent, playerId, hand=None):
-        super(BattingAdjustment, self).__init__(parent, playerId, hand)
+    def __init__(self, playerId, hand=None, parent=None):
+        super(BattingAdjustment, self).__init__(playerId, hand, parent=parent)
 
 class PitchingAdjustment(Adjustment):
     '''
@@ -77,16 +72,16 @@ class PitchingAdjustment(Adjustment):
     Will have more evidence of this in 2015 data
     '''
     record = 'padj'
-    def __init__(self, parent, playerId, hand=None):
-        super(PitchingAdjustment, self).__init__(parent, playerId, hand)
+    def __init__(self, playerId, hand=None, parent=None):
+        super(PitchingAdjustment, self).__init__(playerId, hand, parent=parent)
 
 class OutOfOrderAdjustment(Adjustment):
     '''
     TO-DO: need example of this
     '''
     record = 'ladj'
-    def __init__(self, parent, playerId, hand=None): # is hand necessary here?
-        super(OutOfOrderAdjustment, self).__init__(parent, playerId, hand)
+    def __init__(self, playerId, hand=None, parent=None): # is hand necessary here?
+        super(OutOfOrderAdjustment, self).__init__(playerId, hand, parent=parent)
 
 class Data(RetroData):
     '''
@@ -95,9 +90,8 @@ class Data(RetroData):
     __slots__ = ('dataType', 'playerId', 'runs')
     
     record = 'data'
-    def __init__(self, parent, dataType, playerId, runs):
-        super(Data, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, dataType, playerId, runs, parent=None):
+        super(Data, self).__init__(parent=parent)
         if dataType != 'er':
             raise RetrosheetException("data other than earned runs encountered: %s !" % dataType)
         self.dataType = dataType
@@ -114,9 +108,8 @@ class Comment(RetroData):
     '''
     __slots__ = ('comment')
     record = 'com'
-    def __init__(self, parent, comment, *junk):
-        super(Comment, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, comment, parent=None, *junk):
+        super(Comment, self).__init__(parent=parent)
         self.comment = comment
         # a very few comments such as 2006MIN.EVA have extra information after the , 
         # com,puntn001,R -- seems to be a miscoded badj
@@ -144,9 +137,9 @@ class Info(RetroData):
     del(_gameRelatedTypes)
     del(_administrativeTypes)
     
-    def __init__(self, parent, recordType, *dataInfo):
-        super(Info, self).__init__()
-        self.parent = weakref.ref(parent)
+    @common.keyword_only_args('parent')
+    def __init__(self, recordType, parent=None, *dataInfo):
+        super(Info, self).__init__(parent=parent)
         self.recordType = recordType
         if recordType not in self.knownTypes:
             raise RetrosheetException("Unknown record type %s for info record" % recordType)
@@ -155,5 +148,6 @@ class Info(RetroData):
         self.dataInfo = dataInfo[0] 
 
     def __repr__(self):
+        return self.__class__.__name__
         return "<%s.%s %s:%s>" % (self.__module__, self.__class__.__name__, self.recordType, self.dataInfo)
 

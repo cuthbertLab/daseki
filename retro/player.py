@@ -24,9 +24,8 @@ class Player(RetroData):
     visitorNames = ["visitor", "home"]
     del(_positionNames)
     
-    def __init__(self, parent, playerId, playerName, visitOrHome, battingOrder, position):
-        super(Player, self).__init__()
-        self.parent = weakref.ref(parent)
+    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
+        super(Player, self).__init__(parent=parent)
         try:
             self.id = playerId
             self.name = playerName
@@ -49,12 +48,12 @@ class Player(RetroData):
 class Start(Player):
     record = 'start'
     
-    def __init__(self, parent, playerId, playerName, visitOrHome, battingOrder, position):
-        super(Start, self).__init__(parent, playerId, playerName, visitOrHome, battingOrder, position)
+    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
+        super(Start, self).__init__(playerId, playerName, visitOrHome, battingOrder, position, parent=parent)
 
 class Sub(Player):
     record = 'sub'
-    def __init__(self, parent, playerId, playerName, visitOrHome, battingOrder, position):
-        super(Sub, self).__init__(parent, playerId, playerName, visitOrHome, battingOrder, position)
+    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
+        super(Sub, self).__init__(playerId, playerName, visitOrHome, battingOrder, position, parent=parent)
     
     

@@ -4,6 +4,7 @@ VISITOR = 0
 DEBUG = False
 
 from bbbalk.retro import basic, play, player, parser
+from bbbalk import common
 
 from collections import namedtuple
 Runs = namedtuple('Runs', 'visitor home')
@@ -82,7 +83,8 @@ class Game(object):
             eventType = d[0]
             eventData = d[1:]
             eventClass = eventsToClasses[eventType]
-            rec = eventClass(self, *eventData)
+            #common.warn(eventClass)
+            rec = eventClass(*eventData, parent=self)
             self.records.append(rec)
         if finalize is True:
             self.finalizeParsing()
@@ -97,11 +99,11 @@ class Game(object):
         for r in self.recordsByType(('play','sub')):
             if r.record == 'sub':
                 if DEBUG:
-                    print("@#%&^$*# SUB")
+                    common.warn("@#%&^$*# SUB")
             elif r.record == 'play':
                 if r.inning != lastInning or r.visitOrHome != lastVisitOrHome: # new half-inning
                     if DEBUG:
-                        print("*** " + self.id + " Inning: " + str(r.inning) + " " + str(r.visitOrHome))
+                        common.warn("*** " + self.id + " Inning: " + str(r.inning) + " " + str(r.visitOrHome))
                     if thisHalfInning != None:
                         halfInnings.append(thisHalfInning)
                     thisHalfInning = []
@@ -109,8 +111,8 @@ class Game(object):
                     lastInning = r.inning
                     lastVisitOrHome = r.visitOrHome
                 r.runnersBefore = lastRunners[:]
-                r.playEvent # TODO -- this just forces parsing... should call explicitly...
-                r.runnerEvent # TODO -- this just forces parsing...should call explicitly...
+                r.getPlayEvent().parse() 
+                r.getRunnerEvent().parse()
                 lastRunners = r.runnersAfter[:]
             else:
                 raise Exception("should only have play and sub records.")
