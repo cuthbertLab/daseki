@@ -63,13 +63,15 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
     >>> p.runnerEvent
     <bbbalk.retro.play.RunnerEvent ['A', False, 'C']['batter', False, False]: 3XH(42)>
     '''
+    __slots__ = ('inning', 'visitOrHome', 'playerId', 'count', '_pitches', 'raw', 
+                 '_playEvent', '_runnerEvent', 'runnersBefore', 'runnersAfter', 'rawBatter', 'rawRunners')
+    
     record = 'play'
     visitorNames = ["visitor", "home"]
     def __init__(self, parent=None, inning=0, visitOrHome=0, playerId="", count="", pitches="", playEvent=""):
         super(Play, self).__init__(parent)
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
-        self.visitName = self.visitorNames[int(visitOrHome)]
         self.playerId = playerId
         self.count = count
         self._pitches = pitches
@@ -92,6 +94,10 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
                                   self.topBottom[0], self.inning, 
                                   self.playerId, self.raw)
 
+    @property
+    def visitorName(self):
+        return self.visitorNames[int(self.visitOrHome)]
+    
     @property
     def outsMadeOnPlay(self):
         '''
@@ -179,6 +185,9 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
     Needs a reference to the parent Play object to look at the Play object's PlayEvent which
     contains information about stolenBases etc.
     '''
+    __slots__ = ('runnersBefore', 'runnersAfter', 'runnersAdvance', 'outs', 'runs', 'scoringRunners',
+                 'raw')
+    
     def __init__(self, parent=None, raw="", runnersBefore=None):
         super(RunnerEvent, self).__init__(parent)
         self.raw = raw
@@ -375,22 +384,24 @@ class RunnerEvent(bbbalk.retro.datatypeBase.ParentType):
             playEvent = self.parent.playEvent
         ra = self.runnersAdvance
             
-        for b in playEvent.basesStolen: # do not check (if playEvent.stolenBase) 
-            # because CS(E4) can mean there is a base stolen without a stolen base
-            if b == '3' and not self.hasRunnerAdvance('2'):
-                ra.append('2-3')
-            elif b == '2' and not self.hasRunnerAdvance('1'):
-                ra.append('1-2')
-            elif b == 'H' and not self.hasRunnerAdvance('3'):
-                ra.append('3-H')
-        
-        for b in playEvent.eraseBaseRunners:
-            if b == '1' and not self.hasRunnerAdvance('1'):
-                ra.append('1X2')
-            elif b == '2' and not self.hasRunnerAdvance('2'):
-                ra.append('2X3')
-            elif b == '3' and not self.hasRunnerAdvance('3'):
-                ra.append('3XH')
+        if playEvent.basesStolen is not None:
+            for b in playEvent.basesStolen: # do not check (if playEvent.stolenBase) 
+                # because CS(E4) can mean there is a base stolen without a stolen base
+                if b == '3' and not self.hasRunnerAdvance('2'):
+                    ra.append('2-3')
+                elif b == '2' and not self.hasRunnerAdvance('1'):
+                    ra.append('1-2')
+                elif b == 'H' and not self.hasRunnerAdvance('3'):
+                    ra.append('3-H')
+
+        if playEvent.eraseBaseRunners is not None:        
+            for b in playEvent.eraseBaseRunners:
+                if b == '1' and not self.hasRunnerAdvance('1'):
+                    ra.append('1X2')
+                elif b == '2' and not self.hasRunnerAdvance('2'):
+                    ra.append('2X3')
+                elif b == '3' and not self.hasRunnerAdvance('3'):
+                    ra.append('3XH')
                 
         if not self.hasRunnerAdvance('B') and playEvent.impliedBatterAdvance != 0: 
             # if we do not already have information on the batter advance then
@@ -443,6 +454,13 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
     Definitely the most complex single parsing job. What actually happened in the play, from
     the batter's perspective
     '''
+    __slots__ = ('raw', 'isOut', 'basicBatter',  'isSafe', 'isAtBat', 'isPlateAppearance',
+                 'isNoPlay', 'fielders','impliedBatterAdvance','single','double','triple',
+                 'doubleGroundRule','homeRun','strikeOut','baseOnBalls', 'baseOnBallsIntentional',
+                 'error','fieldersChoice','hitByPitch','isHit','totalBases','stolenBase',
+                 'caughtStealing','basesStolen','eraseBaseRunners','isPickoff','isPassedBall','isWildPitch',
+                 'isDblPlay','isTplPlay','modifiers')
+    
     def __init__(self, parent=None, raw=""):
         super(PlayEvent, self).__init__(parent)
         self.defaults()
@@ -603,13 +621,15 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
                 self.impliedBatterAdvance = 1
             else:
                 self.isOut = True
-                self.fielders = list(out.group(1))
+                self.fielders = tuple(out.group(1))
                 numForced = 0
                 for forces in re.finditer('\((\d)\)', bb):  # could be B also... but that is caught below
                     if DEBUG:
                         print(forces.group(1) + " FORCE OUT")
                     numForced += 1
                     self.isOut = False # batter is not out... unless GDP or something
+                    if self.eraseBaseRunners is None:
+                        self.eraseBaseRunners = []
                     self.eraseBaseRunners.append(forces.group(1))
                 if numForced > 0:
                     isDblPlay = False
@@ -791,6 +811,8 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
             self.stolenBase = True
             steals = bb.split(';')
             for s in steals:
+                if self.basesStolen is None:
+                    self.basesStolen = []
                 self.basesStolen.append(s[2])
             return True
         return False
@@ -883,14 +905,14 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
         >>> pe.eraseBaseRunners
         ['2']
         >>> pe.basesStolen
-        []
+        None
         
         Caught stealing base 3, but error!
         
         >>> pe = retro.play.PlayEvent()
         >>> pe.eraseBaseRunnerIfNoError('CS', 'CS3(E6)')
-        >>> pe.eraseBaseRunners
-        []
+        >>> print(pe.eraseBaseRunners)
+        None
         >>> pe.basesStolen
         ['3']
 
@@ -907,8 +929,8 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
 
         >>> pe = retro.play.PlayEvent()
         >>> pe.eraseBaseRunnerIfNoError('PO', 'PO1(E1)')
-        >>> pe.eraseBaseRunners
-        []
+        >>> print(pe.eraseBaseRunners)
+        None
         '''
         attemptedBaseSearch = re.search(playCode + '([\dH])', fullPlay)
         if attemptedBaseSearch is None:
@@ -922,6 +944,8 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
                 print("On play " + playCode + " =" + fullPlay + "= safe on error, so credit a SB of " + attemptedBase)
             if playCode != 'PO': # pickoff does not advance a runner...
                 self.stolenBase = False # not for statistical purposes though...
+                if self.basesStolen is None:
+                    self.basesStolen = []
                 self.basesStolen.append(attemptedBase)
         else:
             subtractOne = {'H': '3', '3': '2', '2': '1'}
@@ -936,7 +960,7 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
     def defaults(self):
         self.isOut = False # is the batter out on the play
         self.isSafe = False # ??? in case of, say, a SB play, etc., both can be False
-        self.fielders = []
+        self.fielders = tuple()
         
         self.impliedBatterAdvance = 0 # number of bases implied for the batter's single, double, etc.
         
@@ -963,8 +987,8 @@ class PlayEvent(bbbalk.retro.datatypeBase.ParentType):
 
         self.stolenBase = False # a base was stolen (for statistical purposes)
         self.caughtStealing = False
-        self.basesStolen = []
-        self.eraseBaseRunners = []
+        self.basesStolen = None
+        self.eraseBaseRunners = None
 
         self.isPickoff = False
         self.isPassedBall = False

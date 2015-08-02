@@ -12,6 +12,7 @@ from __future__ import print_function
 from __future__ import division
 
 import os
+import weakref
 # tools for setup.py
 def sourceFilePath():
     '''
@@ -67,6 +68,51 @@ def ordinalAbbreviation(value, plural=False):
     if post != 'st' and plural:
         post += 's'
     return post
+
+class SlottedObject(object):
+    r'''
+    Provides template for classes implementing slots allowing it to be pickled
+    properly.
+    
+    Only use SlottedObjects for objects that we expect to make so many of
+    that memory storage and speed become an issue. For instance an object representing
+    a single play or plate appearence.
+    
+    >>> import pickle
+    >>> class BatAngle(common.SlottedObject):
+    ...     __slots__ = ('horizontal', 'vertical')
+    >>> s = Glissdata
+    >>> s.horizontal = 35
+    >>> s.vertical = 20
+    >>> #_DOCS_SHOW out = pickle.dumps(s)
+    >>> #_DOCS_SHOW t = pickle.loads(out)
+    >>> t = s #_DOCS_HIDE -- cannot define classes for pickling in doctests
+    >>> t.horizontal, t.vertical
+    (35, 20)
+    '''
+    
+    ### CLASS VARIABLES ###
+
+    __slots__ = ()
+
+    ### SPECIAL METHODS ###
+
+    def __getstate__(self):
+        state = {}
+        slots = set()
+        for cls in self.__class__.mro():
+            slots.update(getattr(cls, '__slots__', ()))
+        for slot in slots:
+            sValue = getattr(self, slot, None)
+            if sValue is not None and type(sValue) is weakref.ref:
+                sValue = sValue()
+                print("Warning: uncaught weakref found in %r - %s, will not be rewrapped" % (self, slot))
+            state[slot] = sValue
+        return state
+
+    def __setstate__(self, state):
+        for slot, value in state.items():
+            setattr(self, slot, value)
 
 
 

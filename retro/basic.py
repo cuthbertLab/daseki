@@ -21,6 +21,8 @@ class Id(RetroData):
     '''
     defines the ID for the game
     '''
+    __slots__ = ('id')
+    
     record = 'id'
     def __init__(self, parent, retroId):
         super(Id, self).__init__()
@@ -34,6 +36,8 @@ class Version(RetroData):
     '''
     defines the retrosheet version
     '''
+    __slots__ = ('version')
+    
     record = 'version'
     def __init__(self, parent, version=1):
         super(Version, self).__init__()
@@ -48,6 +52,8 @@ class Adjustment(RetroData):
     '''
     for when a player bats or pitches with the opposite hand or player bats out of order
     '''
+    __slots__ = ('playerId', 'hand')
+    
     def __init__(self, parent, playerId, hand=None):
         super(Adjustment, self).__init__()
         self.parent = weakref.ref(parent)
@@ -86,6 +92,8 @@ class Data(RetroData):
     '''
     At present, only er (earned runs) data is generated
     '''
+    __slots__ = ('dataType', 'playerId', 'runs')
+    
     record = 'data'
     def __init__(self, parent, dataType, playerId, runs):
         super(Data, self).__init__()
@@ -104,6 +112,7 @@ class Comment(RetroData):
     '''
     Records a single comment entry
     '''
+    __slots__ = ('comment')
     record = 'com'
     def __init__(self, parent, comment, *junk):
         super(Comment, self).__init__()
@@ -120,6 +129,8 @@ class Info(RetroData):
     '''
     Defines a single retrosheet info record
     '''
+    
+    __slots__ = ('recordType', 'dataInfo')
     record = 'info'
     _gameRelatedTypes = "visteam hometeam date number " + \
         "starttime daynight usedh pitches umphome ump1b ump2b ump3b umplf umprf " + \

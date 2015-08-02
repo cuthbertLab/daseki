@@ -17,19 +17,21 @@ import copy
 from bbbalk.testRunner import mainTest
 #from exceptionsBB import BBBalkException
 
+VISITOR = 0
+HOME = 1
 
 class Inning(object):
-    def __init__(self, inningNumber = 1, awayHalf = None, homeHalf = None):
+    def __init__(self, inningNumber = 1, visitorHalf = None, homeHalf = None):
         self.inningNumber = inningNumber
-        self.awayHalf = awayHalf
+        self.visitorHalf = visitorHalf
         self.homeHalf = homeHalf
 
 class HalfInning(object):
-    def __init__(self, inningNumber = 1, homeAway = 'away', startingBatterNumber = 1):
+    def __init__(self, parent, inningNumber = 1, visitorHome = VISITOR):
         self.inningNumber = inningNumber
-        self.homeAway = homeAway
-        self.startingBatterNumber = startingBatterNumber
-        self.results = []
+        self.visitorHome = visitorHome
+
+
 
 class LineupCard(object):
     pass
@@ -38,8 +40,6 @@ class PlateAppearance(object):
     def __init__(self, abbreviation=None):
         self.abbreviation = abbreviation
         
-class Player(object):
-    pass
 
 class BoxScore(object):
     pass

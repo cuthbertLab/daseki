@@ -9,8 +9,11 @@
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
 import weakref
+from bbbalk import common
 
-class ParentType(object):
+class ParentType(common.SlottedObject):
+    __slots__ = ('_parent')
+    
     def __init__(self, parent=None):
         self._parent = None
         self.parent = parent
@@ -34,6 +37,10 @@ class ParentType(object):
     parent = property(_getParent, _setParent)
 
 class RetroData(ParentType):
+    
+    __slots__ = ('associatedComment')
+
+    
     record = 'unknown'
     def __init__(self, parent=None):
         super(RetroData, self).__init__(parent)

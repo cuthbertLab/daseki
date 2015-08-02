@@ -224,7 +224,7 @@ def testLeadoffBatterLedInning(g):
 
 if __name__ == '__main__':
     gc = GameCollection()
-    gc.yearStart = 2000
+    gc.yearStart = 2013
     gc.yearEnd = 2014
     gc.team = 'SDN'
     games = gc.parse()
