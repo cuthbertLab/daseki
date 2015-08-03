@@ -227,12 +227,14 @@ def testLeadoffBatterLedInning(g):
 if __name__ == '__main__':
     gc = GameCollection()
     gc.yearStart = 2013
-    gc.yearEnd = 2014
+    gc.yearEnd = 2013
     gc.team = 'SDN'
     games = gc.parse()
     totalWrong = 0
     for g in games:
         #print(g.id, g.runs)
         totalWrong += testCheckSaneOuts(g)
+    print(games[5].halfInnings[3][2].parentByClass('Game'))
+    print(games[5].halfInnings[3][2].playEvent.parentByClass('Game'))
     print(totalWrong, len(games))
 

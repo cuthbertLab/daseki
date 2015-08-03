@@ -130,6 +130,20 @@ class ParentType(SlottedObject):
         self._parent = None
         self.parent = parent
 
+    def parentByClass(self, className):
+        '''
+        iterate through parents until one of the proper class is found.
+        '''
+        p = self.parent
+        if p is None:
+            return None
+        if p.__class__.__name__ == className:
+            return p
+        elif hasattr(p, 'parentByClass'):
+            return p.parentByClass(className)
+        else:
+            return None
+
     def _getParent(self):
         if type(self._parent) is weakref.ref:
             return self._parent()
