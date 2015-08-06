@@ -218,12 +218,27 @@ class EventFile(object):
         self.data = data
         self.parseData()
 
+    def lightCSV(self, line):
+        '''
+        The python csv.reader is very powerful, but also very slow.  So, what we
+        do is a normal parse most of the time, but use csv reader if there is a quotation
+        mark...
+        '''
+        if '"' not in line:
+            return line.rstrip().split(',')
+        else:
+            for d in csv.reader([line]):
+                return d
+
     def parseData(self):
         '''
         Populates self.protoGames by reading in the CSV data in self.data.
         '''
         protoGame = None
-        for d in csv.reader(self.data):
+        for l in self.data:
+            d = self.lightCSV(l)
+            
+            #common.warn(d)
             eventType = d[0]
             eventData = d[1:]
             if eventType == 'id':
@@ -270,7 +285,7 @@ class ProtoGame(object):
         '''
         Append a record into self.records but update team information in the process.
         '''
-        if rec[0] == 'info':
+        if rec[0] is not 'info':
             if rec[1] == 'visteam':
                 self.visteam = rec[2]
             elif rec[1] == 'hometeam':

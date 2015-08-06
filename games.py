@@ -5,6 +5,7 @@ DEBUG = False
 
 from bbbalk.retro import basic, play, player, parser
 from bbbalk import common
+from bbbalk import base
 
 from collections import namedtuple
 Runs = namedtuple('Runs', 'visitor home')
@@ -51,6 +52,7 @@ class GameCollection(object):
                 pgs = yd.byPark(self.park)
             else:
                 pgs = yd.all()
+            common.warn('proto parsing done')
             for pg in pgs:
                 g = Game()
                 g.mergeProto(pg, finalize=True)
@@ -106,14 +108,16 @@ class Game(object):
                         common.warn("*** " + self.id + " Inning: " + str(r.inning) + " " + str(r.visitOrHome))
                     if thisHalfInning != None:
                         halfInnings.append(thisHalfInning)
-                    thisHalfInning = []
-                    lastRunners = [False, False, False]                
+                    thisHalfInning = base.HalfInning(parent=self)
+                    thisHalfInning.inningNumber = r.inning
+                    thisHalfInning.visitorHome = r.visitOrHome
+                    lastRunners = base.BaseRunners(False, False, False, parent=self)                
                     lastInning = r.inning
                     lastVisitOrHome = r.visitOrHome
-                r.runnersBefore = lastRunners[:]
+                r.runnersBefore = lastRunners
                 r.getPlayEvent().parse() 
                 r.getRunnerEvent().parse()
-                lastRunners = r.runnersAfter[:]
+                lastRunners = r.runnersAfter.copy()
             else:
                 raise Exception("should only have play and sub records.")
             thisHalfInning.append(r)
@@ -232,8 +236,9 @@ if __name__ == '__main__':
     games = gc.parse()
     totalWrong = 0
     for g in games:
-        #print(g.id, g.runs)
+        print(g.id, g.runs)
         totalWrong += testCheckSaneOuts(g)
+    print(games[5].halfInnings[3].parentByClass('Game'))
     print(games[5].halfInnings[3][2].parentByClass('Game'))
     print(games[5].halfInnings[3][2].playEvent.parentByClass('Game'))
     print(totalWrong, len(games))

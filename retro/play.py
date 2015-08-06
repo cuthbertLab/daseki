@@ -43,68 +43,7 @@ from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
 from bbbalk.testRunner import mainTest
 from bbbalk.common import warn
-
-class BaseRunners(common.ParentType):
-    '''
-    A relatively lightweight object for dealing with baserunners.
-    
-    >>> br = retro.play.BaseRunners(False, 'cuthbert', 'hamilton')
-    >>> br
-    <bbbalk.retro.play.BaseRunners 1:False 2:cuthbert 3:hamilton>
-    >>> str(br)
-    '1:False 2:cuthbert 3:hamilton'
-    >>> br.first
-    False
-    >>> br.third
-    'hamilton'
-    >>> for b in br:
-    ...     print(b)
-    False
-    cuthbert
-    hamilton
-    
-    Can pass in a parent object.
-    
-    >>> br = retro.play.BaseRunners(False, 'cuthbert', 'hamilton', parent=object)
-    '''
-    __slots__ = ('first', 'second', 'third', '_iterindex') 
-    @common.keyword_only_args('parent')
-    def __init__(self, first=False, second=False, third=False, parent=None):
-        super(BaseRunners, self).__init__(parent=parent)
-        self.first = first
-        self.second = second
-        self.third = third
-        self._iterindex = 0
-        if type(first) in (list, tuple):
-            self.first = first[0]
-            self.second = first[1]
-            self.third = first[2]
-    
-    def __repr__(self):
-        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
-                                  str(self))
-
-    def __str__(self):
-        return "1:%s 2:%s 3:%s" % (self.first, self.second, self.third)
-    
-    def __iter__(self):
-        self._iterindex = 0
-        return self
-    
-    def __next__(self):
-        i = self._iterindex
-        if i >= 3:
-            raise StopIteration        
-        self._iterindex += 1
-        if i == 0:
-            return self.first
-        if i == 1:
-            return self.second
-        if i == 2:
-            return self.third
-    
-    def next(self):
-        return self.__next__()
+from bbbalk import base
 
 
 class Play(bbbalk.retro.datatypeBase.RetroData):
@@ -124,6 +63,8 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
     2
     >>> p.playEvent
     <bbbalk.retro.play.PlayEvent 54(1)/FO/G/DP>
+    >>> p.playEvent.isDblPlay
+    True
     >>> p.runnerEvent
     <bbbalk.retro.play.RunnerEvent ['A', False, 'C']['batter', False, False]: 3XH(42)>
     '''
@@ -144,8 +85,8 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
         self._playEvent = None
         self._runnerEvent = None
         
-        self.runnersBefore = [None, None, None] # None, False, (True or a batterId)
-        self.runnersAfter = [None, None, None] # None, False, (True or a batterId)
+        self.runnersBefore = None #, False, (True or a batterId)
+        self.runnersAfter = None # None, False, (True or a batterId)
         
         rs = self.raw.split('.', 1)
         self.rawBatter = rs[0]
@@ -269,9 +210,9 @@ class RunnerEvent(common.ParentType):
         if runnersBefore is not None:
             self.runnersBefore = runnersBefore
         else:
-            self.runnersBefore = [False, False, False]
+            self.runnersBefore = base.BaseRunners(None, None, None, parent=self)
             
-        self.runnersAfter = self.runnersBefore[:]
+        self.runnersAfter = None
         self.runnersAdvance = None
         self.outs = 0
         self.runs = 0
@@ -295,7 +236,7 @@ class RunnerEvent(common.ParentType):
         try:
             pe = self.parent.playEvent
         except AttributeError:
-            warn("No parent.playEvent!")
+            #warn("No parent.playEvent!")
             return # no parent.playEvent
         self.updateRunnersAdvanceBasedOnPlayEvent(pe)
         self.setRunnersAfter(runnersAdvanceList=ra, runnersBefore=self.runnersBefore)
@@ -346,7 +287,7 @@ class RunnerEvent(common.ParentType):
         if runnersBefore is None:
             runnersBefore = self.runnersBefore
 
-        runnersAfter = runnersBefore[:]
+        runnersAfter = runnersBefore.copy()
         # in case of implied advances, we may get the same data twice.
         alreadyTakenCareOf = [False, False, False, False] # batter, first, second, third...
                 
@@ -407,12 +348,12 @@ class RunnerEvent(common.ParentType):
 
             if isOut is False:
                 if runnerIdOrFalse is False:
-                    print("\n****\nError about to occur!")
-                    print("it is in Inning " + str(parent.inning))
-                    print(runnersAdvanceList)
-                    print(runnersBefore)
-                    print(runnersAfter)
-                    print(parent.parent.id)
+                    warn("\n****\nError about to occur!")
+                    warn("it is in Inning " + str(parent.inning))
+                    warn(runnersAdvanceList)
+                    warn(runnersBefore)
+                    warn(runnersAfter)
+                    warn(parent.parent.id)
                     pass # debug
 
                 if afterBase in ('1', '2', '3'):
