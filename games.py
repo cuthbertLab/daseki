@@ -3,6 +3,7 @@ VISITOR = 0
 
 DEBUG = False
 
+import unittest
 from bbbalk.retro import basic, play, player, parser
 from bbbalk import common
 from bbbalk import base
@@ -32,6 +33,14 @@ class GameCollection(object):
     Set .yearStart, .yearEnd, .team, and .park before running `.parse()`
     to limit parsing.
     '''
+    _DOC_ATTR = {'park': '''
+    A three letter abbreviation of the home team's park to play in.
+    
+    >>> gc = games.GameCollection()
+    >>> gc.park = u'SDN'
+    >>> gc.park
+    u'SDN'
+    '''}
     def __init__(self):
         self.games = []
         self.yearStart = 2014
@@ -52,7 +61,6 @@ class GameCollection(object):
                 pgs = yd.byPark(self.park)
             else:
                 pgs = yd.all()
-            common.warn('proto parsing done')
             for pg in pgs:
                 g = Game()
                 g.mergeProto(pg, finalize=True)
@@ -220,26 +228,37 @@ def testCheckSaneOuts(g):
                         pp((p.outsMadeOnPlay, repr(p)))
     return wrong
 
-def testLeadoffBatterLedInning(g):
-    for hi in g.halfInnings:
-        for p in hi:
-            if p.record != 'play':
-                continue
-            # finish when we can get player by id.
+class Test(unittest.TestCase):
+    pass
+
+    def runTest(self):
+        pass
+    
+
+    def testLeadoffBatterLedInning(self):
+        pass
+#         for hi in g.halfInnings:
+#             for p in hi:
+#                 if p.record != 'play':
+#                     continue
+#                 # finish when we can get player by id.
             
+    def test2013Pads(self):
+        gc = GameCollection()
+        gc.yearStart = 2013
+        gc.yearEnd = 2013
+        gc.team = 'SDN'
+        games = gc.parse()
+        totalWrong = 0
+        for g in games:
+            print(g.id, g.runs)
+            totalWrong += testCheckSaneOuts(g)
+        print(games[5].halfInnings[3].parentByClass('Game'))
+        print(games[5].halfInnings[3][2].parentByClass('Game'))
+        print(games[5].halfInnings[3][2].playEvent.parentByClass('Game'))
+        print(totalWrong, len(games))
 
 if __name__ == '__main__':
-    gc = GameCollection()
-    gc.yearStart = 2013
-    gc.yearEnd = 2013
-    gc.team = 'SDN'
-    games = gc.parse()
-    totalWrong = 0
-    for g in games:
-        print(g.id, g.runs)
-        totalWrong += testCheckSaneOuts(g)
-    print(games[5].halfInnings[3].parentByClass('Game'))
-    print(games[5].halfInnings[3][2].parentByClass('Game'))
-    print(games[5].halfInnings[3][2].playEvent.parentByClass('Game'))
-    print(totalWrong, len(games))
+    from bbbalk import mainTest
+    mainTest(Test)
 

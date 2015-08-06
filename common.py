@@ -20,6 +20,7 @@ import functools
 import inspect
 import sys
 import os
+import re
 import weakref
 from bbbalk.ext import six
 # tools for setup.py
@@ -50,7 +51,7 @@ ordinals = ["Zeroth","First","Second","Third","Fourth","Fifth",
 def ordinalAbbreviation(value, plural=False):
     '''Return the ordinal abbreviations for integers
 
-    >>> from music21 import common
+    >>> from bbbalk import common
     >>> common.ordinalAbbreviation(3)
     'rd'
     >>> common.ordinalAbbreviation(255)
@@ -90,7 +91,7 @@ class SlottedObject(object):
     >>> import pickle
     >>> class BatAngle(common.SlottedObject):
     ...     __slots__ = ('horizontal', 'vertical')
-    >>> s = Glissdata
+    >>> s = BatAngle()
     >>> s.horizontal = 35
     >>> s.vertical = 20
     >>> #_DOCS_SHOW out = pickle.dumps(s)
@@ -162,6 +163,62 @@ class ParentType(SlottedObject):
     
     parent = property(_getParent, _setParent)
 
+#-------------------------------------------------------------------------------
+def wrapWeakref(referent):
+    '''
+    utility function that wraps objects as weakrefs but does not wrap
+    already wrapped objects; also prevents wrapping the unwrapable "None" type, etc.
+
+    >>> import weakref
+    >>> class Mock(object):
+    ...     pass
+    >>> a1 = Mock()
+    >>> ref1 = common.wrapWeakref(a1)
+    >>> ref1
+    <weakref at 0x101f29ae8; to 'Mock' at 0x101e45358>
+    >>> ref2 = common.wrapWeakref(ref1)
+    >>> ref2
+    <weakref at 0x101f299af; to 'Mock' at 0x101e45358>
+    >>> ref3 = common.wrapWeakref(5)
+    >>> ref3
+    5
+    '''
+    #if type(referent) is weakref.ref:
+#     if isinstance(referent, weakref.ref):
+#         return referent
+    try:
+        return weakref.ref(referent)
+    # if referent is None, will raise a TypeError
+    # if referent is a weakref, will also raise a TypeError
+    # will also raise a type error for string, ints, etc.
+    # slight performance boost rather than checking if None
+    except TypeError:
+        return referent
+        #return None
+
+def unwrapWeakref(referent):
+    '''
+    Utility function that gets an object that might be an object itself
+    or a weak reference to an object.  It returns obj() if it's a weakref or another callable.
+    and obj if it's not.
+
+    >>> class Mock(object):
+    ...     pass
+    >>> a1 = Mock()
+    >>> a2 = Mock()
+    >>> a2.strong = a1
+    >>> a2.weak = common.wrapWeakref(a1)
+    >>> common.unwrapWeakref(a2.strong) is a1
+    True
+    >>> common.unwrapWeakref(a2.weak) is a1
+    True
+    >>> common.unwrapWeakref(a2.strong) is common.unwrapWeakref(a2.weak)
+    True
+    '''
+    try:
+        return referent()
+    except TypeError:
+        return referent
 
 
 def keyword_only_args(*included_keywords):
@@ -333,4 +390,5 @@ def formatStr(msg, *arguments, **keywords):
         return ' '.join(msg)+'\n'
 
 if __name__ == '__main__':
-    print(dataDirByYear(2012))
+    import bbbalk
+    bbbalk.mainTest()

@@ -41,7 +41,6 @@ ERROR_RE = re.compile('\d*E\d*[\/A-Z]*')
 import bbbalk.retro.datatypeBase 
 from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
-from bbbalk.testRunner import mainTest
 from bbbalk.common import warn
 from bbbalk import base
 
@@ -1018,4 +1017,5 @@ class PlayEvent(common.ParentType):
         self.isTplPlay = False
 
 if __name__ == '__main__':
+    from bbbalk.testRunner import mainTest
     mainTest()

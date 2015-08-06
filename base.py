@@ -14,12 +14,16 @@ from __future__ import division
 
 import copy
 
-from bbbalk.testRunner import mainTest
+from bbbalk.test.testRunner import mainTest # @UnresolvedImport
 from bbbalk import common
 #from exceptionsBB import BBBalkException
 
 VISITOR = 0
 HOME = 1
+
+teamEquivalents = ( ("MON", "WAS"), ("CAL", "ANA"), ("FLO", "MIA") )
+
+
 
 # class Inning(object):
 #     def __init__(self, inningNumber = 1, visitorHalf = None, homeHalf = None):

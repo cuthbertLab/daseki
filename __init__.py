@@ -16,14 +16,20 @@ The title comes from baseball, obviously, and balk, as in what you should
 expect traditional baseball heads to do when you present the results you
 get from these objects.
 '''
-__all__ = ['base', 'retro', 'games', 'testRunner', 'exceptionsBB']
-__version_info__ = (0, 3, 0)
+__all__ = ['ext', 
+           'retro', 
+           
+           'base', 
+           'common',
+           'exceptionsBB', 
+           'games',]
+__version_info__ = (0, 4, 0)
 __version__ = '.'.join(str(x) for x in __version_info__)
 __VERSION__ = __version__
 
 from bbbalk import base
+from bbbalk.test.testRunner import mainTest # @UnresolvedImport
 from bbbalk.base import *
-
 
 #------------------------------------------------------------------------------
 # this bring all of the __all__ names into the bbbalk package namespace
