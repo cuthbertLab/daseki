@@ -21,6 +21,56 @@ import csv
 from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
 
+class ParserException(RetrosheetException):
+    pass
+
+def protoGameById(gameId):
+    '''
+    Given the id set in self.id, find the appropriate file and proto parse it into this
+    ProtoGame object.
+    
+    Not an efficient way of doing this for many games (because all games in the file need to be parsed). 
+    But useful for looking at one.
+    
+    >>> retro.parser.protoGameById('SDN201304090')
+    <bbbalk.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
+
+    Last digit is optional:
+
+    >>> retro.parser.protoGameById('SDN20130409')
+    <bbbalk.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
+
+    '''
+    ef = findFileById(gameId)
+    efo = EventFile(ef)
+    if len(gameId) == 11:
+        gameId += "0"
+    for pg in efo.protoGames:
+        if pg.id == gameId:
+            return pg
+
+def findFileById(gameId):
+    '''
+    finds the event file that matches the gameId
+    
+    >>> efn = retro.parser.findFileById('SDN201304090')
+    >>> efn.endswith('bbbalk/dataFiles/2013eve/2013SDN.EVN')
+    True
+    
+    Last number is optional except for double headers 
+    
+    >>> efn = retro.parser.findFileById('SDN20130409')
+    >>> efn.endswith('bbbalk/dataFiles/2013eve/2013SDN.EVN')
+    True
+    '''
+    gid = common.GameId(gameId)
+    yd = YearDirectory(gid.year)
+    for ef in yd.eventFileNames:
+        if ef.startswith(str(gid.year) + gid.homeTeam + '.EV'):
+            return yd.dirName + os.sep + ef
+    else:
+        return None
+
 class YearDirectory(object):
     '''
     A YearDirectory represents and parses a directory of all the files for a year.
@@ -279,7 +329,12 @@ class ProtoGame(object):
         self.visteam = None   # to parse games unnecessarily
         self.usedh = False
         self.date = None
-        self.records = []
+        self.records = []     
+    
+    def __repr__(self):
+        return "<%s.%s %s: %s at %s>" % (self.__module__, self.__class__.__name__, 
+                                  self.id, self.visteam, self.hometeam)
+        
     
     def append(self, rec):
         '''
@@ -301,4 +356,5 @@ class ProtoGame(object):
 
 
 if __name__ == '__main__':
-    pass
+    import bbbalk
+    bbbalk.mainTest()

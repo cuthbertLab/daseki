@@ -22,8 +22,10 @@ __all__ = ['ext',
            'base', 
            'common',
            'exceptionsBB', 
-           'games',]
-__version_info__ = (0, 4, 0)
+           'games',
+           'player',
+           ]
+__version_info__ = (0, 5, 0)
 __version__ = '.'.join(str(x) for x in __version_info__)
 __VERSION__ = __version__
 

@@ -16,13 +16,27 @@ try:
 except ImportError:
     from itertools import izip_longest as zip_longest
 
+try:
+    import enum
+except ImportError:
+    from bbbalk.ext import enum
+
 import functools
 import inspect
-import sys
-import os
 import re
+import os
+import sys
+import time
 import weakref
+
 from bbbalk.ext import six
+from bbbalk.exceptionsBB import BBBalkException
+
+class TeamNum(enum.IntEnum):
+    VISITOR = 0
+    HOME = 1
+
+
 # tools for setup.py
 def sourceFilePath():
     '''
@@ -41,6 +55,70 @@ def dataFilePath():
 
 def dataDirByYear(year=2014):
     return os.path.join(dataFilePath(), str(year)) + 'eve'
+
+def gameLogFilePath():
+    return os.path.join(dataFilePath(), 'gameLogs')
+#---------------------
+GAMEID_MATCH = re.compile('([A-Za-z][A-Za-z][A-Za-z])(\d\d\d\d)(\d\d)(\d\d)(\d?)')
+
+class GameId(object):
+    '''
+    >>> gid = common.GameId('SDN201304090')
+    >>> str(gid)
+    'SDN201304090'
+    >>> gid
+    <bbbalk.common.GameId SDN201304090>
+    >>> gid.year
+    2013
+    >>> gid.day
+    9
+    >>> gid.gameNum # always a string because of weird split dblheader A, B codes
+    '0'
+    >>> gid.homeTeam
+    'SDN'
+    
+    >>> gid2 = common.GameId()
+    >>> gid2.homeTeam = 'ARI'
+    >>> gid2.year = 2000
+    >>> gid2.month = 9
+    >>> gid2.day = 22
+    >>> print(gid2)
+    ARI200009220
+    '''
+    
+    def __init__(self, gameId=None):
+        self.gameId = gameId
+        self.year = 0
+        self.month = 0
+        self.day = 0
+        self.gameNum = "0"
+        self.homeTeam = "XXX"
+        if gameId is not None:
+            self.parse()
+    
+    def __repr__(self):
+        return "<{0}.{1} {2}>".format(self.__module__, self.__class__.__name__, str(self))
+    
+    def __str__(self):
+        return "{s.homeTeam}{s.year:4d}{s.month:02d}{s.day:02d}{s.gameNum}".format(s=self)
+    
+    
+    def parse(self):
+        gameId = self.gameId
+        matched = GAMEID_MATCH.match(gameId)
+        if not matched:
+            raise BBBalkException('invalid gameId: %s' % gameId)
+        self.homeTeam = matched.group(1).upper()
+        self.year = int(matched.group(2))
+        self.month = int(matched.group(3))
+        self.day = int(matched.group(4))
+        self.gameNum = matched.group(5)
+        if self.gameNum == '':
+            self.gameNum = "0"
+
+
+
+#---------------------
 
 ordinals = ["Zeroth","First","Second","Third","Fourth","Fifth",
             "Sixth","Seventh","Eighth","Ninth","Tenth","Eleventh",
@@ -78,6 +156,73 @@ def ordinalAbbreviation(value, plural=False):
     if post != 'st' and plural:
         post += 's'
     return post
+
+#----------------------------------
+#-------------------------------------------------------------------------------
+class Timer(object):
+    """
+    An object for timing. Call it to get the current time since starting.
+    
+    >>> t = common.Timer()
+    >>> now = t()
+    >>> nownow = t()
+    >>> nownow > now
+    True
+    
+    Call `stop` to stop it. Calling `start` again will reset the number
+    
+    >>> t.stop()
+    >>> stopTime = t()
+    >>> stopNow = t()
+    >>> stopTime == stopNow
+    True
+    
+    All this had better take less than one second!
+    
+    >>> stopTime < 1
+    True
+    """
+
+    def __init__(self):
+        # start on init
+        self._tStart = time.time()
+        self._tDif = 0
+        self._tStop = None
+
+    def start(self):
+        '''Explicit start method; will clear previous values. Start always happens on initialization.'''
+        self._tStart = time.time()
+        self._tStop = None # show that a new run has started so __call__ works
+        self._tDif = 0
+
+    def stop(self):
+        self._tStop = time.time()
+        self._tDif = self._tStop - self._tStart
+
+    def clear(self):
+        self._tStop = None
+        self._tDif = 0
+        self._tStart = None
+
+    def __call__(self):
+        '''Reports current time or, if stopped, stopped time.
+        '''
+        # if stopped, gets _tDif; if not stopped, gets current time
+        if self._tStop == None: # if not stoped yet
+            t = time.time() - self._tStart
+        else:
+            t = self._tDif
+        return t
+
+    def __str__(self):
+        if self._tStop == None: # if not stoped yet
+            t = time.time() - self._tStart
+        else:
+            t = self._tDif
+        return str(round(t,3))
+
+#------------------------
+
 
 class SlottedObject(object):
     r'''
@@ -194,7 +339,6 @@ def wrapWeakref(referent):
     # slight performance boost rather than checking if None
     except TypeError:
         return referent
-        #return None
 
 def unwrapWeakref(referent):
     '''

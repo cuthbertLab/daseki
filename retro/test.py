@@ -101,9 +101,29 @@ class Test():
             print(g.id, g.runs)        
     
     
+    def leadoffsLeadoff(self):
+        from bbbalk import games
+        t = common.Timer()
+        gc = games.GameCollection()
+        gc.yearStart = 2000
+        gc.yearEnd = 2014
+        gc.usesDH = True
+        gs = gc.parse()
+        totalPAs = 0
+        totalLeadOffs = 0
+        for g in gs:
+            for hi in g.halfInnings:
+                for p in hi.plateAppearances:
+                    if p.battingOrder == 1:
+                        totalPAs += 1
+                        if p.plateAppearanceInInning == 1:
+                            totalLeadOffs += 1
+        print(totalPAs, totalLeadOffs, totalLeadOffs*100/totalPAs)
+        print(t(), 'seconds')
 if __name__ == '__main__':
     t = Test()
-    t.checkScores()
+    t.leadoffsLeadoff()
+    #t.checkScores()
     #t.events()
     #t.pitcherBats()
     #t.yearList(1999)

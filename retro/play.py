@@ -38,14 +38,91 @@ NON_ERROR_PAREN_THROW_RE = re.compile('\(\d+\/?T?H?\)')
 ERROR_PAREN_RE = re.compile('\(\d*E\d*[\/A-Z]*\)')
 ERROR_RE = re.compile('\d*E\d*[\/A-Z]*')
 
-import bbbalk.retro.datatypeBase 
+from bbbalk.retro import datatypeBase 
 from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
 from bbbalk.common import warn
 from bbbalk import base
 
 
-class Play(bbbalk.retro.datatypeBase.RetroData):
+class PlateAppearance(common.ParentType):
+    '''
+    Represents a plateAppearance (even one that
+    should not count for OBP such as Catcher's Interference) by the player and each 
+    element in that list is itself a list of all Play objects representing that
+    plate appearance as well as any substitutions or other events that take place during
+    the PA.
+    '''
+    @common.keyword_only_args('parent')
+    def __init__(self, parent=None):
+        super(PlateAppearance, self).__init__(parent=parent)
+        self.startPlayNumber = -1
+        self.endPlayNumber = -1
+        self.inningNumber = None
+        self.visitOrHome = common.TeamNum.VISITOR
+        self.batterId = None
+        self.pitcherId = None
+        self.outsBefore = -1
+        self.plateAppearanceInInning = 0
+        self.events = []
+        self.isIncomplete = False # sub in the middle of the inning
+        
+    def append(self, e):
+        self.events.append(e)
+
+    def __getattr__(self, attr):
+        le = self.lastEvent
+        if le is None:
+            raise IndexError("'%s' object has events to search for attributes on" % (self.__class__.__name__,))
+        if hasattr(le, attr):
+            return getattr(le, attr)
+        elif hasattr(le.playEvent, attr):
+            return getattr(le.playEvent, attr)
+        elif hasattr(le.runnerEvent, attr):
+            return getattr(le.runnerEvent, attr)
+        else:
+            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, attr))
+            
+    
+    @property
+    def lastEvent(self):
+        for i in range(len(self.events)):
+            j = len(self.events) - (i+1)
+            if self.events[j].record == 'play':
+                return self.events[j]
+        return None
+
+    @property
+    def battingOrder(self):
+        '''
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
+        >>> pa0 = hi.plateAppearances[0]
+        >>> pa0.battingOrder
+        5 
+        '''
+        g = self.parentByClass('Game')
+        if g is None:
+            return None
+        p = g.playerById(self.batterId)
+        if p is None:
+            return None
+        return p.battingOrder
+
+    
+    def __repr__(self):
+        incomplete = ""
+        if self.isIncomplete is True:
+            incomplete = "(I)"
+
+        return "<%s.%s %s-%s%s: %s: %r>" % (self.__module__, self.__class__.__name__, 
+                          self.inningNumber, self.plateAppearanceInInning, incomplete,
+                          self.batterId, 
+                          self.events)
+
+    
+        
+class Play(datatypeBase.RetroData):
     '''
     The most important and most complex record: records a play.
     
@@ -132,7 +209,7 @@ class Play(bbbalk.retro.datatypeBase.RetroData):
 
     @property
     def topBottom(self):
-        if self.visitOrHome == 0:
+        if self.visitOrHome == common.TeamNum.VISITOR:
             return "top"
         else:
             return "bottom"
@@ -475,9 +552,9 @@ class PlayEvent(common.ParentType):
     __slots__ = ('raw', 'isOut', 'basicBatter',  'isSafe', 'isAtBat', 'isPlateAppearance',
                  'isNoPlay', 'fielders','impliedBatterAdvance','single','double','triple',
                  'doubleGroundRule','homeRun','strikeOut','baseOnBalls', 'baseOnBallsIntentional',
-                 'error','fieldersChoice','hitByPitch','isHit','totalBases','stolenBase',
+                 'errors','fieldersChoice','hitByPitch','totalBases','stolenBase',
                  'caughtStealing','basesStolen','eraseBaseRunners','isPickoff','isBalk','isPassedBall','isWildPitch',
-                 'isDblPlay','isTplPlay','modifiers','defensiveIndifference')
+                 'isDblPlay','isTplPlay','modifiers','defensiveIndifference', 'ignoreForOBP')
     
     def __init__(self, raw="", parent=None):
         super(PlayEvent, self).__init__(parent)
@@ -502,6 +579,12 @@ class PlayEvent(common.ParentType):
                 return
         raise RetrosheetException('did not parse %s' % (bb,))
 
+    @property
+    def isHit(self):
+        if self.single or self.double or self.triple or self.homeRun:
+            return True
+        else:
+            return False
     
     def matchStrikeout(self, bb):
         '''
@@ -691,6 +774,7 @@ class PlayEvent(common.ParentType):
             self.impliedBatterAdvance = 1  # an at bat. it is a plate appearance technically
             self.isAtBat = False           # but does NOT affect OBP (oh, boy...) TODO: This one
             self.isPlateAppearance = True
+            self.ignoreForOBP = True
             return True
         return False
 
@@ -737,7 +821,7 @@ class PlayEvent(common.ParentType):
         technically just on fly fouls
         '''
         if bb.startswith('FLE'):
-            self.error = True # \d will give whom to charge
+            self.errors += 1 # \d will give whom to charge
             self.isSafe = False
             self.isNoPlay = True
             self.isAtBat = False
@@ -747,7 +831,7 @@ class PlayEvent(common.ParentType):
 
     def matchFielderError(self, bb):
         if bb.startswith('E'):
-            self.error = True
+            self.errors += 1
             self.isSafe = True
             self.impliedBatterAdvance = 1
             return True
@@ -960,6 +1044,7 @@ class PlayEvent(common.ParentType):
                 print("On play " + playCode + " =" + fullPlay + "= safe on error, so credit a SB of " + attemptedBase)
             if playCode != 'PO': # pickoff does not advance a runner...
                 self.stolenBase = False # not for statistical purposes though...
+                self.errors += 1
                 if self.basesStolen is None:
                     self.basesStolen = []
                 self.basesStolen.append(attemptedBase)
@@ -993,7 +1078,7 @@ class PlayEvent(common.ParentType):
         self.baseOnBalls = False
         self.baseOnBallsIntentional = False
 
-        self.error = False
+        self.errors = 0
         self.fieldersChoice = False
         self.hitByPitch = False
         
@@ -1001,7 +1086,6 @@ class PlayEvent(common.ParentType):
         self.isPlateAppearance = True
         self.isNoPlay = False
         
-        self.isHit = False
         self.totalBases = 0
 
         self.stolenBase = False # a base was stolen (for statistical purposes)
@@ -1015,7 +1099,9 @@ class PlayEvent(common.ParentType):
         
         self.isDblPlay = False
         self.isTplPlay = False
+        self.ignoreForOBP = False # rare: Catcher's Interference, Fielder's obstruction
+
 
 if __name__ == '__main__':
-    from bbbalk.testRunner import mainTest
-    mainTest()
+    import bbbalk
+    bbbalk.mainTest()

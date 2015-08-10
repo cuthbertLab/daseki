@@ -16,10 +16,9 @@ import copy
 
 from bbbalk.test.testRunner import mainTest # @UnresolvedImport
 from bbbalk import common
+from bbbalk.common import TeamNum # @UnresolvedImport
 #from exceptionsBB import BBBalkException
 
-VISITOR = 0
-HOME = 1
 
 teamEquivalents = ( ("MON", "WAS"), ("CAL", "ANA"), ("FLO", "MIA") )
 
@@ -31,14 +30,145 @@ teamEquivalents = ( ("MON", "WAS"), ("CAL", "ANA"), ("FLO", "MIA") )
 #         self.visitorHalf = visitorHalf
 #         self.homeHalf = homeHalf
 
+
+
 class HalfInning(common.ParentType):
+    '''
+    >>> g = games.Game('SDN201304090')
+    >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
+    >>> hi
+    <bbbalk.base.HalfInning b8 plays:83-100 (SDN201304090)>
+    >>> hi.inningNumber
+    8
+    >>> print(hi.visitOrHome)
+    TeamNum.HOME
+    '''
     @common.keyword_only_args('parent')    
-    def __init__(self, inningNumber = 1, visitorHome = VISITOR, parent=None):
+    def __init__(self, inningNumber = 1, visitOrHome = TeamNum.VISITOR, parent=None):
         super(HalfInning, self).__init__(parent=parent)
         self.inningNumber = inningNumber
-        self.visitorHome = visitorHome
+        self.visitOrHome = visitOrHome
         self.events = []
         self._iterindex = 0
+        self._prev = None
+        self._following = None
+        self.startPlayNumber = -1
+        self.endPlayNumber = -1
+        self._plateAppearances = []
+    
+    def __repr__(self):
+        p = self.parent
+        if p is not None and p.id is not None:
+            gi = p.id
+        else:
+            gi = ""
+            
+            
+        return "<%s.%s %s%s plays:%s-%s (%s)>" % (self.__module__, self.__class__.__name__, 
+                                  self.topBottom[0], self.inningNumber, 
+                                  self.startPlayNumber, self.endPlayNumber,
+                                  gi)
+
+
+    @property
+    def plateAppearances(self):
+        '''
+        >>> from pprint import pprint as pp
+        
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
+        >>> pp(hi.plateAppearances)        
+        [<bbbalk.retro.play.PlateAppearance 8-1: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:NP>, <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, <bbbalk.retro.play.Play b8: gyorj001:NP>, <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, <bbbalk.retro.play.Play b8: gyorj001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-2: amara001: [<bbbalk.retro.play.Play b8: amara001:PB.1-2>, <bbbalk.retro.play.Play b8: amara001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-3: maybc001: [<bbbalk.retro.play.Play b8: maybc001:NP>, <bbbalk.player.Sub visitor,5: Matt Guerrier (guerm001):pitcher>, <bbbalk.retro.play.Play b8: maybc001:14/SH/BG.2-3;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-4: hundn001: [<bbbalk.retro.play.Play b8: hundn001:FC6/G.3XH(62);2-3>]>,
+         <bbbalk.retro.play.PlateAppearance 8-5: denoc001: [<bbbalk.retro.play.Play b8: denoc001:S9/G.3-H;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-6: cabre001: [<bbbalk.retro.play.Play b8: cabre001:W.2-3;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: [<bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, <bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-11: amara001: [<bbbalk.retro.play.Play b8: amara001:K>]>]
+        '''
+        from bbbalk.retro import play
+        if len(self._plateAppearances) > 0:
+            return self._plateAppearances
+
+        thisPA = play.PlateAppearance(parent=self)
+        thisPA.visitOrHome = self.visitOrHome
+        thisPA.inningNumber = self.inningNumber
+        thisPA.batterId = self.events[0].playerId
+        thisPA.outsBefore = 0
+        thisPA.plateAppearanceInInning = 1
+
+        outsInInning = 0
+        plateAppearanceInInning = 1
+        thisPA.startPlayNumber = self.events[0].playNumber
+        
+        for i,p in enumerate(self.events):
+            if p.record == 'play' and p.playerId != thisPA.batterId:
+                thisPA.endPlayNumber = p.playNumber - 1
+                self._plateAppearances.append(thisPA)
+                
+                if self.events[i - 1].record == 'sub':
+                    # last PA ended with a sub -- this is the same PA
+                    plateAppearanceInInning -= 1
+                    thisPA.isIncomplete = True
+                    
+                plateAppearanceInInning += 1
+
+                thisPA = play.PlateAppearance(parent=self)
+                thisPA.startPlayNumber = p.playNumber
+                thisPA.visitOrHome = self.visitOrHome
+                thisPA.inningNumber = self.inningNumber
+                thisPA.outsBefore = outsInInning
+                thisPA.plateAppearanceInInning = plateAppearanceInInning
+                thisPA.batterId = p.playerId
+
+            if p.record == 'play':
+                outsInInning += p.outsMadeOnPlay
+            thisPA.append(p)
+
+
+        thisPA.endPlayNumber = self.events[-1].playNumber
+        self._plateAppearances.append(thisPA)
+
+        return self._plateAppearances
+            
+
+    @property
+    def topBottom(self):
+        if self.visitOrHome == common.TeamNum.VISITOR:
+            return "top"
+        else:
+            return "bottom"
+
+    
+    def _getPrev(self):
+        '''
+        Get or set the previous halfInning within the game.  Do not set to link between games.
+        '''
+        return common.unwrapWeakref(self._prev)
+
+    def _setPrev(self, prev):
+        self._prev = common.wrapWeakref(prev)
+        
+    prev = property(_getPrev, _setPrev)
+
+    def _getFollowing(self):
+        '''
+        Get or set the following halfInning within the game.  Do not set to link between games.
+        
+        We do not use next to maintain Py2 compatibility with iterators.
+        '''
+        return common.unwrapWeakref(self._following)
+
+    def _setFollowing(self, following):
+        self._following = common.wrapWeakref(following)
+        
+    following = property(_getFollowing, _setFollowing)
+
         
     def append(self, other):
         self.events.append(other)
@@ -54,9 +184,42 @@ class HalfInning(common.ParentType):
         self._iterindex += 1
         return self.events[i]
 
+    def next(self):
+        return self.__next__()
+
     def __getitem__(self, k):
         return self.events[k]
 
+    def subByNumber(self, pn):
+        '''
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
+        >>> hi
+        <bbbalk.base.HalfInning b7 plays:65-76 (SDN201304090)>
+        >>> hi.subByNumber(75)
+        <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
+        '''
+        for p in self.events:
+            if p.record == 'sub' and p.playNumber == pn:
+                return p
+        return None
+
+    
+    def playByNumber(self, pn):
+        '''
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInnings[0]
+        >>> hi.startPlayNumber
+        0
+        >>> hi.endPlayNumber
+        4
+        >>> hi.playByNumber(2)
+        <bbbalk.retro.play.Play t1: kempm001:K>
+        '''
+        for p in self.events:
+            if p.record == 'play' and p.playNumber == pn:
+                return p
+        return None
 
 class BaseRunners(common.ParentType):
     '''
@@ -98,6 +261,61 @@ class BaseRunners(common.ParentType):
             self.first = first[0]
             self.second = first[1]
             self.third = first[2]
+    
+    
+    @property
+    def play(self):
+        '''
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
+        >>> p = hi.events[2]
+        >>> p
+        <bbbalk.retro.play.Play b7: maybc001:NP>
+        >>> brb = p.runnersBefore
+        >>> brb
+        <bbbalk.base.BaseRunners 1:False 2:False 3:False>
+        >>> brb.play
+        <bbbalk.retro.play.Play b7: maybc001:NP>
+        >>> brb.play is p
+        True
+        >>> bra = p.runnersAfter
+        >>> bra.play is p
+        True
+        '''
+        return self.parentByClass('Play')
+    
+    def playerEntranceObjects(self):
+        '''
+        get PlayerEntrance objects for each baserunner or None if no baserunner.
+        
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInningByNumber(9, common.TeamNum.VISITOR)
+        >>> p = hi.events[-1]
+        >>> brb = p.runnersBefore
+        >>> brb
+        <bbbalk.base.BaseRunners 1:puntn001 2:False 3:False>
+        >>> brb.playerEntranceObjects()
+        [<bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, None, None]
+        '''
+        play = self.play
+        if play is None:
+            return None
+        playNumber = play.playNumber
+        visitOrHome = play.visitOrHome
+        game = self.parentByClass('Game')
+        if game is None:
+            return None
+        lc = game.lineupCards[visitOrHome]
+        order = lc.battingOrderAtPlayNumber(playNumber)
+        retObj = [None, None, None]
+        for i in range(3):
+            playerId = self[i]
+            for j in order:
+                if j is None: # batting order 0
+                    continue
+                if j.id == playerId:
+                    retObj[i] = j
+        return retObj
     
     def __repr__(self):
         return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
@@ -150,19 +368,22 @@ class BaseRunners(common.ParentType):
         return self.__class__(self.first, self.second, self.third, parent=self.parent)
 
 
-class LineupCard(object):
-    pass
 
-class PlateAppearance(object):
-    def __init__(self, abbreviation=None):
-        self.abbreviation = abbreviation
-        
 
-class BoxScore(object):
-    pass
+# class PlateAppearance(object):
+#     def __init__(self, abbreviation=None):
+#         self.abbreviation = abbreviation
+#         
+# 
+# class BoxScore(object):
+#     pass
 
 class ExpectedRunMatrix(object):
-    # http://www.baseballprospectus.com/sortable/index.php?cid=975409
+    '''
+    Represents the run situation for a given baserunning situation and number of outs.
+    
+    Numbers by default from 2011 MLB. http://www.baseballprospectus.com/sortable/index.php?cid=975409    
+    '''
     # 2011 MLB
     # (1st base occupied, 2nd occupied, 3rd occupied) : (0 outs, 1 out, 2 outs runs)
     expectedRunsDefault = { (False, False, False): (0.4807, 0.2582, 0.0967),
@@ -177,15 +398,44 @@ class ExpectedRunMatrix(object):
     def __init__(self):
         self.expectedRuns = copy.copy(self.expectedRunsDefault)
         
-    def runsForSituation(self, firstOccupied=False, secondOccupied=False, thirdOccupied=False, outs=0):
+    def runsForSituation(self, baseRunners, outs=0):
         '''
-        >>> erm = ExpectedRunMatrix()
-        >>> erm.runsForSituation(secondOccupied=True, outs=2)
+        >>> erm = base.ExpectedRunMatrix()
+        >>> brr = base.BaseRunners(False, 'carmel', False)
+        >>> erm.runsForSituation(brr, outs=2)
         0.3137
         '''
         if outs >= 3:
             return 0.0
+        firstOccupied = False if baseRunners[0] in (False, None) else True
+        secondOccupied = False if baseRunners[1] in (False, None) else True
+        thirdOccupied = False if baseRunners[2] in (False, None) else True
+
         return self.expectedRuns[firstOccupied, secondOccupied, thirdOccupied][outs]
     
+    def runsInherited(self, baseRunners, outs=0):
+        '''
+        Returns the difference between the runs expected for the current base/outs situation and the 
+        runs expected for the same number of outs with no one on base.
+        
+        >>> erm = base.ExpectedRunMatrix()
+        >>> brr = base.BaseRunners(False, 'nori', False)
+        >>> erm.runsInherited(brr, outs=2)
+        0.217
+        '''
+        return round(self.runsForSituation(baseRunners, outs) - self.runsForSituation((False, False, False), outs), 4)
+    
+    def runsInheritedNotOutAdjusted(self, baseRunners, outs=0):
+        '''
+        Returns the difference between the runs expected for the current base/outs situation and the 
+        runs expected for NO OUTS with no one on base.
+        
+        >>> erm = base.ExpectedRunMatrix()
+        >>> brr = base.BaseRunners(False, 'kate', False)
+        >>> erm.runsInheritedNotOutAdjusted(brr, outs=2)
+        -0.167
+        '''
+        return round(self.runsForSituation(baseRunners, outs) - self.runsForSituation((False, False, False), 0), 4)
+
 if __name__ == '__main__':
     mainTest()
