@@ -492,13 +492,13 @@ class PlayerEntrance(RetroData):
             self.visitName = visitorNames[int(visitOrHome)]
             self.battingOrder = int(battingOrder)
             if position.endswith('"'): # parse error in 1996KCA.EVA and 1996MON.EVN # TODO: Tell Retrosheet
-                gid = parent.gameId
+                gid = self.parentByClass('Game').id
                 common.warn("Position ending in quote in {0}".format(gid))
                 position = position[0:len(position)-1]
             self.position = int(position)
             self.positionName = positionNames[int(position)]    
-        except ValueError:
-            raise RetrosheetException("Parse something for player %s " % playerName)
+        except ValueError as ve:
+            raise RetrosheetException("Parse error for player {0}: {1}".format(playerName, str(ve)))
 
     def __repr__(self):
         return "<%s.%s %s,%s: %s (%s):%s>" % (self.__module__, self.__class__.__name__, 

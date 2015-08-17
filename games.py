@@ -80,11 +80,14 @@ class GameCollection(object):
         '''
         Parse all the files in the year range, filtered by team or park
         '''
+        #print("Parsing {0}".format(self.yearStart))
         if len(self.protoGames) == 0:
             self.addMatchingProtoGames()
+        
+        errors = []
         for pg in self.protoGames:
             g = Game(parent=self)
-            g.mergeProto(pg, finalize=True)
+            errors += g.mergeProto(pg, finalize=True)
             self.games.append(g)
         return self.games
 
@@ -121,14 +124,17 @@ class Game(common.ParentType):
 
         Not an efficient way of doing this for many games. But useful for looking at one.
         
+        Returns a list of errors in parsing (hopefully empty)
+        
         >>> g = games.Game()
         >>> g.id = 'SDN201304090'
-         >>> g.parseFromId()
+        >>> g.parseFromId()
+        []
         >>> g.runs
         Runs(visitor=3, home=9)
         '''
         pg = parser.protoGameById(self.id)
-        self.mergeProto(pg, finalize=True)
+        return self.mergeProto(pg, finalize=True)
 
 
     def halfInningByNumber(self, number, visitOrHome):
@@ -220,8 +226,11 @@ class Game(common.ParentType):
         '''
         The mergeProto function takes a ProtoGame object and loads all of these records into the
         records list as event objects.
+        
+        Returns a list of errors (hopefully empty)
         '''
         self.id = protoGame.id
+        errors = []
         for d in protoGame.records:
             eventType = d[0]
             eventData = d[1:]
@@ -231,11 +240,13 @@ class Game(common.ParentType):
                 rec = eventClass(*eventData, parent=self)
                 self.records.append(rec)
             except TypeError as e:
-                common.warn("Event Error in ", protoGame.id) # MIN200606150: com,puntn001,R 
-                common.warn(str(e))
-                pass
+                err = "Event Error in {0}: {1}".format(protoGame.id, str(e))
+                common.warn(err) 
+                errors.append(err)
         if finalize is True:
             self.finalizeParsing()
+        return errors
+
 
     def finalizeParsing(self):
         lastInning = 0
@@ -405,14 +416,30 @@ class Test(unittest.TestCase):
         print(totalWrong, len(self.games))
 
 class TestSlow(unittest.TestCase):
-    
     def testAllYears(self):
-        for y in range(2014, 1880, -1):
+        import multiprocessing
+        import concurrent.futures
+        
+        def runOne(y):
             gc = GameCollection()
-            gc.startYear = y
-            gc.endYear = y
+            gc.yearStart = y
+            gc.yearEnd = y
             print("Parsing {0}".format(y))
             gc.parse()
+            
+        max_workers = multiprocessing.cpu_count() - 1 # @UndefinedVariable
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            yy = [y for y in range(2014, 1880, -1)]
+            runPath = {executor.submit(runOne, y) : y for y in yy}
+            for future in concurrent.futures.as_completed(runPath):
+                f = runPath[future]
+                try:
+                    unused_data = future.result()
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (f, exc))
+                else:
+                    print('%r succeeded' % (f))
 
 if __name__ == '__main__':
     from bbbalk import mainTest
