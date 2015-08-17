@@ -18,8 +18,8 @@ class Test():
             attd += int(att)
         print("******", attd)
 
-    def yearsList(self):
-        for thisYear in range(1995, 2015):
+    def yearsList(self, start=1995, end=2014):
+        for thisYear in range(start, end+1):
             print("Parsing: ", thisYear)
             yd = YearDirectory(thisYear)
             yd.parseEventFiles()
@@ -122,10 +122,10 @@ class Test():
         print(t(), 'seconds')
 if __name__ == '__main__':
     t = Test()
-    t.leadoffsLeadoff()
+    #t.leadoffsLeadoff()
     #t.checkScores()
     #t.events()
     #t.pitcherBats()
     #t.yearList(1999)
-    #t.yearsList()
+    t.yearsList()
     #t.sdAttendance()

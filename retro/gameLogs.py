@@ -23,7 +23,7 @@ def gameLogFilePathForYear(year=2014):
     Find the path to the game log file for a given year.
     
     >>> glp = retro.gameLogs.gameLogFilePathForYear(2005)
-    >>> glp.endswith('bbbalk/dataFiles/gameLogs/GL2005.TXT')
+    >>> glp.endswith('bbbalk/dataFiles/retrosheet/gamelog/GL2005.TXT')
     True
     '''
     yearStr = str(year)

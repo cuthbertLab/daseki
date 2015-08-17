@@ -404,7 +404,17 @@ class Test(unittest.TestCase):
         print(self.games[5].halfInnings[3][2].playEvent.parentByClass('Game'))
         print(totalWrong, len(self.games))
 
+class TestSlow(unittest.TestCase):
+    
+    def testAllYears(self):
+        for y in range(2014, 1880, -1):
+            gc = GameCollection()
+            gc.startYear = y
+            gc.endYear = y
+            print("Parsing {0}".format(y))
+            gc.parse()
+
 if __name__ == '__main__':
     from bbbalk import mainTest
-    mainTest() #Test
+    mainTest(TestSlow) #Test
 

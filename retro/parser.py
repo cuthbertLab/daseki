@@ -54,13 +54,13 @@ def findFileById(gameId):
     finds the event file that matches the gameId
     
     >>> efn = retro.parser.findFileById('SDN201304090')
-    >>> efn.endswith('bbbalk/dataFiles/2013eve/2013SDN.EVN')
+    >>> efn.endswith('bbbalk/dataFiles/retrosheet/event/regular/2013SDN.EVN')
     True
     
     Last number is optional except for double headers 
     
     >>> efn = retro.parser.findFileById('SDN20130409')
-    >>> efn.endswith('bbbalk/dataFiles/2013eve/2013SDN.EVN')
+    >>> efn.endswith('bbbalk/dataFiles/retrosheet/event/regular/2013SDN.EVN')
     True
     '''
     gid = common.GameId(gameId)
@@ -73,7 +73,7 @@ def findFileById(gameId):
 
 class YearDirectory(object):
     '''
-    A YearDirectory represents and parses a directory of all the files for a year.
+    A YearDirectory represents and parses a virtual directory of all the files for a year.
     
     You can optionally call `.parseEventFiles()` to load them all into ProtoGames, however calling
     any of the methods below will parse them automatically.
@@ -89,22 +89,28 @@ class YearDirectory(object):
     '''
     def __init__(self, year):
         self.year = year
-        dirName = common.dataDirByYear(year)
+        dirName = common.dataRetrosheetByType('regular')
         self.dirName = dirName
-        files = os.listdir(dirName)
-        self.files = files
+        allFiles = os.listdir(dirName)
         self.eventFileNames = []
         self.rosterFileNames = []
         self.teamFileName = None
         self._eventFiles = []
         
-        for f in files:
+        files = []
+        for f in allFiles:
+            if str(year) not in f:
+                continue
+            files.append(f)
             if f.endswith('.EVA') or f.endswith('.EVN'):
                 self.eventFileNames.append(f)
             elif f.endswith('.ROS'):
                 self.rosterFileNames.append(f)
             elif f.startswith('TEAM'):
                 self.teamFileName = f
+    
+        self.files = files
+        
     
     def parseEventFiles(self):
         '''

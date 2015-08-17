@@ -492,6 +492,8 @@ class PlayerEntrance(RetroData):
             self.visitName = visitorNames[int(visitOrHome)]
             self.battingOrder = int(battingOrder)
             if position.endswith('"'): # parse error in 1996KCA.EVA and 1996MON.EVN # TODO: Tell Retrosheet
+                gid = parent.gameId
+                common.warn("Position ending in quote in {0}".format(gid))
                 position = position[0:len(position)-1]
             self.position = int(position)
             self.positionName = positionNames[int(position)]    
