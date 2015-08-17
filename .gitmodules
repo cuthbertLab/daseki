@@ -1,0 +1,4 @@
+[submodule "dataFiles/retrosheet"]
+	path = dataFiles/retrosheet
+	url = https://github.com/chadwickbureau/retrosheet.git
+	branch = master
