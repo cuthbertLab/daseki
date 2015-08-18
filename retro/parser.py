@@ -87,9 +87,10 @@ class YearDirectory(object):
     rosterFileNames -- list of (short) filenames in the directory that contain rosters for teams
     teamFileName -- string of the filename that gives the list of teams playing thatyear.
     '''
-    def __init__(self, year):
+    def __init__(self, year, seasonType='regular'):
         self.year = year
-        dirName = common.dataRetrosheetByType('regular')
+        self.seasonType = seasonType
+        dirName = common.dataRetrosheetByType(seasonType)
         self.dirName = dirName
         allFiles = os.listdir(dirName)
         self.eventFileNames = []

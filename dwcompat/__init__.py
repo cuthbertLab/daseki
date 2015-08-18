@@ -1,0 +1,12 @@
+# -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------
+# Name:         dwcompat
+# Purpose:      DiamondWare compatible tools.
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#------------------------------------------------------------------------------
+
+

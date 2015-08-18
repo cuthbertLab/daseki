@@ -142,6 +142,7 @@ class Info(RetroData):
     knownTypes = gameRelatedTypes + administrativeTypes
     del(_gameRelatedTypes)
     del(_administrativeTypes)
+    intTypes = "number temp windspeed timeofgame attendance".split()
     
     @common.keyword_only_args('parent')
     def __init__(self, recordType, parent=None, *dataInfo):
@@ -151,7 +152,23 @@ class Info(RetroData):
             raise RetrosheetException("Unknown record type %s for info record" % recordType)
         if len(dataInfo) > 1:
             raise RetrosheetException("should only have one entry for dataInfo, not %r" % dataInfo)
-        self.dataInfo = dataInfo[0] 
+    
+        di = dataInfo[0]
+        if di == 'unknown':
+            di = None
+            
+        if recordType == 'windspeed' and di == '-1':
+            di = None
+        elif recordType == 'temp' and di == '0':
+            di = None
+        elif recordType == 'starttime' and di == '0:00':
+            di = None
+            
+        if di is not None and recordType in self.intTypes:
+            di = int(di)
+        
+        
+        self.dataInfo = di 
 
     def __repr__(self):
         return self.__class__.__name__

@@ -17,7 +17,7 @@ import copy
 from bbbalk.test.testRunner import mainTest # @UnresolvedImport
 from bbbalk import common
 from bbbalk.common import TeamNum # @UnresolvedImport
-#from exceptionsBB import BBBalkException
+from bbbalk.exceptionsBB import BBBalkException
 
 
 teamEquivalents = ( ("MON", "WAS"), ("CAL", "ANA"), ("FLO", "MIA") )
@@ -203,7 +203,6 @@ class HalfInning(common.ParentType):
             if p.record == 'sub' and p.playNumber == pn:
                 return p
         return None
-
     
     def playByNumber(self, pn):
         '''
@@ -220,6 +219,53 @@ class HalfInning(common.ParentType):
             if p.record == 'play' and p.playNumber == pn:
                 return p
         return None
+    
+    def lastPlay(self):
+        '''
+        return the last play of the half inning.  Useful for things
+        like left-on-base.
+        
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInnings[0]
+        >>> hi.lastPlay()
+        <bbbalk.retro.play.Play t1: uribj002:12(3)3/GDP>
+        '''
+        for p in reversed(self.events):
+            if p.record == 'play':
+                return p
+        raise BBBalkException('No play in inning!')
+    
+    @property
+    def leftOnBase(self):
+        '''
+        returns the number of people left on base at the end of
+        the inning.
+        
+        >>> g = games.Game('SDN201304090')
+        >>> hi = g.halfInnings[0]
+        >>> hi.leftOnBase
+        2
+        >>> hi.lastPlay().runnersAfter
+        <bbbalk.base.BaseRunners 1:gonza003 2:ellim001 3:False>
+        '''
+        p = self.lastPlay()
+        ra = p.runnersAfter
+        lob = 0
+        for r in ra:
+            if r not in (False, None):
+                lob += 1
+        return lob
+    
+    @property
+    def runs(self):
+        r = 0
+        for p in self.events:
+            if p.record == 'play':
+                r += p.runnerEvent.runs
+                
+        return r
+                
+
 
 class BaseRunners(common.ParentType):
     '''

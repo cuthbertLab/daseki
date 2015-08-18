@@ -13,15 +13,19 @@ from __future__ import print_function
 
 DEBUG = False
 
+import datetime
 import unittest
+
 from bbbalk.retro import basic, play, parser
 from bbbalk import common
 from bbbalk import base
 from bbbalk import player # @UnresolvedImport
+from bbbalk import team # @UnresolvedImport
 from bbbalk.common import TeamNum
 
 from collections import namedtuple
 Runs = namedtuple('Runs', 'visitor home')
+LeftOnBase = namedtuple('LeftOnBase', 'visitor home')
 
 eventsToClasses = {
                    'id': basic.Id,
@@ -60,10 +64,11 @@ class GameCollection(object):
         self.park = None
         self.usesDH = None
         self.protoGames = []
+        self.seasonType = 'regular'
         
     def addMatchingProtoGames(self):
         for y in range(self.yearStart, self.yearEnd + 1):
-            yd = parser.YearDirectory(y)
+            yd = parser.YearDirectory(y, seasonType=self.seasonType)
             pgs = []
             if self.team is not None:
                 pgs = yd.byTeam(self.team)
@@ -222,6 +227,21 @@ class Game(common.ParentType):
         '''
         return len(self.halfInnings)/2.0
 
+    @property
+    def leftOnBase(self):
+        '''
+        returns a named tuple of (visitor, home) for the total number
+        of runners left on base.
+        
+        >>> g = games.Game('SDN201403300')
+        >>> g.leftOnBase
+        LeftOnBase(visitor=6, home=6)
+        '''
+        lob = {TeamNum.VISITOR: 0, TeamNum.HOME: 0}
+        for hi in self.halfInnings:
+            lob[hi.visitOrHome] += hi.leftOnBase
+        return LeftOnBase(lob[TeamNum.VISITOR], lob[TeamNum.HOME])
+
     def mergeProto(self, protoGame, finalize=True):
         '''
         The mergeProto function takes a ProtoGame object and loads all of these records into the
@@ -298,21 +318,33 @@ class Game(common.ParentType):
 
     @property
     def homeTeam(self):
-        return self.infoByType('hometeam')
-    
+        ht = self.infoByType('hometeam')
+        return team.Team(ht, self.date)
+            
     @property
     def visitingTeam(self):
-        return self.infoByType('visteam')
+        vt = self.infoByType('visteam')
+        return team.Team(vt, self.date)
+
+    @property
+    def date(self):
+        d = self.infoByType('date')
+        return datetime.datetime.strptime(d, "%Y/%m/%d")
+
+    @property
+    def dayNight(self):
+        return self.infoByType('daynight')
+
     
     @property
     def runs(self):
         visitorRuns = 0
         homeRuns = 0
-        for p in self.recordsByType('play'):
-            if p.visitOrHome == TeamNum.VISITOR:
-                visitorRuns += p.runnerEvent.runs
+        for hi in self.halfInnings:
+            if hi.visitOrHome == TeamNum.VISITOR:
+                visitorRuns += hi.runs
             else:
-                homeRuns += p.runnerEvent.runs
+                homeRuns += hi.runs
         return Runs(visitorRuns, homeRuns)
     
 
@@ -424,6 +456,7 @@ class TestSlow(unittest.TestCase):
             gc = GameCollection()
             gc.yearStart = y
             gc.yearEnd = y
+            gc.seasonType = 'regular'
             print("Parsing {0}".format(y))
             gc.parse()
             
@@ -445,5 +478,5 @@ class TestSlow(unittest.TestCase):
 
 if __name__ == '__main__':
     from bbbalk import mainTest
-    mainTest(TestSlow) #Test
+    mainTest() #Test # TestSlow
 

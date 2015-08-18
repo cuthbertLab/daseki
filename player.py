@@ -76,12 +76,16 @@ class PlayerGame(common.ParentType):
         '''
         return self.countPlateAppearanceAttribute('strikeOut')
 
-    def boxScoreStatline(self, fields='atBats hits walks strikeOuts'): # add Runs...
+    def boxScoreStatline(self, fields='atBats hits walks strikeOuts', paddingInfo=None): # add Runs...
         '''
         >>> g = games.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> print(p.boxScoreStatline('atBats hits walks strikeOuts'))
         Jedd Gyorko 3b         3   1   2   1
+
+        >>> print(p.boxScoreStatline('atBats hits walks strikeOuts', paddingInfo={'nameSpace': 22, 'fieldSpace': 2}))
+        Jedd Gyorko 3b 3 1 2 1
+
         
         Compare:
         
@@ -118,14 +122,27 @@ class PlayerGame(common.ParentType):
           Jason Repko lf,rf              2   0   0   2
           Matt Kemp ph,cf                1   0   0   1        
         '''
+        if paddingInfo is None:
+            pi = {}
+        else:
+            pi = paddingInfo.copy()
+
+        if 'nameSpace' not in pi:
+            pi['nameSpace'] = 30
+        if 'subIndent' not in pi:
+            pi['subIndent'] = 2
+        if 'fieldSpace' not in pi:
+            pi['fieldSpace'] = 4 
+
+        
         if isinstance(fields, str):
             fields = fields.split()
         l = self.name + " " + ",".join([positionAbbrevs[p] for p in self.positions])
         if self.isSub:
-            l = "  " + l
-        l = l.ljust(30)
+            l = (" " * pi['subIndent']) + l
+        l = l.ljust(pi['nameSpace'])
         for f in fields:
-            l += str(getattr(self, f)).rjust(4)
+            l += str(getattr(self, f)).rjust(pi['fieldSpace'])
         return l
 
     def countPlateAppearanceAttribute(self, attr):

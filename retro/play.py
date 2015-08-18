@@ -266,8 +266,6 @@ def _sortRunnerEvents(rEvt):
     else:
         raise RetrosheetException("Unknown rEvt for sorting: %s" % rEvt)
         return "Z" + rEvt
-    
-    
 
 class RunnerEvent(common.ParentType):
     '''
@@ -512,8 +510,6 @@ class RunnerEvent(common.ParentType):
             else:
                 raise RetrosheetException("Huhhh??? Implied batter advance (%s) is strange" % iba)
             ra.append(bEvent)
-
-
     
     def hasRunnerAdvance(self, letter):
         '''
@@ -531,7 +527,6 @@ class RunnerEvent(common.ParentType):
         True
         >>> re.hasRunnerAdvance("2")
         False
-        
         
         :type letter: str
         :rtype: bool
@@ -638,12 +633,11 @@ class PlayEvent(common.ParentType):
         >>> pe.baseOnBallsIntentional
         False
 
-
         >>> pe = retro.play.PlayEvent()
         >>> pe.matchBaseOnBalls('WP')
         False
 
-        
+
         After event:
         
         >>> pe = retro.play.PlayEvent()
