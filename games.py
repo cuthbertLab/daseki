@@ -240,7 +240,7 @@ class Game(common.ParentType):
                 rec = eventClass(*eventData, parent=self)
                 self.records.append(rec)
             except TypeError as e:
-                err = "Event Error in {0}: {1}".format(protoGame.id, str(e))
+                err = "Event Error in {0}: {1}: {2}".format(protoGame.id, str(e), str(d))
                 common.warn(err) 
                 errors.append(err)
         if finalize is True:
@@ -428,9 +428,11 @@ class TestSlow(unittest.TestCase):
             gc.parse()
             
         max_workers = multiprocessing.cpu_count() - 1 # @UndefinedVariable
-        
+        if max_workers == 0:
+            max_workers = 1
+            
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            yy = [y for y in range(2014, 1880, -1)]
+            yy = [y for y in range(2014, 1870, -1)]
             runPath = {executor.submit(runOne, y) : y for y in yy}
             for future in concurrent.futures.as_completed(runPath):
                 f = runPath[future]
