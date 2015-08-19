@@ -134,7 +134,7 @@ class Play(datatypeBase.RetroData):
     Tough one:
     
     >>> p = retro.play.Play(playerId="batter", raw='54(1)/FO/G/DP.3XH(42)')
-    >>> p.runnersBefore = ['A', False, 'C']
+    >>> p.runnersBefore = base.BaseRunners('A', False, 'C')
     >>> p.outsMadeOnPlay
     2
     >>> p.playEvent
@@ -142,7 +142,11 @@ class Play(datatypeBase.RetroData):
     >>> p.playEvent.isDblPlay
     True
     >>> p.runnerEvent
-    <bbbalk.retro.play.RunnerEvent ['A', False, 'C']['batter', False, False]: 3XH(42)>
+    <bbbalk.retro.play.RunnerEvent 3XH(42) (1:A 2:False 3:C) -> (1:batter 2:False 3:False)>
+    >>> p.runnersAdvance
+    [<bbbalk.retro.play.RunnerAdvance 3XH(42)>, 
+     <bbbalk.retro.play.RunnerAdvance 1X2>, 
+     <bbbalk.retro.play.RunnerAdvance B-1>]
     '''
     __slots__ = ('inning', 'visitOrHome', 'playerId', 'count', '_pitches', 'raw', 
                  '_playEvent', '_runnerEvent', 'runnersBefore', 'runnersAfter', 'rawBatter', 'rawRunners')
@@ -176,6 +180,10 @@ class Play(datatypeBase.RetroData):
                                   self.topBottom[0], self.inning, 
                                   self.playerId, self.raw)
 
+    @property
+    def runnersAdvance(self):
+        return self.runnerEvent.runnersAdvance
+    
     @property
     def visitorName(self):
         return self.visitorNames[int(self.visitOrHome)]
@@ -257,43 +265,18 @@ class Play(datatypeBase.RetroData):
         #warn(self._runnerEvent.parent, " is the parent")
         return self._runnerEvent
 
-def _sortRunnerAdvances(rEvt):
-    '''
-    helper function so that events beginning on 3rd sort first, then 2nd, then 1st, then B (batter).
-    That way, say you have 1-3,3XH, the events get sorted as 3XH (runner on third out at home)
-    then 1-3 (runner on first goes to third), rather than runner on 1st goes to 3rd and then thrown
-    out at home. 
-    
-    Handles a few strange sorting moments, such as Segura's "advance" from 2nd to 1st in April 2013.
-    Put any similar events here.
-    '''
-    if rEvt.raw == "2-1":
-        # Just for Segura, Milwaukee 19 April 2013 -- Segura steals second then runs back to first
-        # https://www.youtube.com/watch?v=HZM1JcJwo9E
-        # sort last...
-        return "X" + rEvt.raw
-    
-    if rEvt.baseBefore == "3":
-        return "A" + rEvt.raw
-    elif rEvt.baseBefore == "2":
-        return "B" + rEvt.raw
-    elif rEvt.baseBefore == "1":
-        return "C" + rEvt.raw
-    elif rEvt.baseBefore == 'B':
-        return "D" + rEvt.raw
-    else:
-        raise RetrosheetException("Unknown rEvt for sorting: {0}, {1}".format(rEvt.raw, rEvt.baseBefore))
-        return "Z" + rEvt.raw
     
 class RunnerAdvance(common.ParentType):
     '''
     Characterizes a single runner advance event.
     '''
+    __slots__ = ('_raw', 'afterMods', 'playerId', 'isImplied', 
+                 'baseBefore', 'baseAfter', 'isOut', 'numErrors', 'errorPositions')
     def __init__(self, raw="", playerId=None):
         #self.superRaw = None # see setRaw
         self._raw = None
         self.afterMods = None
-        self.playerId = playerId # not yet used
+        self.playerId = playerId
         self.isImplied = False
         self.baseBefore = None
         self.baseAfter = None
@@ -302,6 +285,12 @@ class RunnerAdvance(common.ParentType):
         self.errorPositions = None
 
         self.raw = raw
+
+
+    def __repr__(self):
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
+                                  self.raw,
+                                  )
 
 
     def _getRaw(self):
@@ -336,6 +325,35 @@ class RunnerAdvance(common.ParentType):
             self.afterMods = afterMods
 
     raw = property(_getRaw, _setRaw)
+
+    def sortKey(self):
+        '''
+        helper function so that events beginning on 3rd sort first, then 2nd, then 1st, then B (batter).
+        That way, say you have 1-3,3XH, the events get sorted as 3XH (runner on third out at home)
+        then 1-3 (runner on first goes to third), rather than runner on 1st goes to 3rd and then thrown
+        out at home. 
+        
+        Handles a few strange sorting moments, such as Segura's "advance" from 2nd to 1st in April 2013.
+        Put any similar events here.
+        '''
+        if self.baseBefore == "3":
+            return "A"
+        elif self.baseBefore == "2":
+            if self.baseAfter == "1":
+                # Just for Segura, Milwaukee 19 April 2013 -- Segura steals second then runs back to first
+                # https://www.youtube.com/watch?v=HZM1JcJwo9E
+                # sort last...
+                return "X"
+            else:
+                return "B"
+        elif self.baseBefore == "1":
+            return "C"
+        elif self.baseBefore == 'B':
+            return "D"
+        else:
+            raise RetrosheetException("Unknown rEvt for sorting: {0}, {1}".format(self.raw, self.baseBefore))
+            return "Z" + self.raw
+
 
     @property
     def isRun(self):
@@ -414,9 +432,10 @@ class RunnerEvent(common.ParentType):
             print(runnersBefore)
     
     def __repr__(self):
-        return "<%s.%s %s%s: %s>" % (self.__module__, self.__class__.__name__, 
-                                  self.runnersBefore, self.runnersAfter, 
-                                  self.raw)
+        return "<%s.%s %s (%s) -> (%s)>" % (self.__module__, self.__class__.__name__, 
+                                  self.raw,
+                                  self.runnersBefore, self.runnersAfter
+                                  )
         
     
     def parse(self):
@@ -442,22 +461,22 @@ class RunnerEvent(common.ParentType):
         
         >>> RA = retro.play.RunnerAdvance
         >>> runnerAdvances = [RA('1-2'), RA('3XH')]
-        >>> runnersBefore = ['myke', False, 'jennifer']
+        >>> runnersBefore = base.BaseRunners('myke', False, 'jennifer')
         >>> re = retro.play.RunnerEvent()
         >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter is re.runnersAfter
         True
         >>> runAfter
-        [False, 'myke', False]
+        <bbbalk.base.BaseRunners 1:False 2:myke 3:False>
         >>> re.outs
         1
 
         >>> runnerAdvances = [RA('B-1'), RA('1-2'), RA('3-H(UR)')]
-        >>> runnersBefore = ['myke', False, 'jennifer']
+        >>> runnersBefore = base.BaseRunners('myke', False, 'jennifer')
         >>> re = retro.play.RunnerEvent()
         >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter
-        ['unknownBatter', 'myke', False]
+        <bbbalk.base.BaseRunners 1:unknownBatter 2:myke 3:False>
         >>> re.outs
         0
         >>> re.runs
@@ -486,10 +505,10 @@ class RunnerEvent(common.ParentType):
         alreadyTakenCareOf = [False, False, False, False] # batter, first, second, third...
                 
         # process 3rd first, then second, then first, then batter...
-        for oneRunnerAdvance in sorted(runnersAdvanceList, key=_sortRunnerAdvances):
-            isOut = oneRunnerAdvance.isOut
-            baseBefore = oneRunnerAdvance.baseBefore
-            baseAfter = oneRunnerAdvance.baseAfter
+        for raObj in sorted(runnersAdvanceList, key=lambda x: x.sortKey()):
+            isOut = raObj.isOut
+            baseBefore = raObj.baseBefore
+            baseAfter = raObj.baseAfter
 
             runnerIdOrFalse = None
             if baseBefore in ('1', '2', '3'):
@@ -500,6 +519,7 @@ class RunnerEvent(common.ParentType):
                     continue
                 runnerIdOrFalse = runnersBefore[beforeInt - 1]
                 alreadyTakenCareOf[beforeInt] = True
+                raObj.playerId = runnersBefore[beforeInt - 1]
                 runnersAfter[beforeInt - 1] = False # assumes proper encoding order of advancement
             elif baseBefore == 'B':
                 if alreadyTakenCareOf[0] is True:
@@ -511,7 +531,7 @@ class RunnerEvent(common.ParentType):
                 alreadyTakenCareOf[0] = True
             else:
                 raise RetrosheetException("Runner Advance without a base!: %s: %s: %s" % 
-                                          (oneRunnerAdvance, self.raw, parent.raw))
+                                          (raObj, self.raw, parent.raw))
                 
 
             if isOut is False:
@@ -573,12 +593,12 @@ class RunnerEvent(common.ParentType):
             for b in playEvent.basesStolen: # do not check (if playEvent.stolenBase) 
                 # because CS(E4) can mean there is a base stolen without a stolen base
                 ra = None
-                if b == '3' and not self.hasRunnerAdvance('2'):
-                    ra = RunnerAdvance('2-3')
+                if b == 'H' and not self.hasRunnerAdvance('3'):
+                    ra = RunnerAdvance('3-H', playerId=self.runnersBefore.third)
+                elif b == '3' and not self.hasRunnerAdvance('2'):
+                    ra = RunnerAdvance('2-3', playerId=self.runnersBefore.second)
                 elif b == '2' and not self.hasRunnerAdvance('1'):
-                    ra = RunnerAdvance('1-2')
-                elif b == 'H' and not self.hasRunnerAdvance('3'):
-                    ra = RunnerAdvance('3-H')
+                    ra = RunnerAdvance('1-2', playerId=self.runnersBefore.first)
                 if ra is not None:
                     raList.append(ra)
 
@@ -587,11 +607,11 @@ class RunnerEvent(common.ParentType):
                 ra = None
 
                 if b == '1' and not self.hasRunnerAdvance('1'):
-                    ra = RunnerAdvance('1X2')
+                    ra = RunnerAdvance('1X2', playerId=self.runnersBefore.first)
                 elif b == '2' and not self.hasRunnerAdvance('2'):
-                    ra = RunnerAdvance('2X3')
+                    ra = RunnerAdvance('2X3', playerId=self.runnersBefore.second)
                 elif b == '3' and not self.hasRunnerAdvance('3'):
-                    ra = RunnerAdvance('3XH')
+                    ra = RunnerAdvance('3XH', playerId=self.runnersBefore.third)
                 if ra is not None:
                     raList.append(ra)
                 
@@ -600,17 +620,13 @@ class RunnerEvent(common.ParentType):
             # look for it in the play event
             iba = playEvent.impliedBatterAdvance
             bEvent = ""
-            if iba == 1:
-                bEvent = 'B-1'
-            elif iba == 2:
-                bEvent = 'B-2'
-            elif iba == 3:
-                bEvent = 'B-3'
+            if iba in (1,2,3):
+                bEvent = 'B-' + str(iba)
             elif iba == 4:
                 bEvent = 'B-H'
             else:
                 raise RetrosheetException("Huhhh??? Implied batter advance (%s) is strange" % iba)
-            ra = RunnerAdvance(bEvent)
+            ra = RunnerAdvance(bEvent, playerId=self.parent.playerId)
             ra.isImplied = True
             raList.append(ra)
     

@@ -51,6 +51,13 @@ class PlayerGame(common.ParentType):
         return self.countPlateAppearanceAttribute('isHit')
 
     @property
+    def rbis(self):
+        '''
+        
+        '''
+        return self.countPlateAppearanceAttribute('rbis')
+
+    @property
     def walks(self):
         '''
         No idea how Jed got into so much here
@@ -76,15 +83,123 @@ class PlayerGame(common.ParentType):
         '''
         return self.countPlateAppearanceAttribute('strikeOut')
 
-    def boxScoreStatline(self, fields='atBats hits walks strikeOuts', paddingInfo=None): # add Runs...
+    @property
+    def runs(self):
+        '''
+        >>> g = games.Game('SDN201304090')
+        >>> p = g.playerById('venaw001')
+        >>> p.runs
+        2
+        '''
+        return len(self.plateAppearancesAsRunner(searchBefore=False, 
+                                                 searchAfter=False, searchScoring=True))
+    
+    def plateAppearancesAsRunner(self, searchBefore=True, searchAfter=True, searchScoring=True):
+        '''
+        returns a list of all plate appearances where the player
+        is a runner before or after the play, unless searchBefore is False
+        or searchAfter is False.  If searchScoring is False then scoring runners
+        will not count (do not turn all of them to False unless
+        you love empty lists).
+        
+        Note that if a batter reaches base (even a home run) then the
+        batter's own plate appearance will be included.
+        
+        Requires parent to be set to the game.
+        
+        Check against http://www.baseball-reference.com/boxes/SDN/SDN201304090.shtml
+        
+        >>> from pprint import pprint as pp
+
+        >>> g = games.Game('SDN201304090')
+        >>> p = g.playerById('venaw001')
+        >>> pas = p.plateAppearancesAsRunner()
+        >>> pp(pas)
+        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
+         <bbbalk.retro.play.PlateAppearance 5-4: venaw001: [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, <bbbalk.retro.play.Play b5: venaw001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: [<bbbalk.retro.play.Play b5: quenc001:SB2>, <bbbalk.retro.play.Play b5: quenc001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
+         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 7-7: alony001: [<bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, <bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, <bbbalk.retro.play.Play b7: alony001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: [<bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, <bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+
+        Only the times he was on base when the play began:
+        
+        >>> pas = p.plateAppearancesAsRunner(searchAfter=False, searchScoring=False)
+        >>> pp(pas)
+        [<bbbalk.retro.play.PlateAppearance 5-5: quenc001: [<bbbalk.retro.play.Play b5: quenc001:SB2>, <bbbalk.retro.play.Play b5: quenc001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 7-7: alony001: [<bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, <bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, <bbbalk.retro.play.Play b7: alony001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+
+        Only the plate appearances that had plays which ended with him still on base.  Note that
+        a sub mid-PA will trigger a false entry:
+        
+        >>> pas = p.plateAppearancesAsRunner(searchBefore=False, searchScoring=False)
+        >>> pp(pas)
+        [<bbbalk.retro.play.PlateAppearance 5-4: venaw001: [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, <bbbalk.retro.play.Play b5: venaw001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: [<bbbalk.retro.play.Play b5: quenc001:SB2>, <bbbalk.retro.play.Play b5: quenc001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
+         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 7-7: alony001: [<bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, <bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, <bbbalk.retro.play.Play b7: alony001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: [<bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, <bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>]
+
+        Only the times he scored:
+        
+        >>> pas = p.plateAppearancesAsRunner(searchBefore=False, searchAfter=False)
+        >>> pp(pas)
+        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        '''
+        pid = self.id
+        game = self.parentByClass('Game')
+        if game is None:
+            return None
+        visitOrHome = self.visitOrHome
+        allPAs = []
+        for hi in game.halfInnings:
+            if hi.visitOrHome != visitOrHome:
+                continue
+            for pa in hi.plateAppearances:
+                found = False
+                for p in pa.events:                    
+                    if p.record != 'play':
+                        continue
+                    if searchBefore is True:
+                        for r in p.runnersBefore:
+                            if r == pid:
+                                found = True
+                    if searchAfter is True:
+                        for r in p.runnersAfter:
+                            if r == pid:
+                                found = True
+                    if searchScoring is True:
+                        for r in p.runnerEvent.scoringRunners:
+                            if r == pid:
+                                found = True
+                if found is True:
+                    allPAs.append(pa)
+            
+        return allPAs
+        
+
+
+    def boxScoreStatline(self, fields='atBats runs hits walks strikeOuts', paddingInfo=None): 
         '''
         >>> g = games.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
-        >>> print(p.boxScoreStatline('atBats hits walks strikeOuts'))
-        Jedd Gyorko 3b         3   1   2   1
+        >>> print(p.boxScoreStatline('atBats hits runs strikeOuts'))
+        Jedd Gyorko 3b         3   1   0   1
 
-        >>> print(p.boxScoreStatline('atBats hits walks strikeOuts', paddingInfo={'nameSpace': 22, 'fieldSpace': 2}))
-        Jedd Gyorko 3b 3 1 2 1
+        >>> print(p.boxScoreStatline('atBats hits runs strikeOuts', paddingInfo={'nameSpace': 22, 'fieldSpace': 2}))
+        Jedd Gyorko 3b 3 1 0 1
 
         
         Compare:
@@ -93,34 +208,34 @@ class PlayerGame(common.ParentType):
         >>> lc = g.lineupCards[common.TeamNum.VISITOR]
         >>> for pos in lc.playersByBattingOrder:
         ...    for p in pos:
-        ...        print(p.boxScoreStatline('atBats hits walks strikeOuts'))
-        Rafael Furcal ss                 2   0   1   0
-          Angel Berroa pr,ss             0   0   0   0
-          Russell Martin ph,c            1   1   0   0
-        Blake DeWitt 3b                  5   1   0   1
-        Manny Ramirez lf                 2   2   0   0
-          James McDonald p               0   0   0   0
-          Pablo Ozuna ph,2b              3   0   0   0
-        Jeff Kent 2b                     3   1   0   0
-          Delwyn Young lf,rf             2   0   0   1
-        Andre Ethier rf                  2   0   1   0
-          Scott Proctor p                0   0   0   0
-          Chan Ho Park p                 0   0   0   0
-          Joe Beimel p                   0   0   0   0
-          Mark Sweeney ph                1   0   0   1
-          Cory Wade p                    0   0   0   0
-          Jonathan Broxton p             0   0   0   0
-          Eric Stults ph                 1   0   0   0
-          Jason Johnson p                0   0   0   0
-        James Loney 1b                   4   1   0   1
-        Juan Pierre cf,lf                4   2   0   0
-        Danny Ardoin c                   3   2   0   0
-          Nomar Garciaparra ph           1   1   0   0
-          A.J. Ellis pr                  0   0   0   0
-          Chin-Lung Hu ss                0   0   0   0
-        Derek Lowe p                     1   0   0   0
-          Jason Repko lf,rf              2   0   0   2
-          Matt Kemp ph,cf                1   0   0   1        
+        ...        print(p.boxScoreStatline('atBats runs hits rbis walks strikeOuts'))
+        Rafael Furcal ss                 2   0   0   0   1   0
+          Angel Berroa pr,ss             0   0   0   0   0   0
+          Russell Martin ph,c            1   1   1   2   0   0
+        Blake DeWitt 3b                  5   1   1   0   0   1
+        Manny Ramirez lf                 2   0   2   0   0   0
+          James McDonald p               0   0   0   0   0   0
+          Pablo Ozuna ph,2b              3   0   0   0   0   0
+        Jeff Kent 2b                     3   1   1   2   0   0
+          Delwyn Young lf,rf             2   0   0   0   0   1
+        Andre Ethier rf                  2   0   0   0   1   0
+          Scott Proctor p                0   0   0   0   0   0
+          Chan Ho Park p                 0   0   0   0   0   0
+          Joe Beimel p                   0   0   0   0   0   0
+          Mark Sweeney ph                1   0   0   0   0   1
+          Cory Wade p                    0   0   0   0   0   0
+          Jonathan Broxton p             0   0   0   0   0   0
+          Eric Stults ph                 1   0   0   0   0   0
+          Jason Johnson p                0   0   0   0   0   0
+        James Loney 1b                   4   1   1   1   0   1
+        Juan Pierre cf,lf                4   0   2   0   0   0
+        Danny Ardoin c                   3   0   2   0   0   0
+          Nomar Garciaparra ph           1   0   1   0   0   0
+          A.J. Ellis pr                  0   1   0   0   0   0
+          Chin-Lung Hu ss                0   0   0   0   0   0
+        Derek Lowe p                     1   0   0   0   0   0
+          Jason Repko lf,rf              2   0   0   0   0   2
+          Matt Kemp ph,cf                1   0   0   0   0   1
         '''
         if paddingInfo is None:
             pi = {}
@@ -153,11 +268,19 @@ class PlayerGame(common.ParentType):
         >>> p = g.playerById('gyorj001')
         >>> p.countPlateAppearanceAttribute('totalBases')
         1
+        >>> p.countPlateAppearanceAttribute('rbis')
+        1
         
         The number of errors made while he was at bat, not the number of errors he made.
         
         >>> p.countPlateAppearanceAttribute('errors')
         0
+
+        Good game for Venable:
+
+        >>> p = g.playerById('venaw001')
+        >>> p.countPlateAppearanceAttribute('rbis')
+        4
         '''
         total = 0
         for p in self.plateAppearances():

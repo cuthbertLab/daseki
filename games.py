@@ -271,15 +271,24 @@ class Game(common.ParentType):
     def finalizeParsing(self):
         lastInning = 0
         lastVisitOrHome = TeamNum.HOME
-        # pinch runner!
-        lastRunners = [False, False, False]
+        lastRunners = base.BaseRunners(False, False, False)
         thisHalfInning = None
         halfInnings = []
         playNumber = -1
         for r in self.recordsByType(('play','sub', 'start')):
             if r.record in ('start', 'sub'):
-                r.playNumber = playNumber # should be -1
-                self.lineupCards[r.visitOrHome].add(r)
+                r.playNumber = playNumber # should be -1 for starters
+                lc = self.lineupCards[r.visitOrHome]
+
+                if r.record == 'sub':
+                    #check for pinch runner
+                    # cannot use lc.subsFor() during parsing.
+                    subbedForPlayer = lc.playersByBattingOrder[r.battingOrder][-1]
+                    for i, runOnBase in enumerate(lastRunners):
+                        if runOnBase == subbedForPlayer.id:
+                            lastRunners[i] = r.id
+                        
+                lc.add(r)
                 r.inning = lastInning
             elif r.record == 'play':
                 playNumber += 1

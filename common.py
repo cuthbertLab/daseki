@@ -64,9 +64,6 @@ def dataRetrosheetByType(gameType='regular'):
         raise BBBalkException("gameType must be asg, post, or regular, not {0}".format(gameType))
     return os.path.join(dataRetrosheetEvent(), gameType)
 
-def dataDirByYear(year=2014):
-    return os.path.join(dataFilePath(), str(year)) + 'eve'
-
 def gameLogFilePath():
     return os.path.join(dataRetrosheet(), 'gamelog')
 
