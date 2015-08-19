@@ -1,12 +1,13 @@
 HOME = 1
 VISITOR = 0
 
-
+import unittest
+import os
 from bbbalk import common
 from bbbalk.retro.parser import EventFile, YearDirectory # @UnresolvedImport
 from bbbalk.games import Game # @UnresolvedImport
 
-class Test():
+class Test(unittest.TestCase):
     def sdAttendance(self):
         yd = YearDirectory(2014)
         attd = 0
@@ -83,7 +84,7 @@ class Test():
         print("***", totTot, totTotUsed, percentage, totTot1st)
     
     def events(self):
-        ev = EventFile(common.dataDirByYear(2014) + '/2014SDN.EVN')
+        ev = EventFile(os.path.join(common.dataRetrosheetEvent(), 'regular', '2014SDN.EVN'))
         g = Game()
         g.mergeProto(ev.protoGames[0])
         for p in g.recordsByType('play'):
@@ -91,14 +92,19 @@ class Test():
             print(p.inning, p.visitOrHome, p.playerId, e.basicBatter, e.isOut, e.isSafe, e.raw)
             p.runnerEvent
 
-    def checkScores(self):
+    def testScores(self):
+        from bbbalk.retro import gameLogs
         global DEBUG
         DEBUG = True
-        ev = EventFile(common.dataDirByYear(2014) + '/2014SDN.EVN')
+        ev = EventFile(os.path.join(common.dataRetrosheetEvent(), 'regular', '2014SDN.EVN'))
         for pg in ev.protoGames:
             g = Game()
             g.mergeProto(pg)
-            print(g.id, g.runs)        
+            r = g.runs
+            gl = gameLogs.GameLog(g.id)
+            #print(g.id, g.runs)
+            self.assertEqual(gl.homeRuns, r.home)
+            self.assertEqual(gl.visitRuns, r.visitor)
     
     
     def leadoffsLeadoff(self):
@@ -120,12 +126,7 @@ class Test():
                             totalLeadOffs += 1
         print(totalPAs, totalLeadOffs, totalLeadOffs*100/totalPAs)
         print(t(), 'seconds')
+        
 if __name__ == '__main__':
-    t = Test()
-    #t.leadoffsLeadoff()
-    #t.checkScores()
-    #t.events()
-    #t.pitcherBats()
-    #t.yearList(1999)
-    t.yearsList()
-    #t.sdAttendance()
+    import bbbalk
+    bbbalk.mainTest(Test)
