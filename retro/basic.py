@@ -19,10 +19,10 @@ class Id(RetroData):
     '''
     defines the ID for the game
     '''
-    __slots__ = ('id')
+    __slots__ = ('id',)
     
     record = 'id'
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, retroId, parent=None):
         super(Id, self).__init__(parent=parent)
         self.id = retroId
@@ -34,10 +34,10 @@ class Version(RetroData):
     '''
     defines the retrosheet version
     '''
-    __slots__ = ('version')
+    __slots__ = ('version',)
     
     record = 'version'
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, version=1, parent=None):
         super(Version, self).__init__(parent=parent)
         self.version = version
@@ -52,7 +52,7 @@ class Adjustment(RetroData):
     '''
     __slots__ = ('playerId', 'hand')
     
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None):
         super(Adjustment, self).__init__(parent=parent)
         self.playerId = playerId
@@ -65,7 +65,8 @@ class Adjustment(RetroData):
 
 class BattingAdjustment(Adjustment):
     record = 'badj'
-    @common.keyword_only_args('parent')
+    __slots__ = ()
+    #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None):
         super(BattingAdjustment, self).__init__(playerId, hand, parent=parent)
 
@@ -76,7 +77,9 @@ class PitchingAdjustment(Adjustment):
     Will have more evidence of this in 2015 data
     '''
     record = 'padj'
-    @common.keyword_only_args('parent')
+    __slots__ = ()
+
+    #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None):
         super(PitchingAdjustment, self).__init__(playerId, hand, parent=parent)
 
@@ -85,7 +88,9 @@ class OutOfOrderAdjustment(Adjustment):
     TO-DO: need example of this
     '''
     record = 'ladj'
-    @common.keyword_only_args('parent')
+    
+    __slots__ = ()
+    #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None): # is hand necessary here?
         super(OutOfOrderAdjustment, self).__init__(playerId, hand, parent=parent)
 
@@ -96,7 +101,7 @@ class Data(RetroData):
     __slots__ = ('dataType', 'playerId', 'runs')
     
     record = 'data'
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, dataType, playerId, runs, parent=None):
         super(Data, self).__init__(parent=parent)
         if dataType != 'er':
@@ -113,9 +118,9 @@ class Comment(RetroData):
     '''
     Records a single comment entry
     '''
-    __slots__ = ('comment')
+    __slots__ = ('comment',)
     record = 'com'
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, comment, parent=None):
         super(Comment, self).__init__(parent=parent)
         self.comment = comment
@@ -144,16 +149,16 @@ class Info(RetroData):
     del(_administrativeTypes)
     intTypes = "number temp windspeed timeofgame attendance".split()
     
-    @common.keyword_only_args('parent')
-    def __init__(self, recordType, parent=None, *dataInfo):
+    #@common.keyword_only_args('parent')
+    def __init__(self, recordType, dataInfo, parent=None):
         super(Info, self).__init__(parent=parent)
         self.recordType = recordType
         if recordType not in self.knownTypes:
             raise RetrosheetException("Unknown record type %s for info record" % recordType)
-        if len(dataInfo) > 1:
-            raise RetrosheetException("should only have one entry for dataInfo, not %r" % dataInfo)
+        #if len(dataInfo) > 1:
+        #    raise RetrosheetException("should only have one entry for dataInfo, not %r" % dataInfo)
     
-        di = dataInfo[0]
+        di = dataInfo
         if di == 'unknown':
             di = None
             

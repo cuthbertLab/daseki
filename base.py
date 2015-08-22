@@ -34,7 +34,7 @@ teamEquivalents = ( ("MON", "WAS"), ("CAL", "ANA"), ("FLO", "MIA") )
 
 class HalfInning(common.ParentType):
     '''
-    >>> g = games.Game('SDN201304090')
+    >>> g = game.Game('SDN201304090')
     >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
     >>> hi
     <bbbalk.base.HalfInning b8 plays:83-100 (SDN201304090)>
@@ -43,7 +43,10 @@ class HalfInning(common.ParentType):
     >>> print(hi.visitOrHome)
     TeamNum.HOME
     '''
-    @common.keyword_only_args('parent')    
+    __slots__ = ('inningNumber', 'visitOrHome', 'events', '_iterindex',
+                 '_prev', '_following', 'startPlayNumber', 'endPlayNumber',
+                 '_plateAppearances')
+#    @common.keyword_only_args('parent')    
     def __init__(self, inningNumber = 1, visitOrHome = TeamNum.VISITOR, parent=None):
         super(HalfInning, self).__init__(parent=parent)
         self.inningNumber = inningNumber
@@ -75,7 +78,7 @@ class HalfInning(common.ParentType):
         '''
         >>> from pprint import pprint as pp
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
         >>> pp(hi.plateAppearances)        
         [<bbbalk.retro.play.PlateAppearance 8-1: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:NP>, <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, <bbbalk.retro.play.Play b8: gyorj001:NP>, <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, <bbbalk.retro.play.Play b8: gyorj001:W>]>,
@@ -192,7 +195,7 @@ class HalfInning(common.ParentType):
 
     def subByNumber(self, pn):
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> hi
         <bbbalk.base.HalfInning b7 plays:65-76 (SDN201304090)>
@@ -206,7 +209,7 @@ class HalfInning(common.ParentType):
     
     def playByNumber(self, pn):
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.startPlayNumber
         0
@@ -225,7 +228,7 @@ class HalfInning(common.ParentType):
         return the last play of the half inning.  Useful for things
         like left-on-base.
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.lastPlay()
         <bbbalk.retro.play.Play t1: uribj002:12(3)3/GDP>
@@ -241,7 +244,7 @@ class HalfInning(common.ParentType):
         returns the number of people left on base at the end of
         the inning.
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.leftOnBase
         2
@@ -296,7 +299,7 @@ class BaseRunners(common.ParentType):
     'elina'
     '''
     __slots__ = ('first', 'second', 'third', '_iterindex') 
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, first=False, second=False, third=False, parent=None):
         super(BaseRunners, self).__init__(parent=parent)
         self.first = first
@@ -312,7 +315,7 @@ class BaseRunners(common.ParentType):
     @property
     def play(self):
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> p = hi.events[2]
         >>> p
@@ -334,7 +337,7 @@ class BaseRunners(common.ParentType):
         '''
         get PlayerEntrance objects for each baserunner or None if no baserunner.
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(9, common.TeamNum.VISITOR)
         >>> p = hi.events[-1]
         >>> brb = p.runnersBefore

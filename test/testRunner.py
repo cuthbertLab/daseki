@@ -36,9 +36,9 @@ def addDocAttrTestsToSuite(suite, moduleVariableLists, outerFilename=None, globs
     (which documents the properties in the class) any doctests to the suite.
     
     >>> import doctest
-    >>> s1 = doctest.DocTestSuite(games)
+    >>> s1 = doctest.DocTestSuite(game)
     >>> s1TestsBefore = len(s1._tests)
-    >>> allLocals = [getattr(games, x) for x in dir(games)]
+    >>> allLocals = [getattr(game, x) for x in dir(game)]
     >>> test.testRunner.addDocAttrTestsToSuite(s1, allLocals)
     >>> s1TestsAfter = len(s1._tests)
     >>> s1TestsAfter - s1TestsBefore
@@ -72,7 +72,7 @@ def fixTestsForPy2and3(doctestSuite):
     unicode/byte characters and added module names to exceptions.
     
     >>> import doctest
-    >>> s1 = doctest.DocTestSuite(games)
+    >>> s1 = doctest.DocTestSuite(game)
     >>> test.testRunner.fixTestsForPy2and3(s1)
     '''
     for dtc in doctestSuite: # Suite to DocTestCase
@@ -110,19 +110,19 @@ def stripAddresses(textString, replacement = "ADDRESS"):
     contains references to memory locations.  So for instance:
 
 
-    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.games.Game object at 0x02A87AD0>")
-    '{0.0} <bbbalk.games.Game object at ADDRESS>'
+    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.game.Game object at 0x02A87AD0>")
+    '{0.0} <bbbalk.game.Game object at ADDRESS>'
 
     while this is left alone:
 
-    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.games.GameCollection >")
-    '{0.0} <bbbalk.games.GameCollection >'
+    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.game.GameCollection >")
+    '{0.0} <bbbalk.game.GameCollection >'
 
 
     For doctests, can strip to '0x...' to make it work fine with doctest.ELLIPSIS
     
-    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.games.Game object at 0x02A87AD0>", '0x...')
-    '{0.0} <bbbalk.games.Game object at 0x...>'
+    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.game.Game object at 0x02A87AD0>", '0x...')
+    '{0.0} <bbbalk.game.Game object at 0x...>'
 
     :rtype: str
     '''

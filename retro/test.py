@@ -5,7 +5,7 @@ import unittest
 import os
 from bbbalk import common
 from bbbalk.retro.parser import EventFile, YearDirectory # @UnresolvedImport
-from bbbalk.games import Game # @UnresolvedImport
+from bbbalk.game import Game # @UnresolvedImport
 
 class Test(unittest.TestCase):
     def sdAttendance(self):
@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
             yd = YearDirectory(thisYear)
             yd.parseEventFiles()
             
-    def yearList(self, year=2014):
+    def testYearList(self, year=2014):
         yd = YearDirectory(year)
         yd.parseEventFiles()
     
@@ -92,7 +92,7 @@ class Test(unittest.TestCase):
             print(p.inning, p.visitOrHome, p.playerId, e.basicBatter, e.isOut, e.isSafe, e.raw)
             p.runnerEvent
 
-    def testScores(self):
+    def xtestScores(self):
         from bbbalk.retro import gameLogs
         global DEBUG
         DEBUG = True
@@ -108,9 +108,9 @@ class Test(unittest.TestCase):
     
     
     def leadoffsLeadoff(self):
-        from bbbalk import games
+        from bbbalk import game  # @UnresolvedImport
         t = common.Timer()
-        gc = games.GameCollection()
+        gc = game.GameCollection()
         gc.yearStart = 2000
         gc.yearEnd = 2014
         gc.usesDH = True
@@ -126,6 +126,43 @@ class Test(unittest.TestCase):
                             totalLeadOffs += 1
         print(totalPAs, totalLeadOffs, totalLeadOffs*100/totalPAs)
         print(t(), 'seconds')
+        
+    def testRunsAboveAverage(self):
+        pId = {}
+        expectation = {}
+        from bbbalk import game, base # @UnresolvedImport
+        from bbbalk.common import TeamNum
+        gc = game.GameCollection()
+        gc.yearStart = 1987
+        gc.yearEnd = 1987
+        #gc.team = 'SDN'
+        gc.parse()
+        
+        erm = base.ExpectedRunMatrix()
+        
+        for g in gc.games:
+            #if 'SDN' in g.infoByType('hometeam'):
+            #    SD = TeamNum.HOME
+            #else:
+            #    SD = TeamNum.VISITOR
+            for hi in g.halfInnings:
+                #if hi.visitOrHome != SD:
+                #    continue
+                for pa in hi.plateAppearances:
+                    le = pa.lastEvent
+                    bId = le.playerId
+                    if bId not in pId:
+                        pId[bId] = 0
+                        expectation[bId] = 0
+                    pId[bId] += 1
+                    runsExpectedBefore = erm.runsForSituation(le.runnersBefore, pa.outsBefore)
+                    runsExpectedAfter = erm.runsForSituation(le.runnersAfter, pa.outsAfter)
+                    runsScored = le.runnerEvent.runs
+                    expectation[bId] += runsScored + runsExpectedAfter - runsExpectedBefore
+
+        for b in sorted(pId, key=lambda x: expectation[x]):
+            print("{0:10} {1:+0.3f} {2:+4.1f}".format(b, expectation[b]/pId[b], expectation[b]))
+        
         
 if __name__ == '__main__':
     import bbbalk

@@ -231,6 +231,120 @@ class Timer(object):
         return str(round(t,3))
 
 #------------------------
+import multiprocessing
+try:
+    from concurrent import futures
+except ImportError:  # only on Py3
+    futures = None 
+    
+def multicore(func):
+    '''
+    Pseudo-decorator to run a function concurrently on multiple cores a list 
+    or a list of tuples. Returns an iterator over the results
+    
+    (It is not a real decorator because they produce unpickleable functions.  Sad...)
+    
+    getGameHomeScore is defined in common as follows:
+    
+        def getGameHomeScore(gId):
+             g = game.Game(gId)
+             return gId, g.runs.home
+    
+    We can't put it in the docs because of pickle limitations.
+    
+    >>> import time
+    >>> from bbbalk.common import getGameHomeScore, multicore
+    >>> gameList = ['SDN201304090', 'SFN201409280', 'SLN201408140', 'SLN201408160', 'WAS201404250']
+    >>> gFunc = multicore(getGameHomeScore)
+    >>> t = time.time()
+    >>> for gid, runs in gFunc(gameList):
+    ...     print(gid, runs)
+    SDN201304090 9
+    SFN201409280 9
+    SLN201408140 4
+    SLN201408160 5
+    WAS201404250 11
+    >>> tDelta1 = time.time() - t
+    
+    Without multicore:
+    
+    >>> t = time.time()
+    >>> for gid, runs in [getGameHomeScore(g) for g in gameList]:
+    ...     unused = (gid, runs)
+    >>> tDelta2 = time.time() - t
+    >>> tDelta1 < tDelta2
+    True
+    
+    All arguments and results need to be pickleable 
+    
+    '''
+    max_workers = multiprocessing.cpu_count() - 1 # @UndefinedVariable
+    if max_workers == 0:
+        max_workers = 1
+    
+    def bg_f(argList):
+        if len(argList) == 0:
+            yield None
+        firstArg = argList[0]
+        argType = "unknown"
+        if firstArg is None:
+            argType = "none"
+        elif isinstance(firstArg, (tuple, list)):
+            argType = 'tuple'
+        elif isinstance(firstArg, dict):
+            argType = 'dict'
+        else:
+            argType = 'scalar'
+
+        if futures is None:
+            for i in argList:
+                if argType == 'scalar':
+                    yield func(i)
+                elif argType == 'tuple':
+                    yield func(*i)
+        else:     
+
+            with futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                if argType == 'scalar':
+                    for res in executor.map(func, argList):
+                        yield res
+                elif argType == 'tuple':
+                    for res in executor.map(func, *zip(*argList)):
+                        yield res
+                else:
+                    raise BBBalkException('Cannot Parallelize arguments of type {0}'.format(argType))
+        
+    return bg_f
+
+
+def getGameHomeScore(gId):
+    from bbbalk import game # @UnresolvedImport
+    g = game.Game(gId)
+    return g, g.runs.home
+
+
+def runDemo(team):
+    from bbbalk import game # @UnresolvedImport
+    gc = game.GameCollection()
+    gc.team = team
+    gc.parse()
+    if team == 'BOS':
+        time.sleep(4)
+    return team, len(gc.games)
+
+def runDemo2(team, year):
+    from bbbalk import game # @UnresolvedImport
+    gc = game.GameCollection()
+    gc.team = team
+    gc.yearStart = year
+    gc.yearEnd = year
+    gc.parse()
+    if team == 'BOS':
+        time.sleep(4)
+    return team, len(gc.games)
+
+
+#------------------------
 
 
 class SlottedObject(object):
@@ -268,23 +382,43 @@ class SlottedObject(object):
             slots.update(getattr(cls, '__slots__', ()))
         for slot in slots:
             sValue = getattr(self, slot, None)
-            if sValue is not None and type(sValue) is weakref.ref:
+            if type(sValue) is weakref.ref:
                 sValue = sValue()
                 print("Warning: uncaught weakref found in %r - %s, will not be rewrapped" % (self, slot))
             state[slot] = sValue
+        if getattr(self, '__dict__', None) is not None:
+            print("We got a dict TOO!", getattr(self, '__class__')) 
         return state
 
     def __setstate__(self, state):
+        #print("Restoring state {0}".format(self.__class__))
         for slot, value in state.items():
             setattr(self, slot, value)
 
 class ParentType(SlottedObject):
-    __slots__ = ('_parent')
+
+    __slots__ = ('_parent',)
     
     def __init__(self, parent=None):
         self._parent = None
         self.parent = parent
 
+    def __getstate__(self):
+        pValue = getattr(self, '_parent', None)
+        setattr(self, '_parent', None)
+        state = super(ParentType, self).__getstate__()
+        state['_parent'] = pValue
+        return state
+
+    def __setstate__(self, state):
+        super(ParentType, self).__setstate__(state)
+        pValue = getattr(self, '_parent', None)
+        try:
+            pValue = weakref.ref(pValue)
+        except TypeError:
+            pass # hardref now...
+        setattr(self, '_parent', pValue)
+        
     def parentByClass(self, className):
         '''
         iterate through parents until one of the proper class is found.

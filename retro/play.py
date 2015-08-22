@@ -53,7 +53,7 @@ class PlateAppearance(common.ParentType):
     plate appearance as well as any substitutions or other events that take place during
     the PA.
     '''
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, parent=None):
         super(PlateAppearance, self).__init__(parent=parent)
         self.startPlayNumber = -1
@@ -82,7 +82,16 @@ class PlateAppearance(common.ParentType):
             return getattr(le.runnerEvent, attr)
         else:
             raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, attr))
-            
+        
+    
+    @property
+    def outsAfter(self):
+        outs = 0
+        for p in self.events:
+            if p.record != 'play':
+                continue
+            outs += p.outsMadeOnPlay
+        return self.outsBefore + outs
     
     @property
     def lastEvent(self):
@@ -95,7 +104,7 @@ class PlateAppearance(common.ParentType):
     @property
     def battingOrder(self):
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
         >>> pa0 = hi.plateAppearances[0]
         >>> pa0.battingOrder
@@ -153,7 +162,7 @@ class Play(datatypeBase.RetroData):
     
     record = 'play'
     visitorNames = ["visitor", "home"]
-    @common.keyword_only_args('parent')
+    #@common.keyword_only_args('parent')
     def __init__(self, inning=0, visitOrHome=0, playerId="", count="", pitches="", raw="", parent=None):
         super(Play, self).__init__(parent=parent)
         self.inning = int(inning)
@@ -414,7 +423,7 @@ class RunnerEvent(common.ParentType):
     '''
     __slots__ = ('runnersBefore', 'runnersAfter', 'runnersAdvance', 'outs', 'runs', 'scoringRunners',
                  'raw')
-    @common.keyword_only_args('parent')    
+    #@common.keyword_only_args('parent')    
     def __init__(self, raw="", runnersBefore=None, parent=None):
         super(RunnerEvent, self).__init__(parent=parent)
         self.raw = raw

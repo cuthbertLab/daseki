@@ -12,18 +12,30 @@ visitorNames = ["visitor", "home"]
 del(_positionNames)
 
 
+class PlayerYear(common.ParentType):
+    '''
+    Represents everything that a player does in a year, currently regular season only.
+    '''
+    __slots__ = ()
+    #@common.keyword_only_args('parent')
+    def __init__(self, playerId, parent=None):
+        pass
+        
+
 class PlayerGame(common.ParentType):
     '''
     Represents everything that a player does in one game.
     '''
-    @common.keyword_only_args('parent')
+    __slots__ = ('id', 'name', 'inning', 'visitOrHome', 'battingOrder',
+                 'entryData', 'positions', 'subs', 'enteredFor', 'exitedFor',
+                 'enteredPlay', 'exitedPlay', 'isStarter', 'isSub')
+    #@common.keyword_only_args('parent')
     def __init__(self, playerId, playerName, visitOrHome, battingOrder, parent=None):
         super(PlayerGame, self).__init__(parent=parent)
         self.id = playerId
         self.name = playerName
         self.inning = None
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
-        self.visitName = visitorNames[int(visitOrHome)]
         self.battingOrder = int(battingOrder)
         self.entryData = None
         self.positions = []
@@ -40,10 +52,14 @@ class PlayerGame(common.ParentType):
                                   self.visitName, self.battingOrder, 
                                   self.name, self.id, self.positions)
     
+    @property            
+    def visitName(self):
+        return visitorNames[self.visitOrHome]
+
     @property
     def hits(self):
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> p.hits
         1
@@ -62,7 +78,7 @@ class PlayerGame(common.ParentType):
         '''
         No idea how Jed got into so much here
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> p.walks
         2
@@ -86,7 +102,7 @@ class PlayerGame(common.ParentType):
     @property
     def runs(self):
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('venaw001')
         >>> p.runs
         2
@@ -111,7 +127,7 @@ class PlayerGame(common.ParentType):
         
         >>> from pprint import pprint as pp
 
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('venaw001')
         >>> pas = p.plateAppearancesAsRunner()
         >>> pp(pas)
@@ -190,52 +206,68 @@ class PlayerGame(common.ParentType):
         return allPAs
         
 
+    def lastPlusInitial(self):
+        '''
+        Return a string of the player's last name plus an initial
+        
+        TODO: Take from the ROS files to exact names..
+
+        >>> g = game.Game('SDN201304090')
+        >>> p = g.playerById('gyorj001')
+        >>> p.lastPlusInitial()
+        'Gyorko J'
+        '''
+        nameParts = self.name.split()
+        firstInitial = nameParts[0][0]
+        last = nameParts[-1]
+        return last + " " + firstInitial
+        
 
     def boxScoreStatline(self, fields='atBats runs hits walks strikeOuts', paddingInfo=None): 
         '''
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> print(p.boxScoreStatline('atBats hits runs strikeOuts'))
-        Jedd Gyorko 3b         3   1   0   1
+        Gyorko J 3b                      3   1   0   1
 
         >>> print(p.boxScoreStatline('atBats hits runs strikeOuts', paddingInfo={'nameSpace': 22, 'fieldSpace': 2}))
-        Jedd Gyorko 3b 3 1 0 1
+        Gyorko J 3b            3 1 0 1
 
         
         Compare:
         
-        >>> g = games.Game('SFN200809260')
+        >>> g = game.Game('SFN200809260')
         >>> lc = g.lineupCards[common.TeamNum.VISITOR]
         >>> for pos in lc.playersByBattingOrder:
         ...    for p in pos:
         ...        print(p.boxScoreStatline('atBats runs hits rbis walks strikeOuts'))
-        Rafael Furcal ss                 2   0   0   0   1   0
-          Angel Berroa pr,ss             0   0   0   0   0   0
-          Russell Martin ph,c            1   1   1   2   0   0
-        Blake DeWitt 3b                  5   1   1   0   0   1
-        Manny Ramirez lf                 2   0   2   0   0   0
-          James McDonald p               0   0   0   0   0   0
-          Pablo Ozuna ph,2b              3   0   0   0   0   0
-        Jeff Kent 2b                     3   1   1   2   0   0
-          Delwyn Young lf,rf             2   0   0   0   0   1
-        Andre Ethier rf                  2   0   0   0   1   0
-          Scott Proctor p                0   0   0   0   0   0
-          Chan Ho Park p                 0   0   0   0   0   0
-          Joe Beimel p                   0   0   0   0   0   0
-          Mark Sweeney ph                1   0   0   0   0   1
-          Cory Wade p                    0   0   0   0   0   0
-          Jonathan Broxton p             0   0   0   0   0   0
-          Eric Stults ph                 1   0   0   0   0   0
-          Jason Johnson p                0   0   0   0   0   0
-        James Loney 1b                   4   1   1   1   0   1
-        Juan Pierre cf,lf                4   0   2   0   0   0
-        Danny Ardoin c                   3   0   2   0   0   0
-          Nomar Garciaparra ph           1   0   1   0   0   0
-          A.J. Ellis pr                  0   1   0   0   0   0
-          Chin-Lung Hu ss                0   0   0   0   0   0
-        Derek Lowe p                     1   0   0   0   0   0
-          Jason Repko lf,rf              2   0   0   0   0   2
-          Matt Kemp ph,cf                1   0   0   0   0   1
+        Furcal R ss                      2   0   0   0   1   0
+          Berroa A pr,ss                 0   0   0   0   0   0
+          Martin R ph,c                  1   1   1   2   0   0
+        DeWitt B 3b                      5   1   1   0   0   1
+        Ramirez M lf                     2   0   2   0   0   0
+          McDonald J p                   0   0   0   0   0   0
+          Ozuna P ph,2b                  3   0   0   0   0   0
+        Kent J 2b                        3   1   1   2   0   0
+          Young D lf,rf                  2   0   0   0   0   1
+        Ethier A rf                      2   0   0   0   1   0
+          Proctor S p                    0   0   0   0   0   0
+          Park C p                       0   0   0   0   0   0
+          Beimel J p                     0   0   0   0   0   0
+          Sweeney M ph                   1   0   0   0   0   1
+          Wade C p                       0   0   0   0   0   0
+          Broxton J p                    0   0   0   0   0   0
+          Stults E ph                    1   0   0   0   0   0
+          Johnson J p                    0   0   0   0   0   0
+        Loney J 1b                       4   1   1   1   0   1
+        Pierre J cf,lf                   4   0   2   0   0   0
+        Ardoin D c                       3   0   2   0   0   0
+          Garciaparra N ph               1   0   1   0   0   0
+          Ellis A pr                     0   1   0   0   0   0
+          Hu C ss                        0   0   0   0   0   0
+        Lowe D p                         1   0   0   0   0   0
+          Repko J lf,rf                  2   0   0   0   0   2
+          Kemp M ph,cf                   1   0   0   0   0   1
         '''
         if paddingInfo is None:
             pi = {}
@@ -252,7 +284,7 @@ class PlayerGame(common.ParentType):
         
         if isinstance(fields, str):
             fields = fields.split()
-        l = self.name + " " + ",".join([positionAbbrevs[p] for p in self.positions])
+        l = self.lastPlusInitial() + " " + ",".join([positionAbbrevs[p] for p in self.positions])
         if self.isSub:
             l = (" " * pi['subIndent']) + l
         l = l.ljust(pi['nameSpace'])
@@ -264,7 +296,7 @@ class PlayerGame(common.ParentType):
         '''
         Counts the number of times something occurs in all plate appearances in a game.
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> p.countPlateAppearanceAttribute('totalBases')
         1
@@ -305,7 +337,7 @@ class PlayerGame(common.ParentType):
         
         >>> from pprint import pprint as pp
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> p
         <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
@@ -347,7 +379,7 @@ class LineupCard(common.ParentType):
 
     >>> from pprint import pprint as pp
     
-    >>> g = games.Game('SDN201304090')
+    >>> g = game.Game('SDN201304090')
     >>> lc = g.lineupCards[common.TeamNum.VISITOR]
     >>> lc
     <bbbalk.player.LineupCard visitor (SDN201304090)>
@@ -372,7 +404,9 @@ class LineupCard(common.ParentType):
       <bbbalk.player.PlayerGame visitor,9: Chris Capuano (capuc001):[1]>,
       <bbbalk.player.PlayerGame visitor,9: Nick Punto (puntn001):[5, 6]>]]
     '''
-    @common.keyword_only_args('parent')
+    
+    __slots__ = ('lineupData', 'playersByBattingOrder', 'visitOrHome', 'teamAbbreviation', 'allPlayers')
+    #@common.keyword_only_args('parent')
     def __init__(self, visitOrHome, parent=None):
         super(LineupCard, self).__init__(parent=parent)
         self.lineupData = []
@@ -393,7 +427,7 @@ class LineupCard(common.ParentType):
         '''
         Returns the PlayerGame object representing a playerId in this game:
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> lc.playerById('gyorj001')
         <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
@@ -438,7 +472,7 @@ class LineupCard(common.ParentType):
         Return the substitution at a given play number.  The only one that should have
         multiple is playNumber -1
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> lc.byPlayNumber(42)
         <bbbalk.player.Sub home,9: Eric Stults (stule002):pinchhitter>        
@@ -452,7 +486,7 @@ class LineupCard(common.ParentType):
         '''
         Return a list of all plays where someone substituted.
 
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> lc.playsWithSubstitutions()
         [42, 49, 61, 63, 69, 75, 77, 78, 96, 101]
@@ -475,7 +509,7 @@ class LineupCard(common.ParentType):
         
         It may be the same player if the position changes, as in the example below:
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.VISITOR]
         >>> p = g.subByNumber(83)
         >>> p
@@ -529,7 +563,7 @@ class LineupCard(common.ParentType):
         
         Requires parent to be set.
 
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> ms = lc.multipleSubs()
         >>> ms
@@ -575,7 +609,7 @@ class LineupCard(common.ParentType):
         1 indexed. so 0 is always None in non DH games, and pitcher in DH games
 
         >>> from pprint import pprint as pp
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> pp(lc.battingOrderAtPlayNumber(0)) # default
         [None,
@@ -621,22 +655,24 @@ class PlayerEntrance(RetroData):
     .visitName -- "visitor" or "home"
     .battingOrder -- 0-9 (0 = pitcher in DH)
     .position -- 1-9, 10 for DH, 11 for pinch hitter, 12 for pinch runner, 0 = unknown
+    .positionName
     '''    
+    
+    __slots__ = ('id', 'name',  'visitOrHome', 'battingOrder', 'position', 'inning')
+    
     def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
         super(PlayerEntrance, self).__init__(parent=parent)
         try:
             self.id = playerId
             self.name = playerName
-            self.inning = None
             self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
-            self.visitName = visitorNames[int(visitOrHome)]
             self.battingOrder = int(battingOrder)
-            if position.endswith('"'): # parse error in 1996KCA.EVA and 1996MON.EVN # TODO: Tell Retrosheet
-                gid = self.parentByClass('Game').id
-                common.warn("Position ending in quote in {0}".format(gid))
-                position = position[0:len(position)-1]
+            self.inning = None
+#             if position.endswith('"'): # parse error in 1996KCA.EVA and 1996MON.EVN # TODO: Tell Retrosheet
+#                 gid = self.parentByClass('Game').id
+#                 common.warn("Position ending in quote in {0}".format(gid))
+#                 position = position[0:len(position)-1]
             self.position = int(position)
-            self.positionName = positionNames[int(position)]    
         except ValueError as ve:
             raise RetrosheetException("Parse error for player {0}: {1}".format(playerName, str(ve)))
 
@@ -645,15 +681,25 @@ class PlayerEntrance(RetroData):
                                   self.visitName, self.battingOrder, 
                                   self.name, self.id, self.positionName)
 
+    @property            
+    def positionName(self):
+        return positionNames[self.position]
+
+    @property            
+    def visitName(self):
+        return visitorNames[self.visitOrHome]
+
+
 
 class Start(PlayerEntrance):
     record = 'start'
-    
+    __slots__ = ()
     def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
         super(Start, self).__init__(playerId, playerName, visitOrHome, battingOrder, position, parent=parent)
 
 class Sub(PlayerEntrance):
     record = 'sub'
+    __slots__ = ()
     def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
         super(Sub, self).__init__(playerId, playerName, visitOrHome, battingOrder, position, parent=parent)
 

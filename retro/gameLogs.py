@@ -392,8 +392,8 @@ class Test(unittest.TestCase):
 
 class TestSlow(unittest.TestCase):
     def testRunInformation(self):
-        from bbbalk import games
-        gc = games.GameCollection()
+        from bbbalk import game
+        gc = game.GameCollection()
         #gc.yearStart = 1995
         #gc.yearEnd = 2009
         gc.park = 'BAL' # doubleheader game makes a nice test.

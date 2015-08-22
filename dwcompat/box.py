@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 from bbbalk.common import TeamNum
-from bbbalk import games
+from bbbalk import game
 import unittest
 
 class BoxScore(object):
     def __init__(self, gameId):
-        self.game = games.Game(gameId)
+        self.game = game.Game(gameId)
     
     def box(self):
         b = []
@@ -27,7 +27,7 @@ class BoxScore(object):
         s += g.homeTeam.location
         s += ' ('
         s += g.dayNight[0].upper()
-        s += ')'
+        s += ')\n'
         return s
     
     def lineScore(self):
@@ -60,7 +60,11 @@ class BoxScore(object):
         #b.append(self.error())
         #b.append(self.dblplay())
         b.append(self.lob())
-        #b.append(self.hr())
+        dbl = self.dbl()
+        if len(dbl) > 0:
+            b.append(dbl)
+        b.append(self.tpl())
+        b.append(self.hr())
         #b.append(self.sb())
         #b.append(self.sh())
         #b.append(self.wildpitch())
@@ -78,6 +82,36 @@ class BoxScore(object):
         s += g.homeTeam.location + " "
         s += str(g.leftOnBase.home)
         return s
+
+    def countingStatHelper(self, attr, abbr):
+        s = []
+        game = self.game
+        statDict = game.battersByEvent(attr)
+        
+        for pId in statDict:
+            val = statDict[pId]
+            if val == 1:
+                vStr = ""
+            else:
+                vStr = " " + str(val)
+            player = game.playerById(pId)
+            pName = player.lastPlusInitial()
+            s.append(pName + vStr)
+        sStr = ', '.join(s)
+        if len(s) > 0:
+            return abbr + ' -- ' + sStr
+        else:
+            return ''
+            
+    def dbl(self):
+        return self.countingStatHelper('double', '2B')
+
+    def tpl(self):
+        return self.countingStatHelper('triple', '3B')
+
+    def hr(self):
+        return self.countingStatHelper('homeRun', 'HR')
+
 
     def time(self):
         g = self.game
@@ -149,7 +183,7 @@ A -- 45567
         bs = BoxScore('SDN201403300')
         print(bs.box())
 
-    def xtestHighScoring(self):
+    def testHighScoring(self):
         auth = '''     Game of 4/18/2009 -- Cleveland at New York (D)
 
   Cleveland          AB  R  H RBI    New York           AB  R  H RBI

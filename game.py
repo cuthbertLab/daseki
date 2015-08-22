@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
-# Name:         games.py
+# Name:         game.py
 # Purpose:      Represents Games and GameCollections
 #
 # Authors:      Michael Scott Cuthbert
@@ -15,6 +15,7 @@ DEBUG = False
 
 import datetime
 import unittest
+from pprint import pprint as pp
 
 from bbbalk.retro import basic, play, parser
 from bbbalk import common
@@ -23,7 +24,8 @@ from bbbalk import player # @UnresolvedImport
 from bbbalk import team # @UnresolvedImport
 from bbbalk.common import TeamNum
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
+
 Runs = namedtuple('Runs', 'visitor home')
 LeftOnBase = namedtuple('LeftOnBase', 'visitor home')
 
@@ -41,7 +43,7 @@ eventsToClasses = {
                    'play': play.Play,
                    }
 
-class GameCollection(object):
+class GameCollection(common.SlottedObject):
     '''
     a collection of Game objects, in some order...
     
@@ -51,12 +53,15 @@ class GameCollection(object):
     _DOC_ATTR = {'park': '''
     A three letter abbreviation of the home team's park to play in.
     
-    >>> gc = games.GameCollection()
+    >>> gc = game.GameCollection()
     >>> gc.park = 'SDN'
     >>> gc.park
     'SDN'
     '''}
+    __slots__ = ('games', 'yearStart', 'yearEnd', 'team', 'park', 'usesDH', 'protoGames', 'seasonType')
+    
     def __init__(self):
+        super(GameCollection, self).__init__()
         self.games = []
         self.yearStart = 2014
         self.yearEnd = 2014
@@ -104,12 +109,13 @@ class Game(common.ParentType):
     Each game record is held somewhere in the `.records` list.
     Each half-inning is stored in the halfInnings list.
     '''
-    @common.keyword_only_args('parent')
+    __slots__ = ('id', 'records', 'lineupHome', 'lineupVisitor', 'lineupCards', 'halfInnings')
+    
+    #@common.keyword_only_args('parent')
     def __init__(self, gameId=None, parent=None):
         super(Game, self).__init__(parent=parent)
         self.id = gameId
         self.records = []
-        self._hasDH = None
         self.lineupHome = player.LineupCard(TeamNum.HOME, parent=self)
         self.lineupVisitor = player.LineupCard(TeamNum.VISITOR, parent=self)
         self.lineupCards = {TeamNum.HOME: self.lineupHome,
@@ -131,7 +137,7 @@ class Game(common.ParentType):
         
         Returns a list of errors in parsing (hopefully empty)
         
-        >>> g = games.Game()
+        >>> g = game.Game()
         >>> g.id = 'SDN201304090'
         >>> g.parseFromId()
         []
@@ -146,7 +152,7 @@ class Game(common.ParentType):
         '''
         Return the HalfInning object associated with a given inning and visitOrHome
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.VISITOR)
         >>> hi
         <bbbalk.base.HalfInning t7 plays:58-64 (SDN201304090)>
@@ -160,7 +166,7 @@ class Game(common.ParentType):
         '''
         Returns the sub (not play, etc.) that has a given number.  If none exists, returns None
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> g.subByNumber(75)
         <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
         '''
@@ -173,7 +179,7 @@ class Game(common.ParentType):
         '''
         Returns the play (not sub, etc.) that has a given number.  If none exists, returns None
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> g.playByNumber(2)
         <bbbalk.retro.play.Play t1: kempm001:K>
         '''
@@ -188,7 +194,7 @@ class Game(common.ParentType):
         Returns the PlayerGame object representing a playerId in this game in either of the
         lineup cards:
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> g.playerById('gyorj001')
         <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
         '''
@@ -204,7 +210,7 @@ class Game(common.ParentType):
         
         I.e., a game that ends after T9 because the home team is ahead is still a 9 inning game.
         
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> g.numInnings
         9
         '''
@@ -220,7 +226,7 @@ class Game(common.ParentType):
         
         I.e., a game that ends after T9 because the home team is ahead is an 8.5 inning game.
 
-        >>> g = games.Game('SDN201304090')
+        >>> g = game.Game('SDN201304090')
         >>> g.numInningsActual
         8.5
         
@@ -233,7 +239,7 @@ class Game(common.ParentType):
         returns a named tuple of (visitor, home) for the total number
         of runners left on base.
         
-        >>> g = games.Game('SDN201403300')
+        >>> g = game.Game('SDN201403300')
         >>> g.leftOnBase
         LeftOnBase(visitor=6, home=6)
         '''
@@ -267,8 +273,11 @@ class Game(common.ParentType):
             self.finalizeParsing()
         return errors
 
-
     def finalizeParsing(self):
+        '''
+        Given a set of record classes in self.record that have already been instantialized
+        into objects, populate the lineupCards and halfInnings and also parse the play events
+        '''
         lastInning = 0
         lastVisitOrHome = TeamNum.HOME
         lastRunners = base.BaseRunners(False, False, False)
@@ -382,37 +391,52 @@ class Game(common.ParentType):
         '''
         Returns True or False about whether the game used a designated hitter.
         '''
-        if self._hasDH is not None:
-            return self._hasDH
         useDH = self.infoByType('usedh')
         if useDH == 'true':
-            self._hasDH = True
+            hasDH = True
         else:
-            self._hasDH = False
-        return self._hasDH
+            hasDH = False
+        return hasDH
+
+    def battersByEvent(self, eventAttribute, visitOrHome=None):
+        '''
+        Returns an OrderedDict of batterIds whose playEvents have a certain attribute is True or an int > 0.
         
-def testCheckSaneOuts(g):
-    from pprint import pprint as pp
-    totalHalfInnings = len(g.halfInnings)
-    wrong = 0
-    for i, half in enumerate(g.halfInnings):
-        outs = 0
-        if i == totalHalfInnings - 1:
-            continue
-        for p in half:
-            if p.record == 'play':
-                outs += p.outsMadeOnPlay
+        The order is the order that the batter first made a play.  The value is the number of times
+        the play was made.  For instance if eventAttribute == 'single' and gregg001 singled in the second
+        and fourth, bobob001 singled in the third, and steve001 singled in the fifth, you'd get 
+        {'gregg001': 2, 'bobob001': 1, 'steve001': 1}
         
-        if outs != 3:
-            print(g.id, outs)
-            pp(half)
-            wrong += 1
-            for p in half:
-                if p.record == 'play':
-                    omop = p.outsMadeOnPlay
-                    if omop > 0:
-                        pp((p.outsMadeOnPlay, repr(p)))
-    return wrong
+        If visitOrHome is set then only return plays where the batter is a member of that TeamNum.
+        
+        >>> g = game.Game('SDN201304090')
+        >>> g.battersByEvent('single')
+        OrderedDict([('ellim001', 1), ('gyorj001', 1), ('amara001', 1), ('ethia001', 2), 
+                     ('crawc002', 2), ('gonza003', 2), ('sellj002', 1), ('cabre001', 1), 
+                     ('maybc001', 1), ('denoc001', 1), ('alony001', 1)])
+
+        >>> g.battersByEvent('single', common.TeamNum.HOME)
+        OrderedDict([('gyorj001', 1), ('amara001', 1), ('cabre001', 1), 
+                     ('maybc001', 1), ('denoc001', 1), ('alony001', 1)])
+        '''
+        eventDict = OrderedDict()
+        for p in self.recordsByType('play'):
+            if visitOrHome is not None and p.visitOrHome != visitOrHome:
+                continue
+            attr = getattr(p.playEvent, eventAttribute)
+            if attr is True or (isinstance(attr, int) and attr > 0):
+                batter = p.playerId
+                if batter not in eventDict:
+                    eventDict[batter] = 0
+                if attr is True:
+                    eventDict[batter] += 1
+                else:
+                    eventDict[batter] += attr
+        return eventDict
+                
+        
+
+        
 
 class Test(unittest.TestCase):
     pass
@@ -425,7 +449,7 @@ class Test(unittest.TestCase):
         gc.team = 'SDN'
         cls.games = gc.parse()
         
-    def testLeadoffBatterLedInning(self):
+    def xtestLeadoffBatterLedInning(self):
         pass
 #         for hi in g.halfInnings:
 #             for p in hi:
@@ -433,10 +457,9 @@ class Test(unittest.TestCase):
 #                     continue
 #                 # finish when we can get player by id.
     
-    def testInningIteration(self):
+    def xtestInningIteration(self):
         g1 = self.games[0]
         h1 = g1.halfInnings[0]
-        from pprint import pprint as pp
         pp(h1.__dict__)
         pp(h1.following)
         pp(g1.halfInnings[1])
@@ -446,15 +469,34 @@ class Test(unittest.TestCase):
                 print(x)
             h1 = h1.following
     
-    def test2013Pads(self):
+    def testWrongOutsPadres(self):
         totalWrong = 0
         for i, g in enumerate(self.games):
-            print(g.id, g.runs)
-            totalWrong += testCheckSaneOuts(g)
-        print(self.games[5].halfInnings[3].parentByClass('Game'))
-        print(self.games[5].halfInnings[3][2].parentByClass('Game'))
-        print(self.games[5].halfInnings[3][2].playEvent.parentByClass('Game'))
-        print(totalWrong, len(self.games))
+            totalWrong += self.checkSaneOuts(g)
+
+    def checkSaneOuts(self, g):
+        totalHalfInnings = len(g.halfInnings)
+        wrong = 0
+        for i, half in enumerate(g.halfInnings):
+            outs = 0
+            if i == totalHalfInnings - 1:
+                continue
+            for p in half:
+                if p.record == 'play':
+                    outs += p.outsMadeOnPlay
+            
+            if outs != 3:
+                pp(half)
+                wrong += 1
+                for p in half:
+                    if p.record == 'play':
+                        omop = p.outsMadeOnPlay
+                        if omop > 0:
+                            pp((p.outsMadeOnPlay, repr(p)))
+            self.assertEqual(outs, 3, 'Wrong number of outs in game {0}, halfInning {1}: {2} outs'.format(g.id, i, outs))
+                
+        return wrong
+
 
 class TestSlow(unittest.TestCase):
     def testAllYears(self):
@@ -487,5 +529,5 @@ class TestSlow(unittest.TestCase):
 
 if __name__ == '__main__':
     from bbbalk import mainTest
-    mainTest() #Test # TestSlow
+    mainTest(Test) #Test # TestSlow
 

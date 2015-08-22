@@ -19,10 +19,10 @@ get from these objects.
 __all__ = ['ext', 
            'retro', 
            
-           'base', 
+           'base',
            'common',
            'exceptionsBB', 
-           'games',
+           'game',
            'player',
            'team'
            ]
