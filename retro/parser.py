@@ -17,6 +17,7 @@ DEBUG = False
 import os
 import codecs
 import csv
+import itertools
 
 from bbbalk import common
 from bbbalk.exceptionsBB import RetrosheetException
@@ -112,6 +113,8 @@ class YearDirectory(object):
     
         self.files = files
         
+    def _parseOneEventFile(self, efn):
+        return EventFile(os.path.join(self.dirName, efn))
     
     def parseEventFiles(self):
         '''
@@ -120,13 +123,17 @@ class YearDirectory(object):
         if len(self._eventFiles) > 0:
             return self._eventFiles
         errors = []
+        # 5x slower!
+#         for ef in common.multicore(self._parseOneEventFile)(self.eventFileNames):
+#             self._eventFiles.append(ef)
         for efn in self.eventFileNames: 
             #try:
-                self._eventFiles.append(EventFile(os.path.join(self.dirName, efn)))
+                self._eventFiles.append(self._parseOneEventFile(efn))
             #except Exception:
             #    errors.append(efn)
         if len(errors) > 0:
             print("These files had errors: ", errors)
+        return self._eventFiles
                 
     @property
     def eventFiles(self):

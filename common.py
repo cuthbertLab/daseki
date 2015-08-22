@@ -275,8 +275,10 @@ def multicore(func):
     >>> tDelta1 < tDelta2
     True
     
-    All arguments and results need to be pickleable 
-    
+    All arguments and results need to be pickleable.  Pickleing a large object can be
+    very slow! So use parallel processing only to pass small amounts of information
+    back and forth (number of runs, etc.) if you return a Game or GameCollection object
+    don't expect to see much speedup if any.
     '''
     max_workers = multiprocessing.cpu_count() - 1 # @UndefinedVariable
     if max_workers == 0:
@@ -376,7 +378,10 @@ class SlottedObject(object):
     ### SPECIAL METHODS ###
 
     def __getstate__(self):
-        state = {}
+        if getattr(self, '__dict__', None) is not None:
+            state = getattr(self, '__dict__').copy()
+        else:
+            state = {}
         slots = set()
         for cls in self.__class__.mro():
             slots.update(getattr(cls, '__slots__', ()))

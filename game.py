@@ -86,6 +86,11 @@ class GameCollection(common.SlottedObject):
             self.protoGames.extend(pgs)
         return self.protoGames
         
+    def _parseOne(self, pg):
+        g = Game(parent=self)
+        unused_errors = g.mergeProto(pg, finalize=True)
+        return g
+    
     def parse(self):
         '''
         Parse all the files in the year range, filtered by team or park
@@ -94,10 +99,11 @@ class GameCollection(common.SlottedObject):
         if len(self.protoGames) == 0:
             self.addMatchingProtoGames()
         
-        errors = []
+        #errors = []
+#        for g in common.multicore(self._parseOne)(self.protoGames):
+#            self.games.append(g)
         for pg in self.protoGames:
-            g = Game(parent=self)
-            errors += g.mergeProto(pg, finalize=True)
+            g = self._parseOne(pg)
             self.games.append(g)
         return self.games
 

@@ -20,10 +20,6 @@ from bbbalk.common import TeamNum # @UnresolvedImport
 from bbbalk.exceptionsBB import BBBalkException
 
 
-teamEquivalents = ( ("MON", "WAS"), ("CAL", "ANA"), ("FLO", "MIA") )
-
-
-
 # class Inning(object):
 #     def __init__(self, inningNumber = 1, visitorHalf = None, homeHalf = None):
 #         self.inningNumber = inningNumber
