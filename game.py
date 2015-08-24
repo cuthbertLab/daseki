@@ -13,7 +13,9 @@ from __future__ import print_function
 
 DEBUG = False
 
+import pickle
 import datetime
+import os
 import unittest
 from pprint import pprint as pp
 
@@ -85,13 +87,53 @@ class GameCollection(common.SlottedObject):
                 pgs = yd.all()
             self.protoGames.extend(pgs)
         return self.protoGames
-        
-    def _parseOne(self, pg):
-        g = Game(parent=self)
-        unused_errors = g.mergeProto(pg, finalize=True)
-        return g
     
-    def parse(self):
+    def _pickleFN(self):
+        '''
+        Return a pickle filename for the game collection.
+        
+        >>> gc = game.GameCollection()
+        >>> gc.yearStart = 1994
+        >>> gc.yearEnd = 2000
+        >>> gc.team = 'BOS'
+        >>> gc.usesDH = True
+        >>> gc._pickleFN()
+        'gc19942000tBOSpdt0.5.0.p'
+        '''
+        import bbbalk
+        team = "t"
+        if self.team is not None:
+            team += self.team
+        park = "p"
+        if self.park is not None:
+            park += self.park
+        usesDH = "d"
+        if self.usesDH is True:
+            usesDH += "t"
+        elif self.usesDH is False:
+            usesDH += "f"
+            
+        hashFN = "gc" + str(self.yearStart) + str(self.yearEnd) + team + park + usesDH + bbbalk.__version__ + '.p'
+        return hashFN
+    
+    def _saveToPickle(self):
+        pfn = os.path.join(common.getDefaultRootTempDir(), self._pickleFN())
+        pickle.dump(self, pfn, protocol=pickle.HIGHEST_PROTOCOL)
+    
+#     def _parseOne(self, pgIndex):
+#         pg = self.protoGames[pgIndex]
+#         g = Game(parent=self)
+#         unused_errors = g.mergeProto(pg, finalize=True)
+#         self.games.append(g)
+#         return None
+
+    def sortGames(self):
+        '''
+        Sort games by date then team.
+        '''
+        self.games.sort(key=lambda x: (int(x.id[3:]), x.id[0:3]))
+    
+    def parse(self, forceSource=False):
         '''
         Parse all the files in the year range, filtered by team or park
         '''
@@ -100,11 +142,15 @@ class GameCollection(common.SlottedObject):
             self.addMatchingProtoGames()
         
         #errors = []
-#        for g in common.multicore(self._parseOne)(self.protoGames):
-#            self.games.append(g)
+#         pgIndices = list(range(len(self.protoGames)))
+#         list(common.multicore(self._parseOne)(pgIndices))
+#         return self.games
+#     
         for pg in self.protoGames:
-            g = self._parseOne(pg)
+            g = Game(parent=self)
+            unused_errors = g.mergeProto(pg, finalize=True)
             self.games.append(g)
+        self.sortGames()
         return self.games
 
 

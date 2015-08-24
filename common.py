@@ -27,6 +27,7 @@ import re
 import os
 import sys
 import time
+import tempfile
 import weakref
 
 from bbbalk.ext import six
@@ -66,6 +67,36 @@ def dataRetrosheetByType(gameType='regular'):
 
 def gameLogFilePath():
     return os.path.join(dataRetrosheet(), 'gamelog')
+
+#----------------------
+def getDefaultRootTempDir(self):
+    '''
+    returns whatever tempfile.gettempdir() returns plus 'bbbalk'.
+    
+    Creates the subdirectory if it doesn't exist:
+    
+    >>> import tempfile
+    >>> t = tempfile.gettempdir()
+    >>> #_DOCS_SHOW t
+    '/var/folders/x5/rymq2tx16lqbpytwb1n_cc4c0000gn/T'
+
+    >>> import os
+    >>> common.getDefaultRootTempDir() == os.path.join(t, 'bbbalk')
+    True
+    '''
+    # this returns the root temp dir; this does not create a new dir
+    dstDir = os.path.join(tempfile.gettempdir(), 'bbbalk')
+    # if this path already exists, we have nothing more to do
+    if os.path.exists(dstDir):
+        return dstDir
+    else:
+        # make this directory as a temp directory
+        try:
+            os.mkdir(dstDir)
+        except OSError:  # cannot make the directory
+            dstDir = tempfile.gettempdir()
+        return dstDir
+
 
 #---------------------
 GAMEID_MATCH = re.compile('([A-Za-z][A-Za-z][A-Za-z])(\d\d\d\d)(\d\d)(\d\d)(\d?)')
@@ -272,7 +303,7 @@ def multicore(func):
     >>> for gid, runs in [getGameHomeScore(g) for g in gameList]:
     ...     unused = (gid, runs)
     >>> tDelta2 = time.time() - t
-    >>> tDelta1 < tDelta2
+    >>> tDelta1 < tDelta2 * .9
     True
     
     All arguments and results need to be pickleable.  Pickleing a large object can be
@@ -322,7 +353,7 @@ def multicore(func):
 def getGameHomeScore(gId):
     from bbbalk import game # @UnresolvedImport
     g = game.Game(gId)
-    return g, g.runs.home
+    return gId, g.runs.home
 
 
 def runDemo(team):
