@@ -482,5 +482,66 @@ class ExpectedRunMatrix(object):
         '''
         return round(self.runsForSituation(baseRunners, outs) - self.runsForSituation((False, False, False), 0), 4)
 
+    def simpleRunsExpected(self, baseRunners, outs=0):
+        '''
+        returns the very simple, but pretty accurate, run expectation given in my blog post
+        http://prolatio.blogspot.com/2008/08/hate-stat-love-statter.html using the formula:
+        
+        ::
+        
+            ER = (5 + total_runners + 3 * (total bases occupied))  * outs_left / 30
+        
+        
+        >>> erm = base.ExpectedRunMatrix()
+        >>> brr = base.BaseRunners(False, False, False)
+        >>> erm.simpleRunsExpected(brr, 0)
+        0.5
+        
+        >>> for third in (False, True):
+        ...     for second in (False, True):
+        ...         for first in (False, True):
+        ...             for outs in range(3):
+        ...                 brr = base.BaseRunners(first, second, third)
+        ...                 sre = erm.simpleRunsExpected(brr, outs)
+        ...                 re = erm.runsForSituation(brr, outs)
+        ...                 print("{0:5s} {1:5s} {2:5s} {3} {4:4.2f} {5:4.2f} {6:4.2f}".format(
+        ...                     str(first), str(second), str(third), 
+        ...                     outs, sre, re, sre - re))
+        False False False 0 0.50 0.48 0.02
+        False False False 1 0.33 0.26 0.08
+        False False False 2 0.17 0.10 0.07
+        True  False False 0 0.90 0.85 0.05
+        True  False False 1 0.60 0.50 0.10
+        True  False False 2 0.30 0.22 0.08
+        False True  False 0 1.20 1.06 0.14
+        False True  False 1 0.80 0.65 0.15
+        False True  False 2 0.40 0.31 0.09
+        True  True  False 0 1.60 1.43 0.17
+        True  True  False 1 1.07 0.89 0.17
+        True  True  False 2 0.53 0.43 0.10
+        False False True  0 1.50 1.31 0.19
+        False False True  1 1.00 0.90 0.10
+        False False True  2 0.50 0.35 0.15
+        True  False True  0 1.90 1.68 0.22
+        True  False True  1 1.27 1.14 0.12
+        True  False True  2 0.63 0.48 0.16
+        False True  True  0 2.20 1.89 0.31
+        False True  True  1 1.47 1.29 0.18
+        False True  True  2 0.73 0.57 0.16
+        True  True  True  0 2.60 2.26 0.34
+        True  True  True  1 1.73 1.53 0.20
+        True  True  True  2 0.87 0.69 0.17
+        '''
+        firstOccupied = 0 if baseRunners[0] in (False, None) else 1
+        secondOccupied = 0 if baseRunners[1] in (False, None) else 1
+        thirdOccupied = 0 if baseRunners[2] in (False, None) else 1
+
+        totalBasesOccupied = firstOccupied + 2 * secondOccupied + 3 * thirdOccupied
+        totalRunners = firstOccupied + secondOccupied + thirdOccupied
+        outsLeft = 3 - outs
+        erexp = (5 + totalRunners + 3 * totalBasesOccupied) * outsLeft/30.0
+        return erexp
+
+
 if __name__ == '__main__':
     mainTest()
