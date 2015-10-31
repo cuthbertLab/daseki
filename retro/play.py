@@ -34,9 +34,9 @@ VISITOR = 0
 
 DEBUG = False
 
-NON_ERROR_PAREN_THROW_RE = re.compile('\(\d+\/?T?H?\)')
-ERROR_PAREN_RE = re.compile('\(\d*E\d*[\/A-Z]*\)')
-ERROR_RE = re.compile('\d*E\d*[\/A-Z]*')
+NON_ERROR_PAREN_THROW_RE = re.compile(r'\(\d+\/?T?H?\)')
+ERROR_PAREN_RE = re.compile(r'\(\d*E\d*[\/A-Z]*\)')
+ERROR_RE = re.compile(r'\d*E\d*[\/A-Z]*')
 
 from bbbalk.retro import datatypeBase 
 from bbbalk import common
@@ -73,7 +73,8 @@ class PlateAppearance(common.ParentType):
     def __getattr__(self, attr):
         le = self.lastEvent
         if le is None:
-            raise IndexError("'%s' object has events to search for attributes on" % (self.__class__.__name__,))
+            raise IndexError("'%s' object has events to search for attributes on" % 
+                             (self.__class__.__name__,))
         if hasattr(le, attr):
             return getattr(le, attr)
         elif hasattr(le.playEvent, attr):
@@ -81,7 +82,8 @@ class PlateAppearance(common.ParentType):
         elif hasattr(le.runnerEvent, attr):
             return getattr(le.runnerEvent, attr)
         else:
-            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, attr))
+            raise AttributeError("'%s' object has no attribute '%s'" % 
+                                 (self.__class__.__name__, attr))
         
     
     @property
@@ -158,12 +160,14 @@ class Play(datatypeBase.RetroData):
      <bbbalk.retro.play.RunnerAdvance B-1>]
     '''
     __slots__ = ('inning', 'visitOrHome', 'playerId', 'count', '_pitches', 'raw', 
-                 '_playEvent', '_runnerEvent', 'runnersBefore', 'runnersAfter', 'rawBatter', 'rawRunners')
+                 '_playEvent', '_runnerEvent', 'runnersBefore', 'runnersAfter', 
+                 'rawBatter', 'rawRunners')
     
     record = 'play'
     visitorNames = ["visitor", "home"]
     #@common.keyword_only_args('parent')
-    def __init__(self, inning=0, visitOrHome=0, playerId="", count="", pitches="", raw="", parent=None):
+    def __init__(self, inning=0, visitOrHome=0, playerId="", count="", 
+                 pitches="", raw="", parent=None):
         super(Play, self).__init__(parent=parent)
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
@@ -202,7 +206,8 @@ class Play(datatypeBase.RetroData):
         '''
         give the number of RBIs made on the play.  Usually 0
         
-        >>> p = retro.play.Play(playerId='mcrab001', raw='S9/L34D/R932/U1.2-H;1-H(E3/TH)(UR)(NR);B-2')
+        >>> p = retro.play.Play(playerId='mcrab001', 
+        ...       raw='S9/L34D/R932/U1.2-H;1-H(E3/TH)(UR)(NR);B-2')
         >>> p.rbis
         1
         '''
@@ -307,7 +312,8 @@ class RunnerAdvance(common.ParentType):
     
     def _setRaw(self, raw):
         #self.superRaw = raw # save redundant info? probably not...
-        raw = re.sub('\(\dX\)$', '', raw)  # very few cases of 2X3(1X) such as COL200205190; redundant
+        raw = re.sub(r'\(\dX\)$', '', raw)  
+        # very few cases of 2X3(1X) such as COL200205190; redundant
         self._raw = raw
         if '-' in raw:
             before, after = raw.split('-')
@@ -318,7 +324,8 @@ class RunnerAdvance(common.ParentType):
         else:
             raise RetrosheetException("Something wrong with runner: {0}".format(raw))
 
-        self.baseBefore = before[0] # "Base" refers to the first letter/number which identifies the baserunner.
+        self.baseBefore = before[0] 
+        # "Base" refers to the first letter/number which identifies the baserunner.
         #beforeMods = before[1:]
         self.baseAfter = after[0]
         afterMods = after[1:]
@@ -328,7 +335,8 @@ class RunnerAdvance(common.ParentType):
             self.numErrors += 1
             # TODO: Record who made the error!            
             if not NON_ERROR_PAREN_THROW_RE.search(afterMods):
-                self.isOut = False #-- turns out occasionally the 1XH(E7) is still an out, but with an error.
+                self.isOut = False 
+                #-- turns out occasionally the 1XH(E7) is still an out, but with an error.
 
         if afterMods != "":
             self.afterMods = afterMods
@@ -337,19 +345,24 @@ class RunnerAdvance(common.ParentType):
 
     def sortKey(self):
         '''
-        helper function so that events beginning on 3rd sort first, then 2nd, then 1st, then B (batter).
-        That way, say you have 1-3,3XH, the events get sorted as 3XH (runner on third out at home)
-        then 1-3 (runner on first goes to third), rather than runner on 1st goes to 3rd and then thrown
+        helper function so that events beginning on 3rd sort first, 
+        then 2nd, then 1st, then B (batter).
+        That way, say you have 1-3,3XH, the events get sorted as 
+        3XH (runner on third out at home)
+        then 1-3 (runner on first goes to third), rather than runner 
+        on 1st goes to 3rd and then thrown
         out at home. 
         
-        Handles a few strange sorting moments, such as Segura's "advance" from 2nd to 1st in April 2013.
+        Handles a few strange sorting moments, such as Segura's "advance" 
+        from 2nd to 1st in April 2013.
         Put any similar events here.
         '''
         if self.baseBefore == "3":
             return "A"
         elif self.baseBefore == "2":
             if self.baseAfter == "1":
-                # Just for Segura, Milwaukee 19 April 2013 -- Segura steals second then runs back to first
+                # Just for Segura, Milwaukee 19 April 2013 -- 
+                #    Segura steals second then runs back to first
                 # https://www.youtube.com/watch?v=HZM1JcJwo9E
                 # sort last...
                 return "X"
@@ -360,8 +373,9 @@ class RunnerAdvance(common.ParentType):
         elif self.baseBefore == 'B':
             return "D"
         else:
-            raise RetrosheetException("Unknown rEvt for sorting: {0}, {1}".format(self.raw, self.baseBefore))
-            return "Z" + self.raw
+            raise RetrosheetException("Unknown rEvt for sorting: {0}, {1}".format(
+                                                                self.raw, self.baseBefore))
+            #return "Z" + self.raw
 
 
     @property
@@ -396,7 +410,7 @@ class RunnerAdvance(common.ParentType):
        
     @property
     def isUnearnedRunInferred(self):
-        explicit = self.isUnearnedRunExplicit()
+        explicit = self.isUnearnedRunExplicit
         if explicit is not None:
             return explicit
         if self.baseAfter is not 'H':
@@ -421,8 +435,8 @@ class RunnerEvent(common.ParentType):
     Needs a reference to the parent Play object to look at the Play object's PlayEvent which
     contains information about stolenBases etc.
     '''
-    __slots__ = ('runnersBefore', 'runnersAfter', 'runnersAdvance', 'outs', 'runs', 'scoringRunners',
-                 'raw')
+    __slots__ = ('runnersBefore', 'runnersAfter', 'runnersAdvance', 
+                 'outs', 'runs', 'scoringRunners', 'raw')
     #@common.keyword_only_args('parent')    
     def __init__(self, raw="", runnersBefore=None, parent=None):
         super(RunnerEvent, self).__init__(parent=parent)
@@ -676,14 +690,15 @@ class PlayEvent(common.ParentType):
                  'isNoPlay', 'fielders','impliedBatterAdvance','single','double','triple',
                  'doubleGroundRule','homeRun','strikeOut','baseOnBalls', 'baseOnBallsIntentional',
                  'errors','fieldersChoice','hitByPitch','totalBases','stolenBase',
-                 'caughtStealing','basesStolen','eraseBaseRunners','isPickoff','isBalk','isPassedBall','isWildPitch',
+                 'caughtStealing','basesStolen','eraseBaseRunners', 
+                 'isPickoff','isBalk','isPassedBall','isWildPitch',
                  'isDblPlay','isTplPlay','modifiers','defensiveIndifference', 'ignoreForOBP')
     
     def __init__(self, raw="", parent=None):
         super(PlayEvent, self).__init__(parent)
         self.defaults()
         self.raw = raw
-
+        
     def __repr__(self):
         return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
                                   self.raw)
@@ -740,7 +755,7 @@ class PlayEvent(common.ParentType):
         if bb.startswith('K'):
             self.strikeOut = True
             self.isOut = True
-            afterEvent = re.match('K\d*\+(.*)', bb)
+            afterEvent = re.match(r'K\d*\+(.*)', bb)
             if afterEvent:
                 ## event after strike out...
                 afterBB = afterEvent.group(1)
@@ -780,7 +795,10 @@ class PlayEvent(common.ParentType):
         >>> pe.basesStolen
         ['3']
         '''
-        if bb.startswith('W') and not bb.startswith('WP') or bb.startswith('IW') or bb.startswith('I'):
+        if (bb.startswith('W') and 
+                not bb.startswith('WP') or 
+                bb.startswith('IW') or 
+                bb.startswith('I')):
             # "I" is older style intentional walk encoding, seen a lot before 1997.
             self.baseOnBalls = True
             matchCode = 'W'
@@ -790,7 +808,7 @@ class PlayEvent(common.ParentType):
             self.isSafe = True
             self.isAtBat = False
             self.impliedBatterAdvance = 1
-            afterEvent = re.match(matchCode + '\d*\+(.*)', bb)
+            afterEvent = re.match(matchCode + r'\d*\+(.*)', bb)
             if afterEvent:
                 ## event after walk... continue...
                 afterBB = afterEvent.group(1)
@@ -834,7 +852,7 @@ class PlayEvent(common.ParentType):
         Can affect attributes: isOut, impliedBatterAdvance, fielders, eraseBaseRunners, isDblPlay,
         isTplPlay, isSafe.
         '''
-        out = re.match('(\d+)', bb) 
+        out = re.match(r'(\d+)', bb) 
         if out:
             safeOnError = ERROR_RE.search(bb)
             if safeOnError:
@@ -844,7 +862,8 @@ class PlayEvent(common.ParentType):
                 self.isOut = True
                 self.fielders = tuple(out.group(1))
                 numForced = 0
-                for forces in re.finditer('\((\d)\)', bb):  # could be B also... but that is caught below
+                for forces in re.finditer(r'\((\d)\)', bb):  
+                    # could be B also... but that is caught below
                     if DEBUG:
                         print(forces.group(1) + " FORCE OUT")
                     numForced += 1
@@ -856,9 +875,13 @@ class PlayEvent(common.ParentType):
                     isDblPlay = False
                     isTplPlay = False
                     for m in self.modifiers:
-                        if 'DP' in m and not 'NDP' in m: # includes 'BGDP' for bunted into double play                     
-                            isDblPlay = True # BPDP, DP (unspecified), FDP, GDP, LDP, but not NDP (No double play)
-                        if 'TP' in m and not 'NTP' in m: # NTP does not exist in retrosheet but it could?
+                        if 'DP' in m and not 'NDP' in m: 
+                            # includes 'BGDP' for bunted into double play                     
+                            isDblPlay = True 
+                            # BPDP, DP (unspecified), FDP, GDP, LDP, 
+                            #    but not NDP (No double play)
+                        if 'TP' in m and not 'NTP' in m: 
+                            # NTP does not exist in retrosheet but it could?
                             isTplPlay = True
                             isDblPlay = False # MIL201108150 - t2: 46(1)3(B)/GDP/TP.2XH(32)
                     if isDblPlay is False and isTplPlay is False:
@@ -871,7 +894,7 @@ class PlayEvent(common.ParentType):
                         # we need to check to see if in the runner events there is a non-force out
                         # throw as in top 1st: COL201407130
                         rr = self.parent.rawRunners
-                        if rr is not None and re.search('\dX[\dH]', rr):
+                        if rr is not None and re.search(r'\dX[\dH]', rr):
                             self.impliedBatterAdvance = 1  # he is safe!
                             self.isSafe = True
                         else:
@@ -1075,7 +1098,8 @@ class PlayEvent(common.ParentType):
                         matchGeneralOut, matchInterference,
                         matchSingle, matchDouble, matchTriple, matchHomeRun,
                         matchErrorOnFoul, matchFielderError, matchFieldersChoice,
-                        # Things that move up a baserunner; all these should have explicit base runner information
+                        # Things that move up a baserunner; all these should 
+                        # have explicit base runner information
                         matchHitByPitch, matchBalk, matchDefensiveIndifference, 
                         matchOtherAdvance, matchWildPitch, matchPassedBall, matchStolenBase,
                         # things that eliminate a base runner
@@ -1154,7 +1178,7 @@ class PlayEvent(common.ParentType):
         >>> print(pe.eraseBaseRunners)
         None
         '''
-        attemptedBaseSearch = re.search(playCode + '([\dH])', fullPlay)
+        attemptedBaseSearch = re.search(playCode + r'([\dH])', fullPlay)
         if attemptedBaseSearch is None:
             raise RetrosheetException('PO or CS or POCS without a base!')
         attemptedBase = attemptedBaseSearch.group(1)
@@ -1163,7 +1187,8 @@ class PlayEvent(common.ParentType):
             print("checking for error: ", fullPlay, safeOnError)
         if safeOnError:
             if DEBUG:
-                print("On play " + playCode + " =" + fullPlay + "= safe on error, so credit a SB of " + attemptedBase)
+                print("On play " + playCode + " =" + fullPlay + 
+                      "= safe on error, so credit a SB of " + attemptedBase)
             if playCode != 'PO': # pickoff does not advance a runner...
                 self.stolenBase = False # not for statistical purposes though...
                 self.errors += 1
@@ -1188,7 +1213,8 @@ class PlayEvent(common.ParentType):
         self.isSafe = False # ??? in case of, say, a SB play, etc., both can be False
         self.fielders = tuple()
         
-        self.impliedBatterAdvance = 0 # number of bases implied for the batter's single, double, etc.
+        self.impliedBatterAdvance = 0 
+        # number of bases implied for the batter's single, double, etc.
         
         self.single = False
         self.double = False

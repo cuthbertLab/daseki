@@ -77,21 +77,45 @@ class HalfInning(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
         >>> pp(hi.plateAppearances)        
-        [<bbbalk.retro.play.PlateAppearance 8-1: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:NP>, <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, <bbbalk.retro.play.Play b8: gyorj001:NP>, <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, <bbbalk.retro.play.Play b8: gyorj001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-2: amara001: [<bbbalk.retro.play.Play b8: amara001:PB.1-2>, <bbbalk.retro.play.Play b8: amara001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-3: maybc001: [<bbbalk.retro.play.Play b8: maybc001:NP>, <bbbalk.player.Sub visitor,5: Matt Guerrier (guerm001):pitcher>, <bbbalk.retro.play.Play b8: maybc001:14/SH/BG.2-3;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-4: hundn001: [<bbbalk.retro.play.Play b8: hundn001:FC6/G.3XH(62);2-3>]>,
-         <bbbalk.retro.play.PlateAppearance 8-5: denoc001: [<bbbalk.retro.play.Play b8: denoc001:S9/G.3-H;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-6: cabre001: [<bbbalk.retro.play.Play b8: cabre001:W.2-3;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: [<bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, <bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-11: amara001: [<bbbalk.retro.play.Play b8: amara001:K>]>]
+        [<bbbalk.retro.play.PlateAppearance 8-1: gyorj001: 
+            [<bbbalk.retro.play.Play b8: gyorj001:NP>, 
+             <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
+             <bbbalk.retro.play.Play b8: gyorj001:NP>, 
+             <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
+             <bbbalk.retro.play.Play b8: gyorj001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-2: amara001: 
+            [<bbbalk.retro.play.Play b8: amara001:PB.1-2>, 
+             <bbbalk.retro.play.Play b8: amara001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-3: maybc001: 
+            [<bbbalk.retro.play.Play b8: maybc001:NP>, 
+             <bbbalk.player.Sub visitor,5: Matt Guerrier (guerm001):pitcher>, 
+             <bbbalk.retro.play.Play b8: maybc001:14/SH/BG.2-3;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-4: hundn001: 
+            [<bbbalk.retro.play.Play b8: hundn001:FC6/G.3XH(62);2-3>]>,
+         <bbbalk.retro.play.PlateAppearance 8-5: denoc001: 
+            [<bbbalk.retro.play.Play b8: denoc001:S9/G.3-H;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-6: cabre001: 
+            [<bbbalk.retro.play.Play b8: cabre001:W.2-3;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: 
+            [<bbbalk.retro.play.Play b8: venaw001:NP>, 
+             <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+             <bbbalk.retro.play.Play b8: venaw001:NP>, 
+             <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
+             <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
+            [<bbbalk.retro.play.Play b8: thayd001:NP>, 
+             <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
+            [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
+            [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: 
+            [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 8-11: amara001: 
+            [<bbbalk.retro.play.Play b8: amara001:K>]>]
         '''
         from bbbalk.retro import play
-        if len(self._plateAppearances) > 0:
+        if any(self._plateAppearances):
             return self._plateAppearances
 
         thisPA = play.PlateAppearance(parent=self)
@@ -427,7 +451,9 @@ class ExpectedRunMatrix(object):
     '''
     Represents the run situation for a given baserunning situation and number of outs.
     
-    Numbers by default from 2011 MLB. http://www.baseballprospectus.com/sortable/index.php?cid=975409    
+    Numbers by default from 2011 MLB. 
+    
+    http://www.baseballprospectus.com/sortable/index.php?cid=975409    
     '''
     # 2011 MLB
     # (1st base occupied, 2nd occupied, 3rd occupied) : (0 outs, 1 out, 2 outs runs)
@@ -460,15 +486,16 @@ class ExpectedRunMatrix(object):
     
     def runsInherited(self, baseRunners, outs=0):
         '''
-        Returns the difference between the runs expected for the current base/outs situation and the 
-        runs expected for the same number of outs with no one on base.
+        Returns the difference between the runs expected for the current base/outs situation 
+        and the runs expected for the same number of outs with no one on base.
         
         >>> erm = base.ExpectedRunMatrix()
         >>> brr = base.BaseRunners(False, 'nori', False)
         >>> erm.runsInherited(brr, outs=2)
         0.217
         '''
-        return round(self.runsForSituation(baseRunners, outs) - self.runsForSituation((False, False, False), outs), 4)
+        return round(self.runsForSituation(baseRunners, outs) - 
+                     self.runsForSituation((False, False, False), outs), 4)
     
     def runsInheritedNotOutAdjusted(self, baseRunners, outs=0):
         '''
@@ -480,7 +507,8 @@ class ExpectedRunMatrix(object):
         >>> erm.runsInheritedNotOutAdjusted(brr, outs=2)
         -0.167
         '''
-        return round(self.runsForSituation(baseRunners, outs) - self.runsForSituation((False, False, False), 0), 4)
+        return round(self.runsForSituation(baseRunners, outs) - 
+                     self.runsForSituation((False, False, False), 0), 4)
 
     def simpleRunsExpected(self, baseRunners, outs=0):
         '''

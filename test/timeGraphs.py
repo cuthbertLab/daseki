@@ -15,7 +15,8 @@ class Timer(object):
         self._tStop = None
 
     def start(self):
-        '''Explicit start method; will clear previous values. Start always happens on initialization.'''
+        '''Explicit start method; will clear previous values. 
+        Start always happens on initialization.'''
         self._tStart = time.time()
         self._tStop = None # show that a new run has started so __call__ works
         self._tDif = 0
@@ -105,7 +106,8 @@ class CallGraph(object):
 
     def run(self, runWithEnviron=True):
         '''
-        Main code runner for testing. To set a new test, update the self.callTest attribute in __init__(). 
+        Main code runner for testing. To set a new test, 
+        update the self.callTest attribute in __init__(). 
         
         Note that the default of runWithEnviron imports music21.environment.  That might
         skew results

@@ -16,7 +16,8 @@ import datetime
 import os
 
 _teamList = []
-TeamInfo = namedtuple('TeamInfo', 'authCode code league division location nickname altnickname startDate endDate city state')
+TeamInfo = namedtuple('TeamInfo', 'authCode code league division ' + 
+                                    'location nickname altnickname startDate endDate city state')
 
 def teamList():
     '''
@@ -30,7 +31,7 @@ def teamList():
 
     :rtype: TeamInfo
     '''
-    if len(_teamList) > 0:
+    if any(_teamList):
         return _teamList
     filePath = os.path.join(common.dataFilePath(), 'currentNames.csv')
     with codecs.open(filePath, 'r', 'latin-1') as f:

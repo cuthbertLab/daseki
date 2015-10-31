@@ -11,6 +11,7 @@
 from __future__ import print_function
 from __future__ import division
 
+# pylint: disable=no-name-in-module
 try:
     from itertools import zip_longest
 except ImportError:
@@ -69,7 +70,7 @@ def gameLogFilePath():
     return os.path.join(dataRetrosheet(), 'gamelog')
 
 #----------------------
-def getDefaultRootTempDir(self):
+def getDefaultRootTempDir():
     '''
     returns whatever tempfile.gettempdir() returns plus 'bbbalk'.
     
@@ -99,7 +100,7 @@ def getDefaultRootTempDir(self):
 
 
 #---------------------
-GAMEID_MATCH = re.compile('([A-Za-z][A-Za-z][A-Za-z])(\d\d\d\d)(\d\d)(\d\d)(\d?)')
+GAMEID_MATCH = re.compile(r'([A-Za-z][A-Za-z][A-Za-z])(\d\d\d\d)(\d\d)(\d\d)(\d?)')
 
 class GameId(object):
     '''
@@ -230,7 +231,10 @@ class Timer(object):
         self._tStop = None
 
     def start(self):
-        '''Explicit start method; will clear previous values. Start always happens on initialization.'''
+        '''
+        Explicit start method; will clear previous values. 
+        Start always happens on initialization.
+        '''
         self._tStart = time.time()
         self._tStop = None # show that a new run has started so __call__ works
         self._tDif = 0
@@ -345,7 +349,8 @@ def multicore(func):
                     for res in executor.map(func, *zip(*argList)):
                         yield res
                 else:
-                    raise BBBalkException('Cannot Parallelize arguments of type {0}'.format(argType))
+                    raise BBBalkException(
+                        'Cannot Parallelize arguments of type {0}'.format(argType))
         
     return bg_f
 
@@ -418,9 +423,10 @@ class SlottedObject(object):
             slots.update(getattr(cls, '__slots__', ()))
         for slot in slots:
             sValue = getattr(self, slot, None)
-            if type(sValue) is weakref.ref:
+            if isinstance(sValue, weakref.ref):
                 sValue = sValue()
-                print("Warning: uncaught weakref found in %r - %s, will not be rewrapped" % (self, slot))
+                print("Warning: uncaught weakref found in %r - %s, will not be rewrapped" % 
+                      (self, slot))
             state[slot] = sValue
         if getattr(self, '__dict__', None) is not None:
             print("We got a dict TOO!", getattr(self, '__class__')) 
@@ -470,7 +476,7 @@ class ParentType(SlottedObject):
             return None
 
     def _getParent(self):
-        if type(self._parent) is weakref.ref:
+        if isinstance(self._parent, weakref.ref):
             return self._parent()
         else:
             return self._parent
@@ -545,7 +551,8 @@ def unwrapWeakref(referent):
 
 
 def keyword_only_args(*included_keywords):
-    """Transforms a function with keyword arguments into one with
+    """
+    Transforms a function with keyword arguments into one with
     keyword-only arguments.
 
     Call this decorator as @keyword_only_args() for the default mode,
@@ -579,14 +586,18 @@ def keyword_only_args(*included_keywords):
         Returns:
           A function wrapped so that it has keyword-only arguments. 
         """
-        # we want to preserve default=None, so we need to give a very implausible value for a default
+        # we want to preserve default=None, so we need to give a 
+        # very implausible value for a default
         noDefaultString = '***NO_DEFAULT_PROVIDED***'
         # do not use getfullargspec -- if we had it we wouldnt need this
         positional_args, unused_varargs, unused_keywords, defaults = inspect.getargspec(func) 
         args_with_defaults = set(positional_args[len(positional_args) - len(defaults):])
         
-        kw_only_args = set(included_keywords) if len(included_keywords) > 0 else args_with_defaults.copy()
-        args_and_defaults = list(zip_longest(reversed(positional_args), reversed(defaults), fillvalue=noDefaultString))
+        kw_only_args = set(included_keywords) if any(included_keywords
+                                                     ) else args_with_defaults.copy()
+        args_and_defaults = list(zip_longest(reversed(positional_args), 
+                                             reversed(defaults), 
+                                             fillvalue=noDefaultString))
         args_and_defaults.reverse()
         #warn(args_and_defaults)
         positional_args = set(positional_args)
@@ -617,7 +628,8 @@ def keyword_only_args(*included_keywords):
                 wrong_args(func, args_and_defaults, missing_args, 'keyword-only')
             # Are there enough positional args to cover all the
             # arguments not covered by a passed argument or a default?
-            if len(callingArgs) < len(positional_args - kw_only_args_specified_by_keyword_or_default):
+            if len(callingArgs) < len(positional_args - 
+                                      kw_only_args_specified_by_keyword_or_default):
                 missing_args = positional_args - kw_only_args_specified_by_keyword_or_default
                 wrong_args(func, args_and_defaults, missing_args, 'positional', len(callingArgs))
 
@@ -625,7 +637,7 @@ def keyword_only_args(*included_keywords):
             
             finalArgs = []
             maxIndex = 0
-            for index, (name, default) in enumerate(args_and_defaults):
+            for unused_index, (name, default) in enumerate(args_and_defaults):
                 #warn(index, name, default)
                 fArg = noDefaultString
                 if name in keywordDict:
@@ -650,7 +662,9 @@ def keyword_only_args(*included_keywords):
             #warn(finalArgs[1:])
             #warn(args_and_defaults)
                 
-            #warn("function ", func, " originally called with (after self) ", callingArgs[1:], " will be called with args (after self):", finalArgs[1:], " and **keywords", keywordDict)
+            #warn("function ", func, " originally called with (after self) ", 
+            #    callingArgs[1:], " will be called with args (after self):", 
+            #    finalArgs[1:], " and **keywords", keywordDict)
             return func(*finalArgs, **keywordDict)
         return wrapper
 
@@ -658,11 +672,13 @@ def keyword_only_args(*included_keywords):
         """ Raise Python 3-style TypeErrors for missing arguments."""
         ordered_args = [a for a, _ in args_and_defaults if a in missing_args]
         ordered_args = ordered_args[number_of_args:]
-        error_message = ['%s() missing %d required %s argument' % (func.__name__, len(ordered_args), arg_type)]
+        error_message = ['%s() missing %d required %s argument' % 
+                         (func.__name__, len(ordered_args), arg_type)]
         if len(ordered_args) == 1:
             error_message.append(": '%s'" % ordered_args[0])
         else:
-            error_message.extend(['s: ', ' '.join("'%s'" % a for a in ordered_args[:-1]), " and '%s'" % ordered_args[-1]])
+            error_message.extend(['s: ', ' '.join("'%s'" % a for a in ordered_args[:-1]), 
+                                  " and '%s'" % ordered_args[-1]])
         raise TypeError(''.join(error_message))
 
     return decorator

@@ -60,7 +60,8 @@ class GameCollection(common.SlottedObject):
     >>> gc.park
     'SDN'
     '''}
-    __slots__ = ('games', 'yearStart', 'yearEnd', 'team', 'park', 'usesDH', 'protoGames', 'seasonType')
+    __slots__ = ('games', 'yearStart', 'yearEnd', 'team', 
+                 'park', 'usesDH', 'protoGames', 'seasonType')
     
     def __init__(self):
         super(GameCollection, self).__init__()
@@ -101,9 +102,9 @@ class GameCollection(common.SlottedObject):
         'gc19942000tBOSpdt0.5.0.p'
         '''
         import bbbalk
-        team = "t"
+        teamFN = "t"
         if self.team is not None:
-            team += self.team
+            teamFN += self.team
         park = "p"
         if self.park is not None:
             park += self.park
@@ -113,7 +114,8 @@ class GameCollection(common.SlottedObject):
         elif self.usesDH is False:
             usesDH += "f"
             
-        hashFN = "gc" + str(self.yearStart) + str(self.yearEnd) + team + park + usesDH + bbbalk.__version__ + '.p'
+        hashFN = ("gc" + str(self.yearStart) + str(self.yearEnd) + teamFN + park + 
+                  usesDH + bbbalk.__version__ + '.p')
         return hashFN
     
     def _saveToPickle(self):
@@ -356,7 +358,8 @@ class Game(common.ParentType):
                 r.playNumber = playNumber
                 if r.inning != lastInning or r.visitOrHome != lastVisitOrHome: # new half-inning
                     if DEBUG:
-                        common.warn("*** " + self.id + " Inning: " + str(r.inning) + " " + str(r.visitOrHome))
+                        common.warn("*** " + self.id + " Inning: " + str(r.inning) + 
+                                    " " + str(r.visitOrHome))
                     if thisHalfInning != None:
                         halfInnings.append(thisHalfInning)
                     lastHalfInning = thisHalfInning
@@ -428,7 +431,8 @@ class Game(common.ParentType):
 
     def recordsByType(self, recordTypeOrTypes):
         '''
-        Iterates through all records which fits a single type or list of types, such as "play" or "info" etc.
+        Iterates through all records which fits a single type or list of types, 
+        such as "play" or "info" etc.
         '''
         if isinstance(recordTypeOrTypes, (list, tuple)):
             for r in self.records:
@@ -452,10 +456,12 @@ class Game(common.ParentType):
 
     def battersByEvent(self, eventAttribute, visitOrHome=None):
         '''
-        Returns an OrderedDict of batterIds whose playEvents have a certain attribute is True or an int > 0.
+        Returns an OrderedDict of batterIds whose playEvents have a 
+        certain attribute is True or an int > 0.
         
         The order is the order that the batter first made a play.  The value is the number of times
-        the play was made.  For instance if eventAttribute == 'single' and gregg001 singled in the second
+        the play was made.  For instance if eventAttribute == 'single' 
+        and gregg001 singled in the second
         and fourth, bobob001 singled in the third, and steve001 singled in the fifth, you'd get 
         {'gregg001': 2, 'bobob001': 1, 'steve001': 1}
         
@@ -522,9 +528,10 @@ class Test(unittest.TestCase):
             h1 = h1.following
     
     def testWrongOutsPadres(self):
-        totalWrong = 0
+        unused_totalWrong = 0
         for i, g in enumerate(self.games):
-            totalWrong += self.checkSaneOuts(g)
+            unused_totalWrong += self.checkSaneOuts(g)
+        
 
     def checkSaneOuts(self, g):
         totalHalfInnings = len(g.halfInnings)
@@ -545,7 +552,9 @@ class Test(unittest.TestCase):
                         omop = p.outsMadeOnPlay
                         if omop > 0:
                             pp((p.outsMadeOnPlay, repr(p)))
-            self.assertEqual(outs, 3, 'Wrong number of outs in game {0}, halfInning {1}: {2} outs'.format(g.id, i, outs))
+            self.assertEqual(outs, 3, 
+                             'Wrong number of outs in game {0}, halfInning {1}: {2} outs'.format(
+                                                    g.id, i, outs))
                 
         return wrong
 
@@ -567,6 +576,7 @@ class TestSlow(unittest.TestCase):
         if max_workers == 0:
             max_workers = 1
             
+        # pylint: disable=broad-except
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             yy = [y for y in range(2014, 1870, -1)]
             runPath = {executor.submit(runOne, y) : y for y in yy}

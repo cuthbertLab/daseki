@@ -60,7 +60,9 @@ class Test(unittest.TestCase):
                         startingPitcher = starters[-1] # TODO: get by position
                         #print(startingPitcher.name)
                         for r in g.recordsByType('play'):
-                            if r.inning <= 2 and r.visitOrHome == VISITOR and r.playerId == startingPitcher.id:
+                            if (r.inning <= 2 and 
+                                    r.visitOrHome == VISITOR and 
+                                    r.playerId == startingPitcher.id):
                                 #print("********Yup")
                                 gamesPitched[visitorTeam][r.inning] += 1
 

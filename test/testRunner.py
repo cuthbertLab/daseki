@@ -26,10 +26,11 @@ defaultImports = ('bbbalk',)
 
 ###### test related functions
 
-def addDocAttrTestsToSuite(suite, moduleVariableLists, outerFilename=None, globs=False, optionflags=(
-            doctest.ELLIPSIS |
-            doctest.NORMALIZE_WHITESPACE
-            )):
+def addDocAttrTestsToSuite(suite, moduleVariableLists, 
+                           outerFilename=None, globs=False, optionflags=(
+                                                                doctest.ELLIPSIS |
+                                                                doctest.NORMALIZE_WHITESPACE
+                                                                )):
     '''
     takes a suite, such as a doctest.DocTestSuite and the list of variables
     in a module and adds from those classes that have a _DOC_ATTR dictionary
@@ -81,7 +82,7 @@ def fixTestsForPy2and3(doctestSuite):
         dt = dtc._dt_test # DocTest
         for example in dt.examples: # fix Traceback exception differences Py2 to Py3
             if six.PY3:
-                if example.exc_msg is not None and len(example.exc_msg) > 0:
+                if example.exc_msg is not None and any(example.exc_msg):
                     example.exc_msg = "..." + example.exc_msg
                 elif (example.want is not None and
                         example.want.startswith('u\'')):
@@ -196,7 +197,9 @@ def mainTest(*testClasses, **kwargs):
     else:
         # create test suite derived from doc tests
         # here we use '__main__' instead of a module
-        if 'moduleRelative' in testClasses or 'moduleRelative' in sys.argv or bool(kwargs.get('moduleRelative', False)):
+        if ('moduleRelative' in testClasses or 
+                'moduleRelative' in sys.argv or 
+                bool(kwargs.get('moduleRelative', False))):
             pass
         else:
             for di in defaultImports:
@@ -215,7 +218,10 @@ def mainTest(*testClasses, **kwargs):
         verbosity = 2 # this seems to hide most display
 
     displayNames = False
-    if 'list' in sys.argv or 'display' in sys.argv or bool(kwargs.get('display', False)) or bool(kwargs.get('list', False)):
+    if ('list' in sys.argv or 
+            'display' in sys.argv or 
+            bool(kwargs.get('display', False)) or 
+            bool(kwargs.get('list', False))):
         displayNames = True
         runAllTests = False
 
@@ -229,7 +235,9 @@ def mainTest(*testClasses, **kwargs):
         runThisTest = kwargs.get('runTest', False)
 
     # -f, --failfast
-    if 'onlyDocTest' in sys.argv or 'onlyDocTest' in testClasses or bool(kwargs.get('onlyDocTest', False)):
+    if ('onlyDocTest' in sys.argv or 
+            'onlyDocTest' in testClasses or 
+            bool(kwargs.get('onlyDocTest', False))):
         testClasses = [] # remove cases
     for t in testClasses:
         if not isinstance(t, six.string_types):

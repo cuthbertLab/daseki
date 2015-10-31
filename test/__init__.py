@@ -1,1 +1,1 @@
-__all__ = ('testRunner', 'timeGraphs')
+__all__ = ['testRunner', 'timeGraphs']

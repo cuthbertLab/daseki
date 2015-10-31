@@ -30,8 +30,8 @@ def protoGameById(gameId):
     Given the id set in self.id, find the appropriate file and proto parse it into this
     ProtoGame object.
     
-    Not an efficient way of doing this for many games (because all games in the file need to be parsed). 
-    But useful for looking at one.
+    Not an efficient way of doing this for many games (because all games in the 
+    file need to be parsed). But useful for looking at one.
     
     >>> retro.parser.protoGameById('SDN201304090')
     <bbbalk.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
@@ -120,7 +120,7 @@ class YearDirectory(object):
         '''
         Parses all the event files and returns them as a list.
         '''
-        if len(self._eventFiles) > 0:
+        if any(self._eventFiles):
             return self._eventFiles
         errors = []
         # 5x slower!
@@ -131,7 +131,7 @@ class YearDirectory(object):
                 self._eventFiles.append(self._parseOneEventFile(efn))
             #except Exception:
             #    errors.append(efn)
-        if len(errors) > 0:
+        if any(errors):
             print("These files had errors: ", errors)
         return self._eventFiles
                 
@@ -140,7 +140,7 @@ class YearDirectory(object):
         '''
         returns all EventFiles in the directory.
         '''
-        if len(self._eventFiles) > 0:
+        if any(self._eventFiles):
             return self._eventFiles
         self.parseEventFiles()
         return self._eventFiles
@@ -154,8 +154,8 @@ class YearDirectory(object):
         
     def byTeam(self, teamCode):
         '''
-        Returns a list of all ProtoGames (in any event file) representing a game played by a single team
-        (home or away).
+        Returns a list of all ProtoGames (in any event file) representing a 
+        game played by a single team (home or away).
         
         The teamCode is a three-letter abbreviation such as "ANA", "HOU" etc.
         
@@ -168,8 +168,8 @@ class YearDirectory(object):
 
     def byPark(self, teamCode):
         '''
-        Returns a list of all ProtoGames (in any event file) representing a game played by a single team
-        at home -- does not actually distinguish between the few cases where a 
+        Returns a list of all ProtoGames (in any event file) representing a game played by 
+        a single team at home -- does not actually distinguish between the few cases where a 
         team might play a "home" game at a different ballpark, such as the Montreal
         Expos in San Juan.
         '''

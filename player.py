@@ -19,7 +19,7 @@ class PlayerYear(common.ParentType):
     __slots__ = ()
     #@common.keyword_only_args('parent')
     def __init__(self, playerId, parent=None):
-        pass
+        super(PlayerYear, self).__init__(parent=parent)
         
 
 class PlayerGame(common.ParentType):
@@ -131,48 +131,102 @@ class PlayerGame(common.ParentType):
         >>> p = g.playerById('venaw001')
         >>> pas = p.plateAppearancesAsRunner()
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
-         <bbbalk.retro.play.PlateAppearance 5-4: venaw001: [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, <bbbalk.retro.play.Play b5: venaw001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: [<bbbalk.retro.play.Play b5: quenc001:SB2>, <bbbalk.retro.play.Play b5: quenc001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
-         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 7-7: alony001: [<bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, <bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, <bbbalk.retro.play.Play b7: alony001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: [<bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, <bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: 
+             [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
+         <bbbalk.retro.play.PlateAppearance 5-4: venaw001: 
+             [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, 
+              <bbbalk.retro.play.Play b5: venaw001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: 
+             [<bbbalk.retro.play.Play b5: quenc001:SB2>, 
+              <bbbalk.retro.play.Play b5: quenc001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: 
+             [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
+         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: 
+             [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 7-7: alony001: 
+             [<bbbalk.retro.play.Play b7: alony001:NP>, 
+              <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
+              <bbbalk.retro.play.Play b7: alony001:NP>, 
+              <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
+              <bbbalk.retro.play.Play b7: alony001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: 
+             [<bbbalk.retro.play.Play b8: venaw001:NP>, 
+              <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+              <bbbalk.retro.play.Play b8: venaw001:NP>, 
+              <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
+              <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
+             [<bbbalk.retro.play.Play b8: thayd001:NP>, 
+              <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
+             [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
+             [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
 
         Only the times he was on base when the play began:
         
         >>> pas = p.plateAppearancesAsRunner(searchAfter=False, searchScoring=False)
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 5-5: quenc001: [<bbbalk.retro.play.Play b5: quenc001:SB2>, <bbbalk.retro.play.Play b5: quenc001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 7-7: alony001: [<bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, <bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, <bbbalk.retro.play.Play b7: alony001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        [<bbbalk.retro.play.PlateAppearance 5-5: quenc001: 
+             [<bbbalk.retro.play.Play b5: quenc001:SB2>, 
+              <bbbalk.retro.play.Play b5: quenc001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: 
+             [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 7-7: alony001: 
+             [<bbbalk.retro.play.Play b7: alony001:NP>, 
+              <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
+              <bbbalk.retro.play.Play b7: alony001:NP>, 
+              <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
+              <bbbalk.retro.play.Play b7: alony001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
+             [<bbbalk.retro.play.Play b8: thayd001:NP>, 
+              <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
+             [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
+             [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
 
         Only the plate appearances that had plays which ended with him still on base.  Note that
         a sub mid-PA will trigger a false entry:
         
         >>> pas = p.plateAppearancesAsRunner(searchBefore=False, searchScoring=False)
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 5-4: venaw001: [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, <bbbalk.retro.play.Play b5: venaw001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: [<bbbalk.retro.play.Play b5: quenc001:SB2>, <bbbalk.retro.play.Play b5: quenc001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
-         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 7-7: alony001: [<bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, <bbbalk.retro.play.Play b7: alony001:NP>, <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, <bbbalk.retro.play.Play b7: alony001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: [<bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, <bbbalk.retro.play.Play b8: venaw001:NP>, <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: [<bbbalk.retro.play.Play b8: thayd001:NP>, <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: [<bbbalk.retro.play.Play b8: guzmj005:W>]>]
+        [<bbbalk.retro.play.PlateAppearance 5-4: venaw001: 
+             [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, 
+              <bbbalk.retro.play.Play b5: venaw001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: 
+             [<bbbalk.retro.play.Play b5: quenc001:SB2>, 
+              <bbbalk.retro.play.Play b5: quenc001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: 
+             [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
+         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: 
+             [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <bbbalk.retro.play.PlateAppearance 7-7: alony001: 
+             [<bbbalk.retro.play.Play b7: alony001:NP>, 
+              <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
+              <bbbalk.retro.play.Play b7: alony001:NP>, 
+              <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
+              <bbbalk.retro.play.Play b7: alony001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: 
+             [<bbbalk.retro.play.Play b8: venaw001:NP>, 
+              <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+              <bbbalk.retro.play.Play b8: venaw001:NP>, 
+              <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
+              <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
+             [<bbbalk.retro.play.Play b8: thayd001:NP>, 
+              <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
+             [<bbbalk.retro.play.Play b8: guzmj005:W>]>]
 
-        Only the times he scored:
+        Only the times he scored or was thrown out.
         
         >>> pas = p.plateAppearancesAsRunner(searchBefore=False, searchAfter=False)
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: 
+            [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
+         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
+             [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
         '''
         pid = self.id
         game = self.parentByClass('Game')
@@ -230,7 +284,8 @@ class PlayerGame(common.ParentType):
         >>> print(p.boxScoreStatline('atBats hits runs strikeOuts'))
         Gyorko J 3b                      3   1   0   1
 
-        >>> print(p.boxScoreStatline('atBats hits runs strikeOuts', paddingInfo={'nameSpace': 22, 'fieldSpace': 2}))
+        >>> print(p.boxScoreStatline('atBats hits runs strikeOuts', 
+        ...             paddingInfo={'nameSpace': 22, 'fieldSpace': 2}))
         Gyorko J 3b            3 1 0 1
 
         
@@ -343,15 +398,20 @@ class PlayerGame(common.ParentType):
         <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
         >>> pas = p.plateAppearances()
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 1-5: gyorj001: [<bbbalk.retro.play.Play b1: gyorj001:S8/G.2-H>]>,
-         <bbbalk.retro.play.PlateAppearance 4-1: gyorj001: [<bbbalk.retro.play.Play b4: gyorj001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 6-2: gyorj001: [<bbbalk.retro.play.Play b6: gyorj001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 8-1: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:NP>, 
-                                                           <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
-                                                           <bbbalk.retro.play.Play b8: gyorj001:NP>, 
-                                                           <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
-                                                           <bbbalk.retro.play.Play b8: gyorj001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>]
+        [<bbbalk.retro.play.PlateAppearance 1-5: gyorj001: 
+            [<bbbalk.retro.play.Play b1: gyorj001:S8/G.2-H>]>,
+         <bbbalk.retro.play.PlateAppearance 4-1: gyorj001: 
+             [<bbbalk.retro.play.Play b4: gyorj001:9/F>]>,
+         <bbbalk.retro.play.PlateAppearance 6-2: gyorj001: 
+             [<bbbalk.retro.play.Play b6: gyorj001:K>]>,
+         <bbbalk.retro.play.PlateAppearance 8-1: gyorj001: 
+             [<bbbalk.retro.play.Play b8: gyorj001:NP>, 
+              <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
+              <bbbalk.retro.play.Play b8: gyorj001:NP>, 
+              <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
+              <bbbalk.retro.play.Play b8: gyorj001:W>]>,
+         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: 
+             [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>]
         >>> pas[0].isHit
         True
         >>> pas[0].baseOnBalls
@@ -405,7 +465,8 @@ class LineupCard(common.ParentType):
       <bbbalk.player.PlayerGame visitor,9: Nick Punto (puntn001):[5, 6]>]]
     '''
     
-    __slots__ = ('lineupData', 'playersByBattingOrder', 'visitOrHome', 'teamAbbreviation', 'allPlayers')
+    __slots__ = ('lineupData', 'playersByBattingOrder', 
+                 'visitOrHome', 'teamAbbreviation', 'allPlayers')
     #@common.keyword_only_args('parent')
     def __init__(self, visitOrHome, parent=None):
         super(LineupCard, self).__init__(parent=parent)
@@ -501,7 +562,8 @@ class LineupCard(common.ParentType):
         >>> lc2.playsWithSubstitutions()
         [52, 54, 65, 66, 74, 81, 83, 84, 88, 93, 94]
         '''
-        return [r.playNumber for r in self.lineupData if r.playNumber >= startNumber and r.playNumber <= endNumber]
+        return [r.playNumber for r in self.lineupData if r.playNumber >= startNumber and 
+                    r.playNumber <= endNumber]
 
     def subsFor(self, player):
         '''
@@ -593,7 +655,8 @@ class LineupCard(common.ParentType):
             while keepSearching:
                 p = self.parent.playByNumber(searchNumber)
                 if p is None or p.playEvent.isNoPlay is False:
-                    keepSearching = False  # there may be shifts on both sides...so cannot just do +1
+                    # there may be shifts on both sides...so cannot just do +1
+                    keepSearching = False  
                 if searchNumber in ps: # could be a switch on the other team
                     thisSub.append(self.parent.subByNumber(searchNumber))
                     checkedSubs.append(searchNumber)
@@ -604,7 +667,8 @@ class LineupCard(common.ParentType):
 
     def battingOrderAtPlayNumber(self, playNumber=0):
         '''
-        looks through the lineup card and sees who is at each point in the lineup at a given play number
+        looks through the lineup card and sees who is at each point 
+        in the lineup at a given play number
 
         1 indexed. so 0 is always None in non DH games, and pitcher in DH games
 
@@ -635,7 +699,8 @@ class LineupCard(common.ParentType):
          <bbbalk.player.Start home,8: Nick Hundley (hundn001):catcher>,
          <bbbalk.player.Sub home,9: Chris Denorfia (denoc001):leftfield>] 
         '''
-        batters = [None for i in range(10)] # store as batting position, so 0 will always be None for NL
+        # store as batting position, so 0 will always be None for NL
+        batters = [None for i in range(10)] 
         for p in self.lineupData:
             if p.playNumber > playNumber:
                 break
@@ -668,7 +733,8 @@ class PlayerEntrance(RetroData):
             self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
             self.battingOrder = int(battingOrder)
             self.inning = None
-#             if position.endswith('"'): # parse error in 1996KCA.EVA and 1996MON.EVN # TODO: Tell Retrosheet
+#             if position.endswith('"'): 
+#                 # parse error in 1996KCA.EVA and 1996MON.EVN # TODO: Tell Retrosheet
 #                 gid = self.parentByClass('Game').id
 #                 common.warn("Position ending in quote in {0}".format(gid))
 #                 position = position[0:len(position)-1]
@@ -695,13 +761,15 @@ class Start(PlayerEntrance):
     record = 'start'
     __slots__ = ()
     def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
-        super(Start, self).__init__(playerId, playerName, visitOrHome, battingOrder, position, parent=parent)
+        super(Start, self).__init__(playerId, playerName, visitOrHome, 
+                                    battingOrder, position, parent=parent)
 
 class Sub(PlayerEntrance):
     record = 'sub'
     __slots__ = ()
     def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
-        super(Sub, self).__init__(playerId, playerName, visitOrHome, battingOrder, position, parent=parent)
+        super(Sub, self).__init__(playerId, playerName, visitOrHome, 
+                                  battingOrder, position, parent=parent)
 
 if __name__ == "__main__":
     import bbbalk
