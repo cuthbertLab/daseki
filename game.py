@@ -578,7 +578,7 @@ class TestSlow(unittest.TestCase):
             
         # pylint: disable=broad-except
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            yy = [y for y in range(2014, 1870, -1)]
+            yy = [y for y in range(common.maxRetrosheetYear, 1870, -1)]
             runPath = {executor.submit(runOne, y) : y for y in yy}
             for future in concurrent.futures.as_completed(runPath):
                 f = runPath[future]
