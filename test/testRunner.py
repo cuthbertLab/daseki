@@ -20,9 +20,9 @@ import inspect
 import re
 import sys
 import unittest
-from bbbalk.ext import six
+from daseki.ext import six
 
-defaultImports = ('bbbalk',)
+defaultImports = ('daseki',)
 
 ###### test related functions
 
@@ -111,19 +111,19 @@ def stripAddresses(textString, replacement = "ADDRESS"):
     contains references to memory locations.  So for instance:
 
 
-    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.game.Game object at 0x02A87AD0>")
-    '{0.0} <bbbalk.game.Game object at ADDRESS>'
+    >>> test.testRunner.stripAddresses("{0.0} <daseki.game.Game object at 0x02A87AD0>")
+    '{0.0} <daseki.game.Game object at ADDRESS>'
 
     while this is left alone:
 
-    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.game.GameCollection >")
-    '{0.0} <bbbalk.game.GameCollection >'
+    >>> test.testRunner.stripAddresses("{0.0} <daseki.game.GameCollection >")
+    '{0.0} <daseki.game.GameCollection >'
 
 
     For doctests, can strip to '0x...' to make it work fine with doctest.ELLIPSIS
     
-    >>> test.testRunner.stripAddresses("{0.0} <bbbalk.game.Game object at 0x02A87AD0>", '0x...')
-    '{0.0} <bbbalk.game.Game object at 0x...>'
+    >>> test.testRunner.stripAddresses("{0.0} <daseki.game.Game object at 0x02A87AD0>", '0x...')
+    '{0.0} <daseki.game.Game object at 0x...>'
 
     :rtype: str
     '''
@@ -158,9 +158,9 @@ def mainTest(*testClasses, **kwargs):
                 hello = "Hello"
                 self.assertEqual("Hello", hello)
 
-        import music21
         if __name__ == '__main__':
-            music21.mainTest(Test)
+            import daseki
+            daseki.mainTest(Test)
 
 
     This module tries to fix up some differences between python2 and python3 so
