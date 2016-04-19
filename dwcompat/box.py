@@ -51,8 +51,12 @@ class BoxScore(object):
                 lines[teamNum] += rStr
         
         b = ''        
-        b += '{0:17s}{1} -- {2}\n'.format(g.visitingTeam.location, lines[TeamNum.VISITOR], g.runs.visitor)
-        b += '{0:17s}{1} -- {2}\n'.format(g.homeTeam.location, lines[TeamNum.HOME], g.runs.home)
+        b += '{0:17s}{1} -- {2}\n'.format(g.visitingTeam.location, 
+                                          lines[TeamNum.VISITOR], 
+                                          g.runs.visitor)
+        b += '{0:17s}{1} -- {2}\n'.format(g.homeTeam.location, 
+                                          lines[TeamNum.HOME], 
+                                          g.runs.home)
         return b
     
     def bottom(self):
