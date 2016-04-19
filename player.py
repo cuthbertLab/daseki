@@ -1,7 +1,9 @@
-from bbbalk.exceptionsBB import RetrosheetException
-from bbbalk.retro.datatypeBase import RetroData
-from bbbalk import common
-from bbbalk.retro import play
+# -*- coding: utf-8 -*-
+
+from daseki.exceptionsDS import RetrosheetException
+from daseki.retro.datatypeBase import RetroData
+from daseki import common
+from daseki.retro import play
 
 _positionNames = "unknown pitcher catcher firstbase secondbase " + \
     "thirdbase shortstop leftfield centerfield rightfield " + \
@@ -131,102 +133,102 @@ class PlayerGame(common.ParentType):
         >>> p = g.playerById('venaw001')
         >>> pas = p.plateAppearancesAsRunner()
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: 
-             [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
-         <bbbalk.retro.play.PlateAppearance 5-4: venaw001: 
-             [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, 
-              <bbbalk.retro.play.Play b5: venaw001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: 
-             [<bbbalk.retro.play.Play b5: quenc001:SB2>, 
-              <bbbalk.retro.play.Play b5: quenc001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: 
-             [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
-         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: 
-             [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 7-7: alony001: 
-             [<bbbalk.retro.play.Play b7: alony001:NP>, 
-              <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
-              <bbbalk.retro.play.Play b7: alony001:NP>, 
-              <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
-              <bbbalk.retro.play.Play b7: alony001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: 
-             [<bbbalk.retro.play.Play b8: venaw001:NP>, 
-              <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
-              <bbbalk.retro.play.Play b8: venaw001:NP>, 
-              <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
-              <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
-             [<bbbalk.retro.play.Play b8: thayd001:NP>, 
-              <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
-             [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
-             [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        [<daseki.retro.play.PlateAppearance 1-2: venaw001: 
+             [<daseki.retro.play.Play b1: venaw001:HR/9/L>]>,
+         <daseki.retro.play.PlateAppearance 5-4: venaw001: 
+             [<daseki.retro.play.Play b5: venaw001:CS2(26)>, 
+              <daseki.retro.play.Play b5: venaw001:W>]>,
+         <daseki.retro.play.PlateAppearance 5-5: quenc001: 
+             [<daseki.retro.play.Play b5: quenc001:SB2>, 
+              <daseki.retro.play.Play b5: quenc001:K>]>,
+         <daseki.retro.play.PlateAppearance 7-5: venaw001: 
+             [<daseki.retro.play.Play b7: venaw001:IW>]>,
+         <daseki.retro.play.PlateAppearance 7-6: quenc001: 
+             [<daseki.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <daseki.retro.play.PlateAppearance 7-7: alony001: 
+             [<daseki.retro.play.Play b7: alony001:NP>, 
+              <daseki.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
+              <daseki.retro.play.Play b7: alony001:NP>, 
+              <daseki.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
+              <daseki.retro.play.Play b7: alony001:9/F>]>,
+         <daseki.retro.play.PlateAppearance 8-7: venaw001: 
+             [<daseki.retro.play.Play b8: venaw001:NP>, 
+              <daseki.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+              <daseki.retro.play.Play b8: venaw001:NP>, 
+              <daseki.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
+              <daseki.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <daseki.retro.play.PlateAppearance 8-8(I): thayd001: 
+             [<daseki.retro.play.Play b8: thayd001:NP>, 
+              <daseki.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <daseki.retro.play.PlateAppearance 8-8: guzmj005: 
+             [<daseki.retro.play.Play b8: guzmj005:W>]>,
+         <daseki.retro.play.PlateAppearance 8-9: alony001: 
+             [<daseki.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
 
         Only the times he was on base when the play began:
         
         >>> pas = p.plateAppearancesAsRunner(searchAfter=False, searchScoring=False)
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 5-5: quenc001: 
-             [<bbbalk.retro.play.Play b5: quenc001:SB2>, 
-              <bbbalk.retro.play.Play b5: quenc001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: 
-             [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 7-7: alony001: 
-             [<bbbalk.retro.play.Play b7: alony001:NP>, 
-              <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
-              <bbbalk.retro.play.Play b7: alony001:NP>, 
-              <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
-              <bbbalk.retro.play.Play b7: alony001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
-             [<bbbalk.retro.play.Play b8: thayd001:NP>, 
-              <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
-             [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
-             [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        [<daseki.retro.play.PlateAppearance 5-5: quenc001: 
+             [<daseki.retro.play.Play b5: quenc001:SB2>, 
+              <daseki.retro.play.Play b5: quenc001:K>]>,
+         <daseki.retro.play.PlateAppearance 7-6: quenc001: 
+             [<daseki.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <daseki.retro.play.PlateAppearance 7-7: alony001: 
+             [<daseki.retro.play.Play b7: alony001:NP>, 
+              <daseki.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
+              <daseki.retro.play.Play b7: alony001:NP>, 
+              <daseki.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
+              <daseki.retro.play.Play b7: alony001:9/F>]>,
+         <daseki.retro.play.PlateAppearance 8-8(I): thayd001: 
+             [<daseki.retro.play.Play b8: thayd001:NP>, 
+              <daseki.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <daseki.retro.play.PlateAppearance 8-8: guzmj005: 
+             [<daseki.retro.play.Play b8: guzmj005:W>]>,
+         <daseki.retro.play.PlateAppearance 8-9: alony001: 
+             [<daseki.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
 
         Only the plate appearances that had plays which ended with him still on base.  Note that
         a sub mid-PA will trigger a false entry:
         
         >>> pas = p.plateAppearancesAsRunner(searchBefore=False, searchScoring=False)
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 5-4: venaw001: 
-             [<bbbalk.retro.play.Play b5: venaw001:CS2(26)>, 
-              <bbbalk.retro.play.Play b5: venaw001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 5-5: quenc001: 
-             [<bbbalk.retro.play.Play b5: quenc001:SB2>, 
-              <bbbalk.retro.play.Play b5: quenc001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 7-5: venaw001: 
-             [<bbbalk.retro.play.Play b7: venaw001:IW>]>,
-         <bbbalk.retro.play.PlateAppearance 7-6: quenc001: 
-             [<bbbalk.retro.play.Play b7: quenc001:HP.1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 7-7: alony001: 
-             [<bbbalk.retro.play.Play b7: alony001:NP>, 
-              <bbbalk.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
-              <bbbalk.retro.play.Play b7: alony001:NP>, 
-              <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
-              <bbbalk.retro.play.Play b7: alony001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: 
-             [<bbbalk.retro.play.Play b8: venaw001:NP>, 
-              <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
-              <bbbalk.retro.play.Play b8: venaw001:NP>, 
-              <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
-              <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
-             [<bbbalk.retro.play.Play b8: thayd001:NP>, 
-              <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
-             [<bbbalk.retro.play.Play b8: guzmj005:W>]>]
+        [<daseki.retro.play.PlateAppearance 5-4: venaw001: 
+             [<daseki.retro.play.Play b5: venaw001:CS2(26)>, 
+              <daseki.retro.play.Play b5: venaw001:W>]>,
+         <daseki.retro.play.PlateAppearance 5-5: quenc001: 
+             [<daseki.retro.play.Play b5: quenc001:SB2>, 
+              <daseki.retro.play.Play b5: quenc001:K>]>,
+         <daseki.retro.play.PlateAppearance 7-5: venaw001: 
+             [<daseki.retro.play.Play b7: venaw001:IW>]>,
+         <daseki.retro.play.PlateAppearance 7-6: quenc001: 
+             [<daseki.retro.play.Play b7: quenc001:HP.1-2>]>,
+         <daseki.retro.play.PlateAppearance 7-7: alony001: 
+             [<daseki.retro.play.Play b7: alony001:NP>, 
+              <daseki.player.Sub visitor,5: Paco Rodriguez (rodrp001):pitcher>, 
+              <daseki.retro.play.Play b7: alony001:NP>, 
+              <daseki.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>, 
+              <daseki.retro.play.Play b7: alony001:9/F>]>,
+         <daseki.retro.play.PlateAppearance 8-7: venaw001: 
+             [<daseki.retro.play.Play b8: venaw001:NP>, 
+              <daseki.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+              <daseki.retro.play.Play b8: venaw001:NP>, 
+              <daseki.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
+              <daseki.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <daseki.retro.play.PlateAppearance 8-8(I): thayd001: 
+             [<daseki.retro.play.Play b8: thayd001:NP>, 
+              <daseki.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <daseki.retro.play.PlateAppearance 8-8: guzmj005: 
+             [<daseki.retro.play.Play b8: guzmj005:W>]>]
 
         Only the times he scored or was thrown out.
         
         >>> pas = p.plateAppearancesAsRunner(searchBefore=False, searchAfter=False)
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 1-2: venaw001: 
-            [<bbbalk.retro.play.Play b1: venaw001:HR/9/L>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
-             [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
+        [<daseki.retro.play.PlateAppearance 1-2: venaw001: 
+            [<daseki.retro.play.Play b1: venaw001:HR/9/L>]>,
+         <daseki.retro.play.PlateAppearance 8-9: alony001: 
+             [<daseki.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>]
         '''
         pid = self.id
         game = self.parentByClass('Game')
@@ -395,23 +397,23 @@ class PlayerGame(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> p = g.playerById('gyorj001')
         >>> p
-        <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
+        <daseki.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
         >>> pas = p.plateAppearances()
         >>> pp(pas)
-        [<bbbalk.retro.play.PlateAppearance 1-5: gyorj001: 
-            [<bbbalk.retro.play.Play b1: gyorj001:S8/G.2-H>]>,
-         <bbbalk.retro.play.PlateAppearance 4-1: gyorj001: 
-             [<bbbalk.retro.play.Play b4: gyorj001:9/F>]>,
-         <bbbalk.retro.play.PlateAppearance 6-2: gyorj001: 
-             [<bbbalk.retro.play.Play b6: gyorj001:K>]>,
-         <bbbalk.retro.play.PlateAppearance 8-1: gyorj001: 
-             [<bbbalk.retro.play.Play b8: gyorj001:NP>, 
-              <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
-              <bbbalk.retro.play.Play b8: gyorj001:NP>, 
-              <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
-              <bbbalk.retro.play.Play b8: gyorj001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: 
-             [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>]
+        [<daseki.retro.play.PlateAppearance 1-5: gyorj001: 
+            [<daseki.retro.play.Play b1: gyorj001:S8/G.2-H>]>,
+         <daseki.retro.play.PlateAppearance 4-1: gyorj001: 
+             [<daseki.retro.play.Play b4: gyorj001:9/F>]>,
+         <daseki.retro.play.PlateAppearance 6-2: gyorj001: 
+             [<daseki.retro.play.Play b6: gyorj001:K>]>,
+         <daseki.retro.play.PlateAppearance 8-1: gyorj001: 
+             [<daseki.retro.play.Play b8: gyorj001:NP>, 
+              <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
+              <daseki.retro.play.Play b8: gyorj001:NP>, 
+              <daseki.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
+              <daseki.retro.play.Play b8: gyorj001:W>]>,
+         <daseki.retro.play.PlateAppearance 8-10: gyorj001: 
+             [<daseki.retro.play.Play b8: gyorj001:W.2-3;1-2>]>]
         >>> pas[0].isHit
         True
         >>> pas[0].baseOnBalls
@@ -442,27 +444,27 @@ class LineupCard(common.ParentType):
     >>> g = game.Game('SDN201304090')
     >>> lc = g.lineupCards[common.TeamNum.VISITOR]
     >>> lc
-    <bbbalk.player.LineupCard visitor (SDN201304090)>
+    <daseki.player.LineupCard visitor (SDN201304090)>
     >>> pp(lc.playersByBattingOrder)
     [[],
-     [<bbbalk.player.PlayerGame visitor,1: Carl Crawford (crawc002):[7]>],
-     [<bbbalk.player.PlayerGame visitor,2: Mark Ellis (ellim001):[4]>],
-     [<bbbalk.player.PlayerGame visitor,3: Matt Kemp (kempm001):[8]>],
-     [<bbbalk.player.PlayerGame visitor,4: Adrian Gonzalez (gonza003):[3]>],
-     [<bbbalk.player.PlayerGame visitor,5: Juan Uribe (uribj002):[5]>,
-      <bbbalk.player.PlayerGame visitor,5: Ronald Belisario (belir001):[1]>,
-      <bbbalk.player.PlayerGame visitor,5: Paco Rodriguez (rodrp001):[1]>,
-      <bbbalk.player.PlayerGame visitor,5: Matt Guerrier (guerm001):[1]>,
-      <bbbalk.player.PlayerGame visitor,5: Luis Cruz (cruzl001):[5]>],
-     [<bbbalk.player.PlayerGame visitor,6: Andre Ethier (ethia001):[9]>],
-     [<bbbalk.player.PlayerGame visitor,7: A.J. Ellis (ellia001):[2]>],
-     [<bbbalk.player.PlayerGame visitor,8: Justin Sellers (sellj002):[6]>,
-      <bbbalk.player.PlayerGame visitor,8: Jerry Hairston (hairj002):[11, 5]>,
-      <bbbalk.player.PlayerGame visitor,8: J.P. Howell (howej003):[1]>],
-     [<bbbalk.player.PlayerGame visitor,9: Josh Beckett (beckj002):[1]>,
-      <bbbalk.player.PlayerGame visitor,9: Skip Schumaker (schus001):[11]>,
-      <bbbalk.player.PlayerGame visitor,9: Chris Capuano (capuc001):[1]>,
-      <bbbalk.player.PlayerGame visitor,9: Nick Punto (puntn001):[5, 6]>]]
+     [<daseki.player.PlayerGame visitor,1: Carl Crawford (crawc002):[7]>],
+     [<daseki.player.PlayerGame visitor,2: Mark Ellis (ellim001):[4]>],
+     [<daseki.player.PlayerGame visitor,3: Matt Kemp (kempm001):[8]>],
+     [<daseki.player.PlayerGame visitor,4: Adrian Gonzalez (gonza003):[3]>],
+     [<daseki.player.PlayerGame visitor,5: Juan Uribe (uribj002):[5]>,
+      <daseki.player.PlayerGame visitor,5: Ronald Belisario (belir001):[1]>,
+      <daseki.player.PlayerGame visitor,5: Paco Rodriguez (rodrp001):[1]>,
+      <daseki.player.PlayerGame visitor,5: Matt Guerrier (guerm001):[1]>,
+      <daseki.player.PlayerGame visitor,5: Luis Cruz (cruzl001):[5]>],
+     [<daseki.player.PlayerGame visitor,6: Andre Ethier (ethia001):[9]>],
+     [<daseki.player.PlayerGame visitor,7: A.J. Ellis (ellia001):[2]>],
+     [<daseki.player.PlayerGame visitor,8: Justin Sellers (sellj002):[6]>,
+      <daseki.player.PlayerGame visitor,8: Jerry Hairston (hairj002):[11, 5]>,
+      <daseki.player.PlayerGame visitor,8: J.P. Howell (howej003):[1]>],
+     [<daseki.player.PlayerGame visitor,9: Josh Beckett (beckj002):[1]>,
+      <daseki.player.PlayerGame visitor,9: Skip Schumaker (schus001):[11]>,
+      <daseki.player.PlayerGame visitor,9: Chris Capuano (capuc001):[1]>,
+      <daseki.player.PlayerGame visitor,9: Nick Punto (puntn001):[5, 6]>]]
     '''
     
     __slots__ = ('lineupData', 'playersByBattingOrder', 
@@ -491,7 +493,7 @@ class LineupCard(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> lc.playerById('gyorj001')
-        <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
+        <daseki.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
         '''
         for p in self.allPlayers:
             if p.id == playerId:
@@ -536,7 +538,7 @@ class LineupCard(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> lc.byPlayNumber(42)
-        <bbbalk.player.Sub home,9: Eric Stults (stule002):pinchhitter>        
+        <daseki.player.Sub home,9: Eric Stults (stule002):pinchhitter>        
         '''
         for d in self.lineupData:
             if d.playNumber == num:
@@ -575,30 +577,30 @@ class LineupCard(common.ParentType):
         >>> lc = g.lineupCards[common.TeamNum.VISITOR]
         >>> p = g.subByNumber(83)
         >>> p
-        <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>
+        <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>
         >>> lc.subsFor(p)
-        <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):pinchhitter>
+        <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):pinchhitter>
         
         If parent is set, we can also just do:
         
         >>> lc.subsFor(83)
-        <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):pinchhitter>
+        <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):pinchhitter>
 
 
         Chain it: Who did J.P. Howell sub for, and who did that person sub for, etc.
         
         >>> pn = 94
         >>> print(lc.byPlayNumber(pn))
-        <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>
+        <daseki.player.Sub visitor,8: J.P. Howell (howej003):pitcher>
         >>> while True:
         ...    p = lc.subsFor(pn)
         ...    if p is None:
         ...        break
         ...    pn = p.playNumber
         ...    print(pn, "i:", p.inning, p)
-        83 i: 8 <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>
-        81 i: 8 <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):pinchhitter>
-        -1 i: 0 <bbbalk.player.Start visitor,8: Justin Sellers (sellj002):shortstop>
+        83 i: 8 <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>
+        81 i: 8 <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):pinchhitter>
+        -1 i: 0 <daseki.player.Start visitor,8: Justin Sellers (sellj002):shortstop>
         '''
         if hasattr(player, 'record') is True:
             playNum = player.playNumber
@@ -629,19 +631,19 @@ class LineupCard(common.ParentType):
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> ms = lc.multipleSubs()
         >>> ms
-        [[<bbbalk.player.Sub home,3: Dale Thayer (thayd001):pitcher>, 
-          <bbbalk.player.Sub home,9: Chris Denorfia (denoc001):leftfield>]]
+        [[<daseki.player.Sub home,3: Dale Thayer (thayd001):pitcher>, 
+          <daseki.player.Sub home,9: Chris Denorfia (denoc001):leftfield>]]
         >>> ms[0][0].playNumber
         77
         
         >>> lc2 = g.lineupCards[common.TeamNum.VISITOR]
         >>> lc2.multipleSubs()
-        [[<bbbalk.player.Sub visitor,5: Ronald Belisario (belir001):pitcher>, 
-          <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):thirdbase>], 
-         [<bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
-          <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>], 
-         [<bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
-          <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>]]
+        [[<daseki.player.Sub visitor,5: Ronald Belisario (belir001):pitcher>, 
+          <daseki.player.Sub visitor,9: Nick Punto (puntn001):thirdbase>], 
+         [<daseki.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
+          <daseki.player.Sub visitor,9: Nick Punto (puntn001):shortstop>], 
+         [<daseki.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+          <daseki.player.Sub visitor,8: J.P. Howell (howej003):pitcher>]]
         '''
         ps = self.playsWithSubstitutions(startNumber, endNumber)
         ms = []
@@ -677,27 +679,27 @@ class LineupCard(common.ParentType):
         >>> lc = g.lineupCards[common.TeamNum.HOME]
         >>> pp(lc.battingOrderAtPlayNumber(0)) # default
         [None,
-         <bbbalk.player.Start home,1: Everth Cabrera (cabre001):shortstop>,
-         <bbbalk.player.Start home,2: Will Venable (venaw001):rightfield>,
-         <bbbalk.player.Start home,3: Carlos Quentin (quenc001):leftfield>,
-         <bbbalk.player.Start home,4: Yonder Alonso (alony001):firstbase>,
-         <bbbalk.player.Start home,5: Jedd Gyorko (gyorj001):thirdbase>,
-         <bbbalk.player.Start home,6: Alexi Amarista (amara001):secondbase>,
-         <bbbalk.player.Start home,7: Cameron Maybin (maybc001):centerfield>,
-         <bbbalk.player.Start home,8: Nick Hundley (hundn001):catcher>,
-         <bbbalk.player.Start home,9: Clayton Richard (richc002):pitcher>] 
+         <daseki.player.Start home,1: Everth Cabrera (cabre001):shortstop>,
+         <daseki.player.Start home,2: Will Venable (venaw001):rightfield>,
+         <daseki.player.Start home,3: Carlos Quentin (quenc001):leftfield>,
+         <daseki.player.Start home,4: Yonder Alonso (alony001):firstbase>,
+         <daseki.player.Start home,5: Jedd Gyorko (gyorj001):thirdbase>,
+         <daseki.player.Start home,6: Alexi Amarista (amara001):secondbase>,
+         <daseki.player.Start home,7: Cameron Maybin (maybc001):centerfield>,
+         <daseki.player.Start home,8: Nick Hundley (hundn001):catcher>,
+         <daseki.player.Start home,9: Clayton Richard (richc002):pitcher>] 
 
         >>> pp(lc.battingOrderAtPlayNumber(999))
         [None,
-         <bbbalk.player.Start home,1: Everth Cabrera (cabre001):shortstop>,
-         <bbbalk.player.Start home,2: Will Venable (venaw001):rightfield>,
-         <bbbalk.player.Sub home,3: Brad Brach (bracb001):pitcher>,
-         <bbbalk.player.Start home,4: Yonder Alonso (alony001):firstbase>,
-         <bbbalk.player.Start home,5: Jedd Gyorko (gyorj001):thirdbase>,
-         <bbbalk.player.Start home,6: Alexi Amarista (amara001):secondbase>,
-         <bbbalk.player.Start home,7: Cameron Maybin (maybc001):centerfield>,
-         <bbbalk.player.Start home,8: Nick Hundley (hundn001):catcher>,
-         <bbbalk.player.Sub home,9: Chris Denorfia (denoc001):leftfield>] 
+         <daseki.player.Start home,1: Everth Cabrera (cabre001):shortstop>,
+         <daseki.player.Start home,2: Will Venable (venaw001):rightfield>,
+         <daseki.player.Sub home,3: Brad Brach (bracb001):pitcher>,
+         <daseki.player.Start home,4: Yonder Alonso (alony001):firstbase>,
+         <daseki.player.Start home,5: Jedd Gyorko (gyorj001):thirdbase>,
+         <daseki.player.Start home,6: Alexi Amarista (amara001):secondbase>,
+         <daseki.player.Start home,7: Cameron Maybin (maybc001):centerfield>,
+         <daseki.player.Start home,8: Nick Hundley (hundn001):catcher>,
+         <daseki.player.Sub home,9: Chris Denorfia (denoc001):leftfield>] 
         '''
         # store as batting position, so 0 will always be None for NL
         batters = [None for i in range(10)] 
@@ -772,6 +774,6 @@ class Sub(PlayerEntrance):
                                   battingOrder, position, parent=parent)
 
 if __name__ == "__main__":
-    import bbbalk
-    bbbalk.mainTest()
+    import daseki
+    daseki.mainTest()
     
