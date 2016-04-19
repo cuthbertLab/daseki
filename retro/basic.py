@@ -11,9 +11,9 @@
 '''
 Basic retrosheet record types.  Everything except play and roster/substitution entries.
 '''
-from bbbalk import common
-from bbbalk.exceptionsBB import RetrosheetException
-from bbbalk.retro.datatypeBase import RetroData
+from daseki import common
+from daseki.exceptionsBB import RetrosheetException
+from daseki.retro.datatypeBase import RetroData
 
 class Id(RetroData):
     '''
@@ -180,5 +180,5 @@ class Info(RetroData):
         return "<%s.%s %s:%s>" % (self.__module__, self.__class__.__name__, self.recordType, self.dataInfo)
 
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest()
+    import daseki
+    daseki.mainTest()
