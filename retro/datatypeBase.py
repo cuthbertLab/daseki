@@ -8,7 +8,7 @@
 # Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
-from bbbalk import common
+from daseki import common
 
 
 class RetroData(common.ParentType):
