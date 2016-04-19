@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from bbbalk.common import TeamNum
-from bbbalk import game
+from daseki.common import TeamNum
+from daseki import game
 import unittest
 
 class BoxScore(object):
@@ -238,5 +238,5 @@ A -- 45167
 
 
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest(Test)
+    import daseki
+    daseki.mainTest(Test)
