@@ -62,28 +62,28 @@ class CallTest(object):
         pass # run tests
 
 
-class BBBCallTest(CallTest):
-    '''Base class for timed tests that need bbbalk importerd
+class DasekiCallTest(CallTest):
+    '''Base class for timed tests that need daseki importerd
     '''
     def __init__(self):
         '''Perform setup routines for tests
         '''
-        import bbbalk
-        self.bbb = bbbalk
+        import daseki
+        self.ds = daseki
 
-class ParseOneSeason(BBBCallTest):
+class ParseOneSeason(DasekiCallTest):
     def testFocus(self):
-        bbbalk = self.bbb
-        gc = bbbalk.games.GameCollection()
+        daseki = self.ds
+        gc = daseki.games.GameCollection()
         gc.yearStart = 2013
         gc.yearEnd = 2013
         gc.team = 'SDN'
         games = gc.parse()
 
-class ProtoParse(BBBCallTest):
+class ProtoParse(DasekiCallTest):
     def testFocus(self):
-        bbbalk = self.bbb
-        parser = bbbalk.retro.parser
+        daseki = self.ds
+        parser = daseki.retro.parser
         yd = parser.YearDirectory(2013)
         pgs = yd.byPark('SDN')
         
