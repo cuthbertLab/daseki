@@ -15,8 +15,8 @@ class RetroData(common.ParentType):
     __slots__ = ('associatedComment', 'playNumber', '_parent')
     
     record = 'unknown'
-    def __init__(self, parent=None):
-        super(RetroData, self).__init__(parent)
+    def __init__(self, *, parent=None):
+        super().__init__(parent)
         self.associatedComment = None
         self.playNumber = -1 # -1 = unknown
         # playNumber is the number of the play in the game (counting home and visitor)

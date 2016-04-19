@@ -21,9 +21,9 @@ class Id(RetroData):
     __slots__ = ('id',)
     
     record = 'id'
-    #@common.keyword_only_args('parent')
-    def __init__(self, retroId, parent=None):
-        super(Id, self).__init__(parent=parent)
+
+    def __init__(self, retroId, *, parent=None):
+        super().__init__(parent=parent)
         self.id = retroId
 
     def __repr__(self):
@@ -36,13 +36,15 @@ class Version(RetroData):
     __slots__ = ('version',)
     
     record = 'version'
-    #@common.keyword_only_args('parent')
-    def __init__(self, version=1, parent=None):
-        super(Version, self).__init__(parent=parent)
+    
+    def __init__(self, version=1, *, parent=None):
+        super().__init__(parent=parent)
         self.version = version
 
     def __repr__(self):
-        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, self.version)
+        return "<%s.%s %s>" % (self.__module__, 
+                               self.__class__.__name__, 
+                               self.version)
 
 
 class Adjustment(RetroData):
@@ -53,12 +55,15 @@ class Adjustment(RetroData):
     
     #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None):
-        super(Adjustment, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.playerId = playerId
         self.hand = hand
 
     def __repr__(self):
-        return "<%s.%s %s: %s>" % (self.__module__, self.__class__.__name__, self.playerId, self.hand)
+        return "<%s.%s %s: %s>" % (self.__module__, 
+                                   self.__class__.__name__, 
+                                   self.playerId, 
+                                   self.hand)
 
         
 
@@ -67,7 +72,7 @@ class BattingAdjustment(Adjustment):
     __slots__ = ()
     #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None):
-        super(BattingAdjustment, self).__init__(playerId, hand, parent=parent)
+        super().__init__(playerId, hand, parent=parent)
 
 class PitchingAdjustment(Adjustment):
     '''
@@ -78,9 +83,8 @@ class PitchingAdjustment(Adjustment):
     record = 'padj'
     __slots__ = ()
 
-    #@common.keyword_only_args('parent')
-    def __init__(self, playerId, hand=None, parent=None):
-        super(PitchingAdjustment, self).__init__(playerId, hand, parent=parent)
+    def __init__(self, playerId, hand=None, *, parent=None):
+        super().__init__(playerId, hand, parent=parent)
 
 class OutOfOrderAdjustment(Adjustment):
     '''
@@ -89,9 +93,8 @@ class OutOfOrderAdjustment(Adjustment):
     record = 'ladj'
     
     __slots__ = ()
-    #@common.keyword_only_args('parent')
-    def __init__(self, playerId, hand=None, parent=None): # is hand necessary here?
-        super(OutOfOrderAdjustment, self).__init__(playerId, hand, parent=parent)
+    def __init__(self, playerId, hand=None,*,  parent=None): # is hand necessary here?
+        super().__init__(playerId, hand, parent=parent)
 
 class Data(RetroData):
     '''
@@ -101,8 +104,8 @@ class Data(RetroData):
     
     record = 'data'
     #@common.keyword_only_args('parent')
-    def __init__(self, dataType, playerId, runs, parent=None):
-        super(Data, self).__init__(parent=parent)
+    def __init__(self, dataType, playerId, runs, *, parent=None):
+        super().__init__(parent=parent)
         if dataType != 'er':
             raise RetrosheetException("data other than earned runs encountered: %s !" % dataType)
         self.dataType = dataType
@@ -110,7 +113,10 @@ class Data(RetroData):
         self.runs = runs
 
     def __repr__(self):
-        return "<%s.%s EarnedRuns, %s:%s>" % (self.__module__, self.__class__.__name__, self.playerId, self.runs)
+        return "<%s.%s EarnedRuns, %s:%s>" % (self.__module__, 
+                                              self.__class__.__name__, 
+                                              self.playerId, 
+                                              self.runs)
 
 
 class Comment(RetroData):
@@ -120,12 +126,14 @@ class Comment(RetroData):
     __slots__ = ('comment',)
     record = 'com'
     #@common.keyword_only_args('parent')
-    def __init__(self, comment, parent=None):
-        super(Comment, self).__init__(parent=parent)
+    def __init__(self, comment, *, parent=None):
+        super().__init__(parent=parent)
         self.comment = comment
 
     def __repr__(self):
-        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, self.comment)
+        return "<%s.%s %s>" % (self.__module__, 
+                               self.__class__.__name__, 
+                               self.comment)
 
 
 class Info(RetroData):
@@ -135,22 +143,22 @@ class Info(RetroData):
     
     __slots__ = ('recordType', 'dataInfo')
     record = 'info'
-    _gameRelatedTypes = "visteam hometeam date number " + \
-        "starttime daynight usedh pitches umphome ump1b ump2b ump3b umplf umprf " + \
-        "fieldcond precip sky temp winddir windspeed timeofgame attendance site " + \
-        "wp lp save gwrbi htbf"  # htbf -- home team batted first! https://github.com/natlownes/retrosheet_api_gae
+    _gameRelatedTypes = ("visteam hometeam date number " + 
+        "starttime daynight usedh pitches umphome ump1b ump2b ump3b umplf umprf " + 
+        "fieldcond precip sky temp winddir windspeed timeofgame attendance site " + 
+        "wp lp save gwrbi htbf")  
+        # htbf -- home team batted first! https://github.com/natlownes/retrosheet_api_gae
     gameRelatedTypes = _gameRelatedTypes.split()
-    _administrativeTypes = "edittime howscored inputprogvers " + \
-        "inputter inputtime scorer translator"
+    _administrativeTypes = ("edittime howscored inputprogvers " + 
+        "inputter inputtime scorer translator")
     administrativeTypes = _administrativeTypes.split()
     knownTypes = gameRelatedTypes + administrativeTypes
     del(_gameRelatedTypes)
     del(_administrativeTypes)
     intTypes = "number temp windspeed timeofgame attendance".split()
     
-    #@common.keyword_only_args('parent')
-    def __init__(self, recordType, dataInfo, parent=None):
-        super(Info, self).__init__(parent=parent)
+    def __init__(self, recordType, dataInfo, *, parent=None):
+        super().__init__(parent=parent)
         self.recordType = recordType
         if recordType not in self.knownTypes:
             raise RetrosheetException("Unknown record type %s for info record" % recordType)
@@ -176,7 +184,10 @@ class Info(RetroData):
 
     def __repr__(self):
         return self.__class__.__name__
-        return "<%s.%s %s:%s>" % (self.__module__, self.__class__.__name__, self.recordType, self.dataInfo)
+        return "<%s.%s %s:%s>" % (self.__module__, 
+                                  self.__class__.__name__,
+                                   self.recordType, 
+                                   self.dataInfo)
 
 if __name__ == '__main__':
     import daseki

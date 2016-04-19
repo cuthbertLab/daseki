@@ -33,6 +33,8 @@ import weakref
 
 from daseki.exceptionsDS import DasekiException
 
+maxRetrosheetYear = 2015
+
 class TeamNum(enum.IntEnum):
     VISITOR = 0
     HOME = 1
@@ -446,12 +448,12 @@ class ParentType(SlottedObject):
     def __getstate__(self):
         pValue = getattr(self, '_parent', None)
         setattr(self, '_parent', None)
-        state = super(ParentType, self).__getstate__()
+        state = super().__getstate__()
         state['_parent'] = pValue
         return state
 
     def __setstate__(self, state):
-        super(ParentType, self).__setstate__(state)
+        super().__setstate__(state)
         pValue = getattr(self, '_parent', None)
         try:
             pValue = weakref.ref(pValue)

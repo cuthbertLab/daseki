@@ -3,11 +3,10 @@
 from daseki.exceptionsDS import RetrosheetException
 from daseki.retro.datatypeBase import RetroData
 from daseki import common
-from daseki.retro import play
 
-_positionNames = "unknown pitcher catcher firstbase secondbase " + \
-    "thirdbase shortstop leftfield centerfield rightfield " + \
-    "designatedhitter pinchhitter pinchrunner"
+_positionNames = ("unknown pitcher catcher firstbase secondbase " + 
+    "thirdbase shortstop leftfield centerfield rightfield " + 
+    "designatedhitter pinchhitter pinchrunner")
 positionNames = _positionNames.split()
 positionAbbrevs = "unk p c 1b 2b 3b ss lf cf rf dh ph pr".split()
 visitorNames = ["visitor", "home"]
@@ -19,9 +18,8 @@ class PlayerYear(common.ParentType):
     Represents everything that a player does in a year, currently regular season only.
     '''
     __slots__ = ()
-    #@common.keyword_only_args('parent')
-    def __init__(self, playerId, parent=None):
-        super(PlayerYear, self).__init__(parent=parent)
+    def __init__(self, playerId, *, parent=None):
+        super().__init__(parent=parent)
         
 
 class PlayerGame(common.ParentType):
@@ -32,8 +30,8 @@ class PlayerGame(common.ParentType):
                  'entryData', 'positions', 'subs', 'enteredFor', 'exitedFor',
                  'enteredPlay', 'exitedPlay', 'isStarter', 'isSub')
     #@common.keyword_only_args('parent')
-    def __init__(self, playerId, playerName, visitOrHome, battingOrder, parent=None):
-        super(PlayerGame, self).__init__(parent=parent)
+    def __init__(self, playerId, playerName, visitOrHome, battingOrder, *, parent=None):
+        super().__init__(parent=parent)
         self.id = playerId
         self.name = playerName
         self.inning = None
@@ -470,8 +468,8 @@ class LineupCard(common.ParentType):
     __slots__ = ('lineupData', 'playersByBattingOrder', 
                  'visitOrHome', 'teamAbbreviation', 'allPlayers')
     #@common.keyword_only_args('parent')
-    def __init__(self, visitOrHome, parent=None):
-        super(LineupCard, self).__init__(parent=parent)
+    def __init__(self, visitOrHome, *, parent=None):
+        super().__init__(parent=parent)
         self.lineupData = []
         self.playersByBattingOrder = [[] for _ in range(10)] # 0 will always be None
         self.visitOrHome = visitOrHome
@@ -727,8 +725,8 @@ class PlayerEntrance(RetroData):
     
     __slots__ = ('id', 'name',  'visitOrHome', 'battingOrder', 'position', 'inning')
     
-    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
-        super(PlayerEntrance, self).__init__(parent=parent)
+    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, *, parent=None):
+        super().__init__(parent=parent)
         try:
             self.id = playerId
             self.name = playerName
@@ -762,16 +760,10 @@ class PlayerEntrance(RetroData):
 class Start(PlayerEntrance):
     record = 'start'
     __slots__ = ()
-    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
-        super(Start, self).__init__(playerId, playerName, visitOrHome, 
-                                    battingOrder, position, parent=parent)
 
 class Sub(PlayerEntrance):
     record = 'sub'
     __slots__ = ()
-    def __init__(self, playerId, playerName, visitOrHome, battingOrder, position, parent=None):
-        super(Sub, self).__init__(playerId, playerName, visitOrHome, 
-                                  battingOrder, position, parent=parent)
 
 if __name__ == "__main__":
     import daseki

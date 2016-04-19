@@ -42,9 +42,8 @@ class HalfInning(common.ParentType):
     __slots__ = ('inningNumber', 'visitOrHome', 'events', '_iterindex',
                  '_prev', '_following', 'startPlayNumber', 'endPlayNumber',
                  '_plateAppearances')
-#    @common.keyword_only_args('parent')    
-    def __init__(self, inningNumber = 1, visitOrHome = TeamNum.VISITOR, parent=None):
-        super(HalfInning, self).__init__(parent=parent)
+    def __init__(self, inningNumber = 1, visitOrHome = TeamNum.VISITOR, *, parent=None):
+        super().__init__(parent=parent)
         self.inningNumber = inningNumber
         self.visitOrHome = visitOrHome
         self.events = []
@@ -62,11 +61,13 @@ class HalfInning(common.ParentType):
         else:
             gi = ""
             
-            
-        return "<%s.%s %s%s plays:%s-%s (%s)>" % (self.__module__, self.__class__.__name__, 
-                                  self.topBottom[0], self.inningNumber, 
-                                  self.startPlayNumber, self.endPlayNumber,
-                                  gi)
+        return "<%s.%s %s%s plays:%s-%s (%s)>" % (self.__module__, 
+                                                  self.__class__.__name__, 
+                                                  self.topBottom[0], 
+                                                  self.inningNumber, 
+                                                  self.startPlayNumber, 
+                                                  self.endPlayNumber,
+                                                  gi)
 
 
     @property
@@ -320,8 +321,8 @@ class BaseRunners(common.ParentType):
     '''
     __slots__ = ('first', 'second', 'third', '_iterindex') 
     #@common.keyword_only_args('parent')
-    def __init__(self, first=False, second=False, third=False, parent=None):
-        super(BaseRunners, self).__init__(parent=parent)
+    def __init__(self, first=False, second=False, third=False, *, parent=None):
+        super().__init__(parent=parent)
         self.first = first
         self.second = second
         self.third = third

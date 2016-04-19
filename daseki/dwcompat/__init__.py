@@ -8,5 +8,6 @@
 # Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
+__ALL__ = ['box']
 
-
+from daseki.dwcompat import box

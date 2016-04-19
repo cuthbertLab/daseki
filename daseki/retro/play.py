@@ -53,9 +53,8 @@ class PlateAppearance(common.ParentType):
     plate appearance as well as any substitutions or other events that take place during
     the PA.
     '''
-    #@common.keyword_only_args('parent')
-    def __init__(self, parent=None):
-        super(PlateAppearance, self).__init__(parent=parent)
+    def __init__(self, *, parent=None):
+        super().__init__(parent=parent)
         self.startPlayNumber = -1
         self.endPlayNumber = -1
         self.inningNumber = None
@@ -145,7 +144,7 @@ class Play(datatypeBase.RetroData):
     Tough one:
     
     >>> p = retro.play.Play(playerId="batter", raw='54(1)/FO/G/DP.3XH(42)')
-    >>> p.runnersBefore = core.BaseRunner('A', False, 'C')
+    >>> p.runnersBefore = core.BaseRunners('A', False, 'C')
     >>> p.outsMadeOnPlay
     2
     >>> p.playEvent
@@ -166,9 +165,13 @@ class Play(datatypeBase.RetroData):
     record = 'play'
     visitorNames = ["visitor", "home"]
     #@common.keyword_only_args('parent')
-    def __init__(self, inning=0, visitOrHome=0, playerId="", count="", 
-                 pitches="", raw="", parent=None):
-        super(Play, self).__init__(parent=parent)
+    def __init__(self, 
+                 inning=0, visitOrHome=0, 
+                 playerId="", count="", 
+                 pitches="", raw="", 
+                 *, 
+                 parent=None):
+        super().__init__(parent=parent)
         self.inning = int(inning)
         self.visitOrHome = int(visitOrHome) # 0 = visitor, 1 = home
         self.playerId = playerId
@@ -437,9 +440,9 @@ class RunnerEvent(common.ParentType):
     '''
     __slots__ = ('runnersBefore', 'runnersAfter', 'runnersAdvance', 
                  'outs', 'runs', 'scoringRunners', 'raw')
-    #@common.keyword_only_args('parent')    
-    def __init__(self, raw="", runnersBefore=None, parent=None):
-        super(RunnerEvent, self).__init__(parent=parent)
+
+    def __init__(self, raw="", runnersBefore=None, *, parent=None):
+        super().__init__(parent=parent)
         self.raw = raw
         if runnersBefore is not None:
             self.runnersBefore = runnersBefore
@@ -694,8 +697,8 @@ class PlayEvent(common.ParentType):
                  'isPickoff','isBalk','isPassedBall','isWildPitch',
                  'isDblPlay','isTplPlay','modifiers','defensiveIndifference', 'ignoreForOBP')
     
-    def __init__(self, raw="", parent=None):
-        super(PlayEvent, self).__init__(parent)
+    def __init__(self, raw="", *, parent=None):
+        super().__init__(parent)
         self.defaults()
         self.raw = raw
         

@@ -64,7 +64,7 @@ class GameCollection(common.SlottedObject):
                  'park', 'usesDH', 'protoGames', 'seasonType')
     
     def __init__(self):
-        super(GameCollection, self).__init__()
+        super().__init__()
         self.games = []
         self.yearStart = 2014
         self.yearEnd = 2014
@@ -99,7 +99,7 @@ class GameCollection(common.SlottedObject):
         >>> gc.team = 'BOS'
         >>> gc.usesDH = True
         >>> gc._pickleFN()
-        'gc19942000tBOSpdt0.5.0.p'
+        'gc19942000tBOSpdt0.6.0.p'
         '''
         import daseki
         teamFN = "t"
@@ -165,9 +165,8 @@ class Game(common.ParentType):
     '''
     __slots__ = ('id', 'records', 'lineupHome', 'lineupVisitor', 'lineupCards', 'halfInnings')
     
-    #@common.keyword_only_args('parent')
-    def __init__(self, gameId=None, parent=None):
-        super(Game, self).__init__(parent=parent)
+    def __init__(self, gameId=None, *, parent=None):
+        super().__init__(parent=parent)
         self.id = gameId
         self.records = []
         self.lineupHome = player.LineupCard(TeamNum.HOME, parent=self)
@@ -209,7 +208,7 @@ class Game(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.VISITOR)
         >>> hi
-        <daseki.base.HalfInning t7 plays:58-64 (SDN201304090)>
+        <daseki.core.HalfInning t7 plays:58-64 (SDN201304090)>
         '''
         for hi in self.halfInnings:
             if hi.inningNumber == number and hi.visitOrHome == visitOrHome:
@@ -334,7 +333,7 @@ class Game(common.ParentType):
         '''
         lastInning = 0
         lastVisitOrHome = TeamNum.HOME
-        lastRunners = base.BaseRunners(False, False, False)
+        lastRunners = core.BaseRunners(False, False, False)
         thisHalfInning = None
         halfInnings = []
         playNumber = -1
@@ -363,7 +362,7 @@ class Game(common.ParentType):
                     if thisHalfInning != None:
                         halfInnings.append(thisHalfInning)
                     lastHalfInning = thisHalfInning
-                    thisHalfInning = base.HalfInning(parent=self)
+                    thisHalfInning = core.HalfInning(parent=self)
                     if lastHalfInning is not None:
                         lastHalfInning.following = thisHalfInning
                         thisHalfInning.prev = lastHalfInning # None is okay here.
@@ -371,7 +370,7 @@ class Game(common.ParentType):
                     thisHalfInning.inningNumber = r.inning
                     thisHalfInning.visitOrHome = common.TeamNum(r.visitOrHome)
                     thisHalfInning.startPlayNumber = playNumber
-                    lastRunners = base.BaseRunners(False, False, False, parent=r)                
+                    lastRunners = core.BaseRunners(False, False, False, parent=r)                
                     lastInning = r.inning
                     lastVisitOrHome = r.visitOrHome
                 r.runnersBefore = lastRunners

@@ -135,7 +135,7 @@ class Test(unittest.TestCase):
     pass
 
     def testBox(self):
-        auth = '''     Game of 3/30/2014 -- Los Angeles at San Diego (N)
+        unused_auth = '''     Game of 3/30/2014 -- Los Angeles at San Diego (N)
 
   Los Angeles        AB  R  H RBI    San Diego          AB  R  H RBI
 Crawford C, lf        4  0  1  1   Cabrera E, ss         2  1  0  0   
@@ -188,7 +188,7 @@ A -- 45567
         print(bs.box())
 
     def testHighScoring(self):
-        auth = '''     Game of 4/18/2009 -- Cleveland at New York (D)
+        unused_auth = '''     Game of 4/18/2009 -- Cleveland at New York (D)
 
   Cleveland          AB  R  H RBI    New York           AB  R  H RBI
 Sizemore G, cf        4  3  3  1   Jeter D, ss           2  0  0  0   

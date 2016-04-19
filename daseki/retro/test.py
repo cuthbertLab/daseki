@@ -132,15 +132,15 @@ class Test(unittest.TestCase):
     def testRunsAboveAverage(self):
         pId = {}
         expectation = {}
-        from daseki import game, base # @UnresolvedImport
-        from daseki.common import TeamNum
+        from daseki import game, core
+        #from daseki.common import TeamNum
         gc = game.GameCollection()
         gc.yearStart = 1987
         gc.yearEnd = 1987
         #gc.team = 'SDN'
         gc.parse()
         
-        erm = base.ExpectedRunMatrix()
+        erm = core.ExpectedRunMatrix()
         
         for g in gc.games:
             #if 'SDN' in g.infoByType('hometeam'):

@@ -116,9 +116,8 @@ class Team(common.ParentType):
     regionreps = ('allegheny club', 'tampa bay')
     statereps = ('california', 'colorado', 'florida', 'minnesota', 'texas')
     
-    #@common.keyword_only_args('parent')
-    def __init__(self, code=None, date=None, parent=None):
-        super(Team, self).__init__(parent=parent)
+    def __init__(self, code=None, date=None, *, parent=None):
+        super().__init__(parent=parent)
         self.date = date
         self.authCode = None
         self.organiztion = 'MLB'
