@@ -34,4 +34,4 @@ from daseki.core import *
 
 #------------------------------------------------------------------------------
 # this bring all of the __all__ names into the bbbalk package namespace
-from bbbalk import * # @UnresolvedImport
+from daseki import * # @UnresolvedImport
