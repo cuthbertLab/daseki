@@ -20,7 +20,6 @@ import inspect
 import re
 import sys
 import unittest
-from daseki.ext import six
 
 defaultImports = ('daseki',)
 
@@ -80,23 +79,7 @@ def fixTestsForPy2and3(doctestSuite):
         if not hasattr(dtc, '_dt_test'):
             continue
         dt = dtc._dt_test # DocTest
-        for example in dt.examples: # fix Traceback exception differences Py2 to Py3
-            if six.PY3:
-                if example.exc_msg is not None and any(example.exc_msg):
-                    example.exc_msg = "..." + example.exc_msg
-                elif (example.want is not None and
-                        example.want.startswith('u\'')):
-                    # probably a unicode example:
-                    # simplistic, since (u'hi', u'bye')
-                    # won't be caught, but saves a lot of anguish
-                    example.want = example.want[1:]
-            elif six.PY2:
-                if (example.want is not None and
-                        example.want.startswith('b\'')):
-                    # probably a unicode example:
-                    # simplistic, since (b'hi', b'bye')
-                    # won't be caught, but saves a lot of anguish
-                    example.want = example.want[1:]
+        for example in dt.examples: 
             # this probably should not go here, but we are already iterating over
             # examples
             example.want = stripAddresses(example.want, '0x...')
@@ -240,7 +223,7 @@ def mainTest(*testClasses, **kwargs):
             bool(kwargs.get('onlyDocTest', False))):
         testClasses = [] # remove cases
     for t in testClasses:
-        if not isinstance(t, six.string_types):
+        if not isinstance(t, str):
             if displayNames is True:
                 for tName in unittest.defaultTestLoader.getTestCaseNames(t):
                     print('Unit Test Method: %s' % tName)

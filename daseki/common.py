@@ -20,7 +20,7 @@ except ImportError:
 try:
     import enum
 except ImportError:
-    from bbbalk.ext import enum
+    from daseki.ext import enum
 
 import functools
 import inspect
@@ -31,8 +31,7 @@ import time
 import tempfile
 import weakref
 
-from bbbalk.ext import six
-from bbbalk.exceptionsBB import BBBalkException
+from daseki.exceptionsDS import DasekiException
 
 class TeamNum(enum.IntEnum):
     VISITOR = 0
@@ -45,8 +44,8 @@ def sourceFilePath():
     Get the BBBalk directory that contains source files. This is not the same as the
     outermost package development directory.
     '''
-    import bbbalk # pylint: disable=redefined-outer-name
-    fpBalk = bbbalk.__path__[0] # list, get first item 
+    import daseki # pylint: disable=redefined-outer-name
+    fpBalk = daseki.__path__[0] # list, get first item 
     # use corpus as a test case
     if 'retro' not in os.listdir(fpBalk):
         raise Exception('cannot find expected bbbalk directory: %s' % fpBalk)
@@ -63,7 +62,7 @@ def dataRetrosheetEvent():
 
 def dataRetrosheetByType(gameType='regular'):
     if gameType not in ('asg', 'post', 'regular'):
-        raise BBBalkException("gameType must be asg, post, or regular, not {0}".format(gameType))
+        raise DasekiException("gameType must be asg, post, or regular, not {0}".format(gameType))
     return os.path.join(dataRetrosheetEvent(), gameType)
 
 def gameLogFilePath():
@@ -148,7 +147,7 @@ class GameId(object):
         gameId = self.gameId
         matched = GAMEID_MATCH.match(gameId)
         if not matched:
-            raise BBBalkException('invalid gameId: %s' % gameId)
+            raise DasekiException('invalid gameId: %s' % gameId)
         self.homeTeam = matched.group(1).upper()
         self.year = int(matched.group(2))
         self.month = int(matched.group(3))
@@ -170,7 +169,6 @@ ordinals = ["Zeroth","First","Second","Third","Fourth","Fifth",
 def ordinalAbbreviation(value, plural=False):
     '''Return the ordinal abbreviations for integers
 
-    >>> from bbbalk import common
     >>> common.ordinalAbbreviation(3)
     'rd'
     >>> common.ordinalAbbreviation(255)
@@ -288,7 +286,7 @@ def multicore(func):
     We can't put it in the docs because of pickle limitations.
     
     >>> import time
-    >>> from bbbalk.common import getGameHomeScore, multicore
+    >>> from daseki.common import getGameHomeScore, multicore
     >>> gameList = ['SDN201304090', 'SFN201409280', 'SLN201408140', 'SLN201408160', 'WAS201404250']
     >>> gFunc = multicore(getGameHomeScore)
     >>> t = time.time()
@@ -349,20 +347,20 @@ def multicore(func):
                     for res in executor.map(func, *zip(*argList)):
                         yield res
                 else:
-                    raise BBBalkException(
+                    raise DasekiException(
                         'Cannot Parallelize arguments of type {0}'.format(argType))
         
     return bg_f
 
 
 def getGameHomeScore(gId):
-    from bbbalk import game # @UnresolvedImport
+    from daseki import game # @UnresolvedImport
     g = game.Game(gId)
     return gId, g.runs.home
 
 
 def runDemo(team):
-    from bbbalk import game # @UnresolvedImport
+    from daseki import game # @UnresolvedImport
     gc = game.GameCollection()
     gc.team = team
     gc.parse()
@@ -371,7 +369,7 @@ def runDemo(team):
     return team, len(gc.games)
 
 def runDemo2(team, year):
-    from bbbalk import game # @UnresolvedImport
+    from daseki import game # @UnresolvedImport
     gc = game.GameCollection()
     gc.team = team
     gc.yearStart = year
@@ -706,28 +704,26 @@ def formatStr(msg, *arguments, **keywords):
         formatType = None
 
     msg = [msg] + list(arguments)
-    if six.PY3:
-        for i in range(len(msg)):
-            x = msg[i]
-            if isinstance(x, bytes): 
-                msg[i] = x.decode('utf-8')
-            if not isinstance(x, str):
+    for i in range(len(msg)):
+        x = msg[i]
+        if isinstance(x, bytes): 
+            msg[i] = x.decode('utf-8')
+        if not isinstance(x, str):
+            try:
+                msg[i] = repr(x)
+            except TypeError:
                 try:
-                    msg[i] = repr(x)
-                except TypeError:
-                    try:
-                        msg[i] = x.decode('utf-8')
-                    except AttributeError:
-                        msg[i] = "<__repr__ failed for " + x.__class__.__name__ + ">"
-                except AttributeError: # or something
+                    msg[i] = x.decode('utf-8')
+                except AttributeError:
                     msg[i] = "<__repr__ failed for " + x.__class__.__name__ + ">"
-    else:
-        msg = [str(x) for x in msg]
+            except AttributeError: # or something
+                msg[i] = "<__repr__ failed for " + x.__class__.__name__ + ">"
+
     if formatType == 'block':
         return '\n*** '.join(msg)+'\n'
     else: # catch all others
         return ' '.join(msg)+'\n'
 
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest()
+    import daseki
+    daseki.mainTest()

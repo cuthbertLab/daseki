@@ -17,7 +17,6 @@ DEBUG = False
 import os
 import codecs
 import csv
-import itertools
 
 from daseki import common
 from daseki.exceptionsDS import RetrosheetException

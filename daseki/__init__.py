@@ -14,7 +14,7 @@ Michael Scott Cuthbert (Associate Prof. MIT).
 
 Copyright 2014-16 Michael Scott Cuthbert / cuthbertLab
 '''
-__all__ = ['ext', 
+__all__ = [
            'retro', 
            
            'core',

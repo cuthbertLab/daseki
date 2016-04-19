@@ -40,9 +40,9 @@ ERROR_RE = re.compile(r'\d*E\d*[\/A-Z]*')
 
 from daseki.retro import datatypeBase 
 from daseki import common
-from daseki.exceptionsBB import RetrosheetException
+from daseki.exceptionsDS import RetrosheetException
 from daseki.common import warn
-from daseki import base
+from daseki import core
 
 
 class PlateAppearance(common.ParentType):
@@ -145,7 +145,7 @@ class Play(datatypeBase.RetroData):
     Tough one:
     
     >>> p = retro.play.Play(playerId="batter", raw='54(1)/FO/G/DP.3XH(42)')
-    >>> p.runnersBefore = base.BaseRunners('A', False, 'C')
+    >>> p.runnersBefore = core.BaseRunner('A', False, 'C')
     >>> p.outsMadeOnPlay
     2
     >>> p.playEvent
@@ -444,7 +444,7 @@ class RunnerEvent(common.ParentType):
         if runnersBefore is not None:
             self.runnersBefore = runnersBefore
         else:
-            self.runnersBefore = base.BaseRunners(None, None, None, parent=self)
+            self.runnersBefore = core.BaseRunners(None, None, None, parent=self)
             
         self.runnersAfter = None
         self.runnersAdvance = None
@@ -484,22 +484,22 @@ class RunnerEvent(common.ParentType):
         
         >>> RA = retro.play.RunnerAdvance
         >>> runnerAdvances = [RA('1-2'), RA('3XH')]
-        >>> runnersBefore = base.BaseRunners('myke', False, 'jennifer')
+        >>> runnersBefore = core.BaseRunners('myke', False, 'jennifer')
         >>> re = retro.play.RunnerEvent()
         >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter is re.runnersAfter
         True
         >>> runAfter
-        <daseki.base.BaseRunners 1:False 2:myke 3:False>
+        <daseki.core.BaseRunners 1:False 2:myke 3:False>
         >>> re.outs
         1
 
         >>> runnerAdvances = [RA('B-1'), RA('1-2'), RA('3-H(UR)')]
-        >>> runnersBefore = base.BaseRunners('myke', False, 'jennifer')
+        >>> runnersBefore = core.BaseRunners('myke', False, 'jennifer')
         >>> re = retro.play.RunnerEvent()
         >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter
-        <daseki.base.BaseRunners 1:unknownBatter 2:myke 3:False>
+        <daseki.core.BaseRunners 1:unknownBatter 2:myke 3:False>
         >>> re.outs
         0
         >>> re.runs

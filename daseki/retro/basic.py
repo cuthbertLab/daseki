@@ -11,8 +11,7 @@
 '''
 Basic retrosheet record types.  Everything except play and roster/substitution entries.
 '''
-from daseki import common
-from daseki.exceptionsBB import RetrosheetException
+from daseki.exceptionsDS import RetrosheetException
 from daseki.retro.datatypeBase import RetroData
 
 class Id(RetroData):
