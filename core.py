@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Name:         __init__.py
-# Purpose:      BBBalk -- A toolkit for computational baseball analysis 
+# Purpose:      Daseki -- A toolkit for computational baseball analysis 
 #
 # Authors:      Michael Scott Cuthbert
 #
@@ -14,10 +14,10 @@ from __future__ import division
 
 import copy
 
-from bbbalk.test.testRunner import mainTest # @UnresolvedImport
-from bbbalk import common
-from bbbalk.common import TeamNum # @UnresolvedImport
-from bbbalk.exceptionsBB import BBBalkException
+from daseki.test.testRunner import mainTest # @UnresolvedImport
+from daseki import common
+from daseki.common import TeamNum # @UnresolvedImport
+from daseki.exceptionsDS import DasekiException
 
 
 # class Inning(object):
@@ -33,7 +33,7 @@ class HalfInning(common.ParentType):
     >>> g = game.Game('SDN201304090')
     >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
     >>> hi
-    <bbbalk.base.HalfInning b8 plays:83-100 (SDN201304090)>
+    <daseki.base.HalfInning b8 plays:83-100 (SDN201304090)>
     >>> hi.inningNumber
     8
     >>> print(hi.visitOrHome)
@@ -77,44 +77,44 @@ class HalfInning(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
         >>> pp(hi.plateAppearances)        
-        [<bbbalk.retro.play.PlateAppearance 8-1: gyorj001: 
-            [<bbbalk.retro.play.Play b8: gyorj001:NP>, 
-             <bbbalk.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
-             <bbbalk.retro.play.Play b8: gyorj001:NP>, 
-             <bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
-             <bbbalk.retro.play.Play b8: gyorj001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-2: amara001: 
-            [<bbbalk.retro.play.Play b8: amara001:PB.1-2>, 
-             <bbbalk.retro.play.Play b8: amara001:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-3: maybc001: 
-            [<bbbalk.retro.play.Play b8: maybc001:NP>, 
-             <bbbalk.player.Sub visitor,5: Matt Guerrier (guerm001):pitcher>, 
-             <bbbalk.retro.play.Play b8: maybc001:14/SH/BG.2-3;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-4: hundn001: 
-            [<bbbalk.retro.play.Play b8: hundn001:FC6/G.3XH(62);2-3>]>,
-         <bbbalk.retro.play.PlateAppearance 8-5: denoc001: 
-            [<bbbalk.retro.play.Play b8: denoc001:S9/G.3-H;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-6: cabre001: 
-            [<bbbalk.retro.play.Play b8: cabre001:W.2-3;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-7: venaw001: 
-            [<bbbalk.retro.play.Play b8: venaw001:NP>, 
-             <bbbalk.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
-             <bbbalk.retro.play.Play b8: venaw001:NP>, 
-             <bbbalk.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
-             <bbbalk.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8(I): thayd001: 
-            [<bbbalk.retro.play.Play b8: thayd001:NP>, 
-             <bbbalk.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <bbbalk.retro.play.PlateAppearance 8-8: guzmj005: 
-            [<bbbalk.retro.play.Play b8: guzmj005:W>]>,
-         <bbbalk.retro.play.PlateAppearance 8-9: alony001: 
-            [<bbbalk.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-10: gyorj001: 
-            [<bbbalk.retro.play.Play b8: gyorj001:W.2-3;1-2>]>,
-         <bbbalk.retro.play.PlateAppearance 8-11: amara001: 
-            [<bbbalk.retro.play.Play b8: amara001:K>]>]
+        [<daseki.retro.play.PlateAppearance 8-1: gyorj001: 
+            [<daseki.retro.play.Play b8: gyorj001:NP>, 
+             <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
+             <daseki.retro.play.Play b8: gyorj001:NP>, 
+             <daseki.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
+             <daseki.retro.play.Play b8: gyorj001:W>]>,
+         <daseki.retro.play.PlateAppearance 8-2: amara001: 
+            [<daseki.retro.play.Play b8: amara001:PB.1-2>, 
+             <daseki.retro.play.Play b8: amara001:W>]>,
+         <daseki.retro.play.PlateAppearance 8-3: maybc001: 
+            [<daseki.retro.play.Play b8: maybc001:NP>, 
+             <daseki.player.Sub visitor,5: Matt Guerrier (guerm001):pitcher>, 
+             <daseki.retro.play.Play b8: maybc001:14/SH/BG.2-3;1-2>]>,
+         <daseki.retro.play.PlateAppearance 8-4: hundn001: 
+            [<daseki.retro.play.Play b8: hundn001:FC6/G.3XH(62);2-3>]>,
+         <daseki.retro.play.PlateAppearance 8-5: denoc001: 
+            [<daseki.retro.play.Play b8: denoc001:S9/G.3-H;1-2>]>,
+         <daseki.retro.play.PlateAppearance 8-6: cabre001: 
+            [<daseki.retro.play.Play b8: cabre001:W.2-3;1-2>]>,
+         <daseki.retro.play.PlateAppearance 8-7: venaw001: 
+            [<daseki.retro.play.Play b8: venaw001:NP>, 
+             <daseki.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
+             <daseki.retro.play.Play b8: venaw001:NP>, 
+             <daseki.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
+             <daseki.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
+         <daseki.retro.play.PlateAppearance 8-8(I): thayd001: 
+            [<daseki.retro.play.Play b8: thayd001:NP>, 
+             <daseki.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
+         <daseki.retro.play.PlateAppearance 8-8: guzmj005: 
+            [<daseki.retro.play.Play b8: guzmj005:W>]>,
+         <daseki.retro.play.PlateAppearance 8-9: alony001: 
+            [<daseki.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>,
+         <daseki.retro.play.PlateAppearance 8-10: gyorj001: 
+            [<daseki.retro.play.Play b8: gyorj001:W.2-3;1-2>]>,
+         <daseki.retro.play.PlateAppearance 8-11: amara001: 
+            [<daseki.retro.play.Play b8: amara001:K>]>]
         '''
-        from bbbalk.retro import play
+        from daseki.retro import play
         if any(self._plateAppearances):
             return self._plateAppearances
 
@@ -218,9 +218,9 @@ class HalfInning(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> hi
-        <bbbalk.base.HalfInning b7 plays:65-76 (SDN201304090)>
+        <daseki.base.HalfInning b7 plays:65-76 (SDN201304090)>
         >>> hi.subByNumber(75)
-        <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
+        <daseki.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
         '''
         for p in self.events:
             if p.record == 'sub' and p.playNumber == pn:
@@ -236,7 +236,7 @@ class HalfInning(common.ParentType):
         >>> hi.endPlayNumber
         4
         >>> hi.playByNumber(2)
-        <bbbalk.retro.play.Play t1: kempm001:K>
+        <daseki.retro.play.Play t1: kempm001:K>
         '''
         for p in self.events:
             if p.record == 'play' and p.playNumber == pn:
@@ -251,12 +251,12 @@ class HalfInning(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.lastPlay()
-        <bbbalk.retro.play.Play t1: uribj002:12(3)3/GDP>
+        <daseki.retro.play.Play t1: uribj002:12(3)3/GDP>
         '''
         for p in reversed(self.events):
             if p.record == 'play':
                 return p
-        raise BBBalkException('No play in inning!')
+        raise DasekiException('No play in inning!')
     
     @property
     def leftOnBase(self):
@@ -269,7 +269,7 @@ class HalfInning(common.ParentType):
         >>> hi.leftOnBase
         2
         >>> hi.lastPlay().runnersAfter
-        <bbbalk.base.BaseRunners 1:gonza003 2:ellim001 3:False>
+        <daseki.base.BaseRunners 1:gonza003 2:ellim001 3:False>
         '''
         p = self.lastPlay()
         ra = p.runnersAfter
@@ -296,7 +296,7 @@ class BaseRunners(common.ParentType):
     
     >>> br = base.BaseRunners(False, 'cuthbert', 'hamilton')
     >>> br
-    <bbbalk.base.BaseRunners 1:False 2:cuthbert 3:hamilton>
+    <daseki.base.BaseRunners 1:False 2:cuthbert 3:hamilton>
     >>> str(br)
     '1:False 2:cuthbert 3:hamilton'
     >>> br.first
@@ -339,12 +339,12 @@ class BaseRunners(common.ParentType):
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> p = hi.events[2]
         >>> p
-        <bbbalk.retro.play.Play b7: maybc001:NP>
+        <daseki.retro.play.Play b7: maybc001:NP>
         >>> brb = p.runnersBefore
         >>> brb
-        <bbbalk.base.BaseRunners 1:False 2:False 3:False>
+        <daseki.base.BaseRunners 1:False 2:False 3:False>
         >>> brb.play
-        <bbbalk.retro.play.Play b7: maybc001:NP>
+        <daseki.retro.play.Play b7: maybc001:NP>
         >>> brb.play is p
         True
         >>> bra = p.runnersAfter
@@ -362,9 +362,9 @@ class BaseRunners(common.ParentType):
         >>> p = hi.events[-1]
         >>> brb = p.runnersBefore
         >>> brb
-        <bbbalk.base.BaseRunners 1:puntn001 2:False 3:False>
+        <daseki.base.BaseRunners 1:puntn001 2:False 3:False>
         >>> brb.playerEntranceObjects()
-        [<bbbalk.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, None, None]
+        [<daseki.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, None, None]
         '''
         play = self.play
         if play is None:
