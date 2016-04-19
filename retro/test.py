@@ -3,9 +3,9 @@ VISITOR = 0
 
 import unittest
 import os
-from bbbalk import common
-from bbbalk.retro.parser import EventFile, YearDirectory # @UnresolvedImport
-from bbbalk.game import Game # @UnresolvedImport
+from daseki import common
+from daseki.retro.parser import EventFile, YearDirectory # @UnresolvedImport
+from daseki.game import Game # @UnresolvedImport
 
 class Test(unittest.TestCase):
     def sdAttendance(self):
@@ -95,7 +95,7 @@ class Test(unittest.TestCase):
             p.runnerEvent
 
     def xtestScores(self):
-        from bbbalk.retro import gameLogs
+        from daseki.retro import gameLogs
         global DEBUG
         DEBUG = True
         ev = EventFile(os.path.join(common.dataRetrosheetEvent(), 'regular', '2014SDN.EVN'))
@@ -110,7 +110,7 @@ class Test(unittest.TestCase):
     
     
     def leadoffsLeadoff(self):
-        from bbbalk import game  # @UnresolvedImport
+        from daseki import game  # @UnresolvedImport
         t = common.Timer()
         gc = game.GameCollection()
         gc.yearStart = 2000
@@ -132,8 +132,8 @@ class Test(unittest.TestCase):
     def testRunsAboveAverage(self):
         pId = {}
         expectation = {}
-        from bbbalk import game, base # @UnresolvedImport
-        from bbbalk.common import TeamNum
+        from daseki import game, base # @UnresolvedImport
+        from daseki.common import TeamNum
         gc = game.GameCollection()
         gc.yearStart = 1987
         gc.yearEnd = 1987
@@ -167,5 +167,5 @@ class Test(unittest.TestCase):
         
         
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest(Test)
+    import daseki
+    daseki.mainTest(Test)
