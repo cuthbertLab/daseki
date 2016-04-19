@@ -19,12 +19,12 @@ import os
 import unittest
 from pprint import pprint as pp
 
-from bbbalk.retro import basic, play, parser
-from bbbalk import common
-from bbbalk import base
-from bbbalk import player # @UnresolvedImport
-from bbbalk import team # @UnresolvedImport
-from bbbalk.common import TeamNum
+from daseki.retro import basic, play, parser
+from daseki import common
+from daseki import core
+from daseki import player # @UnresolvedImport
+from daseki import team # @UnresolvedImport
+from daseki.common import TeamNum
 
 from collections import namedtuple, OrderedDict
 
@@ -101,7 +101,7 @@ class GameCollection(common.SlottedObject):
         >>> gc._pickleFN()
         'gc19942000tBOSpdt0.5.0.p'
         '''
-        import bbbalk
+        import daseki
         teamFN = "t"
         if self.team is not None:
             teamFN += self.team
@@ -115,7 +115,7 @@ class GameCollection(common.SlottedObject):
             usesDH += "f"
             
         hashFN = ("gc" + str(self.yearStart) + str(self.yearEnd) + teamFN + park + 
-                  usesDH + bbbalk.__version__ + '.p')
+                  usesDH + daseki.__version__ + '.p')
         return hashFN
     
     def _saveToPickle(self):
@@ -209,7 +209,7 @@ class Game(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.VISITOR)
         >>> hi
-        <bbbalk.base.HalfInning t7 plays:58-64 (SDN201304090)>
+        <daseki.base.HalfInning t7 plays:58-64 (SDN201304090)>
         '''
         for hi in self.halfInnings:
             if hi.inningNumber == number and hi.visitOrHome == visitOrHome:
@@ -222,7 +222,7 @@ class Game(common.ParentType):
         
         >>> g = game.Game('SDN201304090')
         >>> g.subByNumber(75)
-        <bbbalk.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
+        <daseki.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
         '''
         for hi in self.halfInnings:
             if hi.startPlayNumber <= pn and hi.endPlayNumber >= pn:
@@ -235,7 +235,7 @@ class Game(common.ParentType):
         
         >>> g = game.Game('SDN201304090')
         >>> g.playByNumber(2)
-        <bbbalk.retro.play.Play t1: kempm001:K>
+        <daseki.retro.play.Play t1: kempm001:K>
         '''
         for hi in self.halfInnings:
             if hi.startPlayNumber <= pn and hi.endPlayNumber >= pn:
@@ -250,7 +250,7 @@ class Game(common.ParentType):
         
         >>> g = game.Game('SDN201304090')
         >>> g.playerById('gyorj001')
-        <bbbalk.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
+        <daseki.player.PlayerGame home,5: Jedd Gyorko (gyorj001):[5]>
         '''
         for lc in self.lineupCards.values():
             p = lc.playerById(playerId)
@@ -590,6 +590,6 @@ class TestSlow(unittest.TestCase):
                     print('%r succeeded' % (f))
 
 if __name__ == '__main__':
-    from bbbalk import mainTest
+    from daseki import mainTest
     mainTest(Test) #Test # TestSlow
 
