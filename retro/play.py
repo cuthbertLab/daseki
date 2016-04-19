@@ -38,11 +38,11 @@ NON_ERROR_PAREN_THROW_RE = re.compile(r'\(\d+\/?T?H?\)')
 ERROR_PAREN_RE = re.compile(r'\(\d*E\d*[\/A-Z]*\)')
 ERROR_RE = re.compile(r'\d*E\d*[\/A-Z]*')
 
-from bbbalk.retro import datatypeBase 
-from bbbalk import common
-from bbbalk.exceptionsBB import RetrosheetException
-from bbbalk.common import warn
-from bbbalk import base
+from daseki.retro import datatypeBase 
+from daseki import common
+from daseki.exceptionsBB import RetrosheetException
+from daseki.common import warn
+from daseki import base
 
 
 class PlateAppearance(common.ParentType):
@@ -149,15 +149,15 @@ class Play(datatypeBase.RetroData):
     >>> p.outsMadeOnPlay
     2
     >>> p.playEvent
-    <bbbalk.retro.play.PlayEvent 54(1)/FO/G/DP>
+    <daseki.retro.play.PlayEvent 54(1)/FO/G/DP>
     >>> p.playEvent.isDblPlay
     True
     >>> p.runnerEvent
-    <bbbalk.retro.play.RunnerEvent 3XH(42) (1:A 2:False 3:C) -> (1:batter 2:False 3:False)>
+    <daseki.retro.play.RunnerEvent 3XH(42) (1:A 2:False 3:C) -> (1:batter 2:False 3:False)>
     >>> p.runnersAdvance
-    [<bbbalk.retro.play.RunnerAdvance 3XH(42)>, 
-     <bbbalk.retro.play.RunnerAdvance 1X2>, 
-     <bbbalk.retro.play.RunnerAdvance B-1>]
+    [<daseki.retro.play.RunnerAdvance 3XH(42)>, 
+     <daseki.retro.play.RunnerAdvance 1X2>, 
+     <daseki.retro.play.RunnerAdvance B-1>]
     '''
     __slots__ = ('inning', 'visitOrHome', 'playerId', 'count', '_pitches', 'raw', 
                  '_playEvent', '_runnerEvent', 'runnersBefore', 'runnersAfter', 
@@ -490,7 +490,7 @@ class RunnerEvent(common.ParentType):
         >>> runAfter is re.runnersAfter
         True
         >>> runAfter
-        <bbbalk.base.BaseRunners 1:False 2:myke 3:False>
+        <daseki.base.BaseRunners 1:False 2:myke 3:False>
         >>> re.outs
         1
 
@@ -499,7 +499,7 @@ class RunnerEvent(common.ParentType):
         >>> re = retro.play.RunnerEvent()
         >>> runAfter = re.setRunnersAfter(runnerAdvances, runnersBefore)
         >>> runAfter
-        <bbbalk.base.BaseRunners 1:unknownBatter 2:myke 3:False>
+        <daseki.base.BaseRunners 1:unknownBatter 2:myke 3:False>
         >>> re.outs
         0
         >>> re.runs
@@ -1251,5 +1251,5 @@ class PlayEvent(common.ParentType):
 
 
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest()
+    import daseki
+    daseki.mainTest()
