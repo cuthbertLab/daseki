@@ -5,10 +5,10 @@
 #
 # Authors:      Michael Scott Cuthbert
 #
-# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# Copyright:    Copyright © 2015-16 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
-from bbbalk import common
+from daseki import common
 from collections import namedtuple
 import csv
 import codecs
@@ -214,7 +214,7 @@ class Team(common.ParentType):
 
 
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest()
-    teamList()
+    import daseki
+    daseki.mainTest()
+    #teamList()
 
