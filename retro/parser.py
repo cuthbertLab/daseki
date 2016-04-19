@@ -19,8 +19,8 @@ import codecs
 import csv
 import itertools
 
-from bbbalk import common
-from bbbalk.exceptionsBB import RetrosheetException
+from daseki import common
+from daseki.exceptionsDS import RetrosheetException
 
 class ParserException(RetrosheetException):
     pass
@@ -34,12 +34,12 @@ def protoGameById(gameId):
     file need to be parsed). But useful for looking at one.
     
     >>> retro.parser.protoGameById('SDN201304090')
-    <bbbalk.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
+    <daseki.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
 
     Last digit is optional:
 
     >>> retro.parser.protoGameById('SDN20130409')
-    <bbbalk.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
+    <daseki.retro.parser.ProtoGame SDN201304090: LAN at SDN>    
 
     '''
     ef = findFileById(gameId)
@@ -55,13 +55,13 @@ def findFileById(gameId):
     finds the event file that matches the gameId
     
     >>> efn = retro.parser.findFileById('SDN201304090')
-    >>> efn.endswith('bbbalk/dataFiles/retrosheet/event/regular/2013SDN.EVN')
+    >>> efn.endswith('daseki/dataFiles/retrosheet/event/regular/2013SDN.EVN')
     True
     
     Last number is optional except for double headers 
     
     >>> efn = retro.parser.findFileById('SDN20130409')
-    >>> efn.endswith('bbbalk/dataFiles/retrosheet/event/regular/2013SDN.EVN')
+    >>> efn.endswith('daseki/dataFiles/retrosheet/event/regular/2013SDN.EVN')
     True
     '''
     gid = common.GameId(gameId)
@@ -370,5 +370,5 @@ class ProtoGame(object):
 
 
 if __name__ == '__main__':
-    import bbbalk
-    bbbalk.mainTest()
+    import daseki
+    daseki.mainTest()
