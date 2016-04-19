@@ -13,6 +13,3 @@ for free with only the requirement that this statement is included:
 
 *The information used here was obtained free of charge from and is copyrighted by Retrosheet.  
 Interested parties may contact Retrosheet at 20 Sunset Rd., Newark, DE 19711.*
-
-The retrosheet data for 1995-2014 is included with this download. Remaining files can be
-found on their website.
