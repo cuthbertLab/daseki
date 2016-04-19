@@ -13,8 +13,8 @@ import csv
 import os
 import unittest
 
-from bbbalk.exceptionsBB import BBBalkException
-from bbbalk import common
+from daseki.exceptionsDS import DasekiException
+from daseki import common
 
 GameLogCache = {}
 
@@ -23,7 +23,7 @@ def gameLogFilePathForYear(year=2014):
     Find the path to the game log file for a given year.
     
     >>> glp = retro.gameLogs.gameLogFilePathForYear(2005)
-    >>> glp.endswith('bbbalk/dataFiles/retrosheet/gamelog/GL2005.TXT')
+    >>> glp.endswith('daseki/dataFiles/retrosheet/gamelog/GL2005.TXT')
     True
     '''
     yearStr = str(year)
@@ -89,7 +89,7 @@ def gameLogRawById(gameId):
                 return pg
             elif gid.gameNum == "3" and gameNumber == "3": # triple header!
                 return pg
-        raise BBBalkException("Could not find the right game for a double/triple header!")
+        raise DasekiException("Could not find the right game for a double/triple header!")
     return None
         
 class GameLog(object):
@@ -392,7 +392,7 @@ class Test(unittest.TestCase):
 
 class TestSlow(unittest.TestCase):
     def testRunInformation(self):
-        from bbbalk import game
+        from daseki import game
         gc = game.GameCollection()
         #gc.yearStart = 1995
         #gc.yearEnd = 2009
@@ -406,5 +406,5 @@ class TestSlow(unittest.TestCase):
             self.assertEqual(homeRuns, gl.homeRuns, "{0}: PlayData {1} GameLog {2}".format(gId, homeRuns, gl.homeRuns))
 
 if __name__ == "__main__":
-    import bbbalk
-    bbbalk.mainTest(Test)
+    import daseki
+    daseki.mainTest(Test)
