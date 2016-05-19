@@ -28,10 +28,14 @@ __version_info__ = (0, 6, 0)
 __version__ = '.'.join(str(x) for x in __version_info__)
 __VERSION__ = __version__
 
+from sys import version_info as _pyver
+if _pyver[0] <= 2 or (_pyver[0] == 3 and _pyver[1] <= 3):
+    raise ImportError("Daseki requires Python 3.4 or higher. Exiting.")
+
 from daseki import core
 from daseki.test.testRunner import mainTest # @UnresolvedImport
 from daseki.core import *
 
 #------------------------------------------------------------------------------
-# this bring all of the __all__ names into the bbbalk package namespace
+# this bring all of the __all__ names into the daseki package namespace
 from daseki import * # @UnresolvedImport

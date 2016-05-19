@@ -7,7 +7,7 @@ from daseki import common
 from daseki.retro.parser import EventFile, YearDirectory # @UnresolvedImport
 from daseki.game import Game # @UnresolvedImport
 
-class Test(unittest.TestCase):
+class TestExternal(unittest.TestCase):
     def sdAttendance(self):
         yd = YearDirectory(2014)
         attd = 0
@@ -168,4 +168,4 @@ class Test(unittest.TestCase):
         
 if __name__ == '__main__':
     import daseki
-    daseki.mainTest(Test)
+    daseki.mainTest(TestExternal)

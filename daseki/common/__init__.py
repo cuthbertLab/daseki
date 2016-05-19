@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
-# Name:         __init__.py
-# Purpose:      BBBalk -- A toolkit for computational baseball analysis 
+# Name:         common.py
+# Purpose:      Commonly used tools across Daseki 
 #
 # Authors:      Michael Scott Cuthbert
 #
-# Copyright:    Copyright © 2014-15 Michael Scott Cuthbert / cuthbertLab
+# Copyright:    Copyright © 2014-16 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
-from __future__ import print_function
-from __future__ import division
+'''
+Common is a collection of utility functions, objects, constants and dictionaries used 
+throughout daseki.
 
-# pylint: disable=no-name-in-module
-try:
-    from itertools import zip_longest
-except ImportError:
-    from itertools import izip_longest as zip_longest
+functions in common/ should not importa anything from daseki except daseki.exceptionsDS
+(except in tests and doctests).
 
-try:
-    import enum
-except ImportError:
-    from daseki.ext import enum
+For historical reasons all the (non-private) functions etc. of the common/
+folder are available by importing common. 
+'''
 
-import functools
+# pylint: disable=wildcard-import
+from daseki.common.parallel import *
+
+import enum
 import inspect
 import re
 import os
@@ -43,15 +43,16 @@ class TeamNum(enum.IntEnum):
 # tools for setup.py
 def sourceFilePath():
     '''
-    Get the BBBalk directory that contains source files. This is not the same as the
+    Get the Daseki directory that contains source files. This is not the same as the
     outermost package development directory.
     '''
-    import daseki # pylint: disable=redefined-outer-name
-    fpBalk = daseki.__path__[0] # list, get first item 
-    # use corpus as a test case
-    if 'retro' not in os.listdir(fpBalk):
-        raise Exception('cannot find expected bbbalk directory: %s' % fpBalk)
-    return fpBalk
+    dn = os.path.dirname
+    fpThis = inspect.getfile(sourceFilePath)
+    fpDS = dn(dn(fpThis))
+    # use retro as a test case
+    if 'retro' not in os.listdir(fpDS):
+        raise DasekiException('cannot find expected daseki directory: %s' % fpDS)
+    return fpDS
 
 def dataFilePath():
     return os.path.join(sourceFilePath(), 'dataFiles')
@@ -73,7 +74,7 @@ def gameLogFilePath():
 #----------------------
 def getDefaultRootTempDir():
     '''
-    returns whatever tempfile.gettempdir() returns plus 'bbbalk'.
+    returns whatever tempfile.gettempdir() returns plus 'daseki'.
     
     Creates the subdirectory if it doesn't exist:
     
@@ -83,11 +84,11 @@ def getDefaultRootTempDir():
     '/var/folders/x5/rymq2tx16lqbpytwb1n_cc4c0000gn/T'
 
     >>> import os
-    >>> common.getDefaultRootTempDir() == os.path.join(t, 'bbbalk')
+    >>> common.getDefaultRootTempDir() == os.path.join(t, 'daseki')
     True
     '''
     # this returns the root temp dir; this does not create a new dir
-    dstDir = os.path.join(tempfile.gettempdir(), 'bbbalk')
+    dstDir = os.path.join(tempfile.gettempdir(), 'daseki')
     # if this path already exists, we have nothing more to do
     if os.path.exists(dstDir):
         return dstDir
@@ -109,7 +110,7 @@ class GameId(object):
     >>> str(gid)
     'SDN201304090'
     >>> gid
-    <bbbalk.common.GameId SDN201304090>
+    <daseki.common.GameId SDN201304090>
     >>> gid.year
     2013
     >>> gid.day
@@ -265,94 +266,7 @@ class Timer(object):
             t = self._tDif
         return str(round(t,3))
 
-#------------------------
-import multiprocessing
-try:
-    from concurrent import futures
-except ImportError:  # only on Py3
-    futures = None 
     
-def multicore(func):
-    '''
-    Pseudo-decorator to run a function concurrently on multiple cores a list 
-    or a list of tuples. Returns an iterator over the results
-    
-    (It is not a real decorator because they produce unpickleable functions.  Sad...)
-    
-    getGameHomeScore is defined in common as follows:
-    
-        def getGameHomeScore(gId):
-             g = game.Game(gId)
-             return gId, g.runs.home
-    
-    We can't put it in the docs because of pickle limitations.
-    
-    >>> import time
-    >>> from daseki.common import getGameHomeScore, multicore
-    >>> gameList = ['SDN201304090', 'SFN201409280', 'SLN201408140', 'SLN201408160', 'WAS201404250']
-    >>> gFunc = multicore(getGameHomeScore)
-    >>> t = time.time()
-    >>> for gid, runs in gFunc(gameList):
-    ...     print(gid, runs)
-    SDN201304090 9
-    SFN201409280 9
-    SLN201408140 4
-    SLN201408160 5
-    WAS201404250 11
-    >>> tDelta1 = time.time() - t
-    
-    Without multicore:
-    
-    >>> t = time.time()
-    >>> for gid, runs in [getGameHomeScore(g) for g in gameList]:
-    ...     unused = (gid, runs)
-    >>> tDelta2 = time.time() - t
-    >>> tDelta1 < tDelta2 * .9
-    True
-    
-    All arguments and results need to be pickleable.  Pickleing a large object can be
-    very slow! So use parallel processing only to pass small amounts of information
-    back and forth (number of runs, etc.) if you return a Game or GameCollection object
-    don't expect to see much speedup if any.
-    '''
-    max_workers = multiprocessing.cpu_count() - 1 # @UndefinedVariable
-    if max_workers == 0:
-        max_workers = 1
-    
-    def bg_f(argList):
-        if len(argList) == 0:
-            yield None
-        firstArg = argList[0]
-        argType = "unknown"
-        if firstArg is None:
-            argType = "none"
-        elif isinstance(firstArg, (tuple, list)):
-            argType = 'tuple'
-        elif isinstance(firstArg, dict):
-            argType = 'dict'
-        else:
-            argType = 'scalar'
-
-        if futures is None:
-            for i in argList:
-                if argType == 'scalar':
-                    yield func(i)
-                elif argType == 'tuple':
-                    yield func(*i)
-        else:     
-
-            with futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-                if argType == 'scalar':
-                    for res in executor.map(func, argList):
-                        yield res
-                elif argType == 'tuple':
-                    for res in executor.map(func, *zip(*argList)):
-                        yield res
-                else:
-                    raise DasekiException(
-                        'Cannot Parallelize arguments of type {0}'.format(argType))
-        
-    return bg_f
 
 
 def getGameHomeScore(gId):
@@ -380,6 +294,30 @@ def runDemo2(team, year):
     if team == 'BOS':
         time.sleep(4)
     return team, len(gc.games)
+
+#----------
+def sortModules(moduleList):
+    '''
+    Sort a lost of imported module names such that most recently modified is
+    first.  In ties, last accesstime is used then module name
+    
+    Will return a different order each time depending on the last mod time
+    
+    :rtype: list(str)
+    '''
+    sort = []
+    modNameToMod = {}    
+    for mod in moduleList:
+        modNameToMod[mod.__name__] = mod
+        fp = mod.__file__ # returns the pyc file
+        stat = os.stat(fp)
+        lastmod = time.localtime(stat[8])
+        asctime = time.asctime(lastmod)
+        sort.append((lastmod, asctime, mod.__name__))
+    sort.sort()
+    sort.reverse()
+    # just return module list
+    return [modNameToMod[modName] for lastmod, asctime, modName in sort]
 
 
 #------------------------
@@ -550,138 +488,6 @@ def unwrapWeakref(referent):
         return referent
 
 
-def keyword_only_args(*included_keywords):
-    """
-    Transforms a function with keyword arguments into one with
-    keyword-only arguments.
-
-    Call this decorator as @keyword_only_args() for the default mode,
-    which makes all keyword arguments keyword-only, or with the names
-    of arguments to make keyword-only.  They must correspond with the
-    names of arguments in the decorated function.  It works by
-    collecting all the arguments into *args and **kws, then moving the
-    arguments marked as keyword-only from **kws into *args.
-
-    From Cara at:
-    http://code.activestate.com/recipes/578993-keyword-only-arguments-in-python-2x/
-    Revision 8, MIT license
-    Modified slightly -- my version works fine with keywords specified and defaulting to defaults
-       but does not yet work with *args TODO: Make it work, see basic.
-
-    Args:
-      *included_keywords: Keyword-only arguments as strings.
-
-    Returns:
-      A decorator that modifies a function so it has keyword-only
-      arguments.
-
-    """
-    def decorator(func):
-        """Decorator factory, assigns arguments as keyword-only and
-        calculates sets for error checking.
-
-        Args:
-          func: The function to decorate.
-
-        Returns:
-          A function wrapped so that it has keyword-only arguments. 
-        """
-        # we want to preserve default=None, so we need to give a 
-        # very implausible value for a default
-        noDefaultString = '***NO_DEFAULT_PROVIDED***'
-        # do not use getfullargspec -- if we had it we wouldnt need this
-        positional_args, unused_varargs, unused_keywords, defaults = inspect.getargspec(func) 
-        args_with_defaults = set(positional_args[len(positional_args) - len(defaults):])
-        
-        kw_only_args = set(included_keywords) if any(included_keywords
-                                                     ) else args_with_defaults.copy()
-        args_and_defaults = list(zip_longest(reversed(positional_args), 
-                                             reversed(defaults), 
-                                             fillvalue=noDefaultString))
-        args_and_defaults.reverse()
-        #warn(args_and_defaults)
-        positional_args = set(positional_args)
-
-        @functools.wraps(func)
-        def wrapper(*callingArgs, **keywordDict):
-            """The decorator itself, checks arguments with set operations, moves
-            args from *args into **kws, and then calls func().
-
-            Args:
-              *args, **kws: The arguments passed to the original function.
-
-            Returns:
-              The original function's result when it's called with the
-              modified arguments.
-
-            Raises:
-              TypeError: When there is a mismatch between the supplied
-                and expected arguments.
-
-            """
-            keywordSet = set(keywordDict)
-            # Are all the keyword-only args covered either by a passed
-            # argument or a default?
-            kw_only_args_specified_by_keyword_or_default = keywordSet | args_with_defaults
-            if not kw_only_args <= kw_only_args_specified_by_keyword_or_default:
-                missing_args = kw_only_args - kw_only_args_specified_by_keyword_or_default
-                wrong_args(func, args_and_defaults, missing_args, 'keyword-only')
-            # Are there enough positional args to cover all the
-            # arguments not covered by a passed argument or a default?
-            if len(callingArgs) < len(positional_args - 
-                                      kw_only_args_specified_by_keyword_or_default):
-                missing_args = positional_args - kw_only_args_specified_by_keyword_or_default
-                wrong_args(func, args_and_defaults, missing_args, 'positional', len(callingArgs))
-
-            #positional_args_specified_by_keyword = keywordSet & positional_args
-            
-            finalArgs = []
-            maxIndex = 0
-            for unused_index, (name, default) in enumerate(args_and_defaults):
-                #warn(index, name, default)
-                fArg = noDefaultString
-                if name in keywordDict:
-                    fArg = keywordDict[name]
-                    #warn("Got non-default for name ", name, " value: ", fArg)
-                    keywordDict.pop(name)
-                else:
-                    if maxIndex < len(callingArgs):
-                        fArg = callingArgs[maxIndex]
-                        maxIndex += 1
-                        #warn("Got positional argument for name ", name, " value: ", fArg)
-
-                    elif name not in keywordDict and default is not noDefaultString:
-                        fArg = default
-                        #warn("Got default for name ", name, " default: ", repr(default))
-                                            
-                if fArg is not noDefaultString:
-                    finalArgs.append(fArg)
-            if len(callingArgs) > maxIndex: #  *args                
-                finalArgs.extend(callingArgs[maxIndex:])
-            #warn(callingArgs[1:])
-            #warn(finalArgs[1:])
-            #warn(args_and_defaults)
-                
-            #warn("function ", func, " originally called with (after self) ", 
-            #    callingArgs[1:], " will be called with args (after self):", 
-            #    finalArgs[1:], " and **keywords", keywordDict)
-            return func(*finalArgs, **keywordDict)
-        return wrapper
-
-    def wrong_args(func, args_and_defaults, missing_args, arg_type, number_of_args=0):
-        """ Raise Python 3-style TypeErrors for missing arguments."""
-        ordered_args = [a for a, _ in args_and_defaults if a in missing_args]
-        ordered_args = ordered_args[number_of_args:]
-        error_message = ['%s() missing %d required %s argument' % 
-                         (func.__name__, len(ordered_args), arg_type)]
-        if len(ordered_args) == 1:
-            error_message.append(": '%s'" % ordered_args[0])
-        else:
-            error_message.extend(['s: ', ' '.join("'%s'" % a for a in ordered_args[:-1]), 
-                                  " and '%s'" % ordered_args[-1]])
-        raise TypeError(''.join(error_message))
-
-    return decorator
 
 def warn(*msg):
     '''

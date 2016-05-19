@@ -87,10 +87,17 @@ class BoxScore(object):
         s += str(g.leftOnBase.home)
         return s
 
-    def countingStatHelper(self, attr, abbr):
+    def countingStatHelper(self, searchAttribute, abbr):
+        '''
+        A helper function to produce lines such as 
+        
+        2B -- Francisco B 2, DeRosa M
+        
+        where searchAttribute would be "double" and abbr would be "2B"
+        '''
         s = []
         game = self.game
-        statDict = game.battersByEvent(attr)
+        statDict = game.battersByEvent(searchAttribute)
         
         for pId in statDict:
             val = statDict[pId]
@@ -131,9 +138,8 @@ class BoxScore(object):
     
     
     
-class Test(unittest.TestCase):
-    pass
-
+class TestExternal(unittest.TestCase):
+    
     def testBox(self):
         unused_auth = '''     Game of 3/30/2014 -- Los Angeles at San Diego (N)
 
@@ -186,6 +192,7 @@ A -- 45567
 '''
         bs = BoxScore('SDN201403300')
         print(bs.box())
+        print('\n\n\n\n')
 
     def testHighScoring(self):
         unused_auth = '''     Game of 4/18/2009 -- Cleveland at New York (D)
@@ -239,4 +246,4 @@ A -- 45167
 
 if __name__ == '__main__':
     import daseki
-    daseki.mainTest(Test)
+    daseki.mainTest(TestExternal)

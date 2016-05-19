@@ -33,7 +33,7 @@ class HalfInning(common.ParentType):
     >>> g = game.Game('SDN201304090')
     >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
     >>> hi
-    <daseki.base.HalfInning b8 plays:83-100 (SDN201304090)>
+    <daseki.core.HalfInning b8 plays:83-100 (SDN201304090)>
     >>> hi.inningNumber
     8
     >>> print(hi.visitOrHome)
@@ -219,7 +219,7 @@ class HalfInning(common.ParentType):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> hi
-        <daseki.base.HalfInning b7 plays:65-76 (SDN201304090)>
+        <daseki.core.HalfInning b7 plays:65-76 (SDN201304090)>
         >>> hi.subByNumber(75)
         <daseki.player.Sub home,3: Tyson Ross (rosst001):pinchrunner>
         '''
@@ -270,7 +270,7 @@ class HalfInning(common.ParentType):
         >>> hi.leftOnBase
         2
         >>> hi.lastPlay().runnersAfter
-        <daseki.base.BaseRunners 1:gonza003 2:ellim001 3:False>
+        <daseki.core.BaseRunners 1:gonza003 2:ellim001 3:False>
         '''
         p = self.lastPlay()
         ra = p.runnersAfter
@@ -295,9 +295,9 @@ class BaseRunners(common.ParentType):
     '''
     A relatively lightweight object for dealing with baserunners.
     
-    >>> br = base.BaseRunners(False, 'cuthbert', 'hamilton')
+    >>> br = core.BaseRunners(False, 'cuthbert', 'hamilton')
     >>> br
-    <daseki.base.BaseRunners 1:False 2:cuthbert 3:hamilton>
+    <daseki.core.BaseRunners 1:False 2:cuthbert 3:hamilton>
     >>> str(br)
     '1:False 2:cuthbert 3:hamilton'
     >>> br.first
@@ -312,7 +312,7 @@ class BaseRunners(common.ParentType):
     
     Can pass in a parent object.
     
-    >>> br = base.BaseRunners(False, 'cuthbert', 'hamilton', parent=object)
+    >>> br = core.BaseRunners(False, 'cuthbert', 'hamilton', parent=object)
     >>> br[1]
     'cuthbert'
     >>> br[2] = 'elina'
@@ -343,7 +343,7 @@ class BaseRunners(common.ParentType):
         <daseki.retro.play.Play b7: maybc001:NP>
         >>> brb = p.runnersBefore
         >>> brb
-        <daseki.base.BaseRunners 1:False 2:False 3:False>
+        <daseki.core.BaseRunners 1:False 2:False 3:False>
         >>> brb.play
         <daseki.retro.play.Play b7: maybc001:NP>
         >>> brb.play is p
@@ -363,7 +363,7 @@ class BaseRunners(common.ParentType):
         >>> p = hi.events[-1]
         >>> brb = p.runnersBefore
         >>> brb
-        <daseki.base.BaseRunners 1:puntn001 2:False 3:False>
+        <daseki.core.BaseRunners 1:puntn001 2:False 3:False>
         >>> brb.playerEntranceObjects()
         [<daseki.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, None, None]
         '''
@@ -472,8 +472,8 @@ class ExpectedRunMatrix(object):
         
     def runsForSituation(self, baseRunners, outs=0):
         '''
-        >>> erm = base.ExpectedRunMatrix()
-        >>> brr = base.BaseRunners(False, 'carmel', False)
+        >>> erm = core.ExpectedRunMatrix()
+        >>> brr = core.BaseRunners(False, 'carmel', False)
         >>> erm.runsForSituation(brr, outs=2)
         0.3137
         '''
@@ -490,8 +490,8 @@ class ExpectedRunMatrix(object):
         Returns the difference between the runs expected for the current base/outs situation 
         and the runs expected for the same number of outs with no one on base.
         
-        >>> erm = base.ExpectedRunMatrix()
-        >>> brr = base.BaseRunners(False, 'nori', False)
+        >>> erm = core.ExpectedRunMatrix()
+        >>> brr = core.BaseRunners(False, 'nori', False)
         >>> erm.runsInherited(brr, outs=2)
         0.217
         '''
@@ -503,8 +503,8 @@ class ExpectedRunMatrix(object):
         Returns the difference between the runs expected for the current base/outs situation and the 
         runs expected for NO OUTS with no one on base.
         
-        >>> erm = base.ExpectedRunMatrix()
-        >>> brr = base.BaseRunners(False, 'kate', False)
+        >>> erm = core.ExpectedRunMatrix()
+        >>> brr = core.BaseRunners(False, 'kate', False)
         >>> erm.runsInheritedNotOutAdjusted(brr, outs=2)
         -0.167
         '''
@@ -521,8 +521,8 @@ class ExpectedRunMatrix(object):
             ER = (5 + total_runners + 3 * (total bases occupied))  * outs_left / 30
         
         
-        >>> erm = base.ExpectedRunMatrix()
-        >>> brr = base.BaseRunners(False, False, False)
+        >>> erm = core.ExpectedRunMatrix()
+        >>> brr = core.BaseRunners(False, False, False)
         >>> erm.simpleRunsExpected(brr, 0)
         0.5
         
@@ -530,7 +530,7 @@ class ExpectedRunMatrix(object):
         ...     for second in (False, True):
         ...         for first in (False, True):
         ...             for outs in range(3):
-        ...                 brr = base.BaseRunners(first, second, third)
+        ...                 brr = core.BaseRunners(first, second, third)
         ...                 sre = erm.simpleRunsExpected(brr, outs)
         ...                 re = erm.runsForSituation(brr, outs)
         ...                 print("{0:5s} {1:5s} {2:5s} {3} {4:4.2f} {5:4.2f} {6:4.2f}".format(
