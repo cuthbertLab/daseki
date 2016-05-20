@@ -106,6 +106,12 @@ GAMEID_MATCH = re.compile(r'([A-Za-z][A-Za-z][A-Za-z])(\d\d\d\d)(\d\d)(\d\d)(\d?
 
 class GameId(object):
     '''
+    A GameId is a 12-character string that embeds information about
+    when and where a game was played.  It is designed to uniquely identify
+    any game every played.
+    
+    We can initialize a GameId object from a string:
+    
     >>> gid = common.GameId('SDN201304090')
     >>> str(gid)
     'SDN201304090'
@@ -119,6 +125,8 @@ class GameId(object):
     '0'
     >>> gid.homeTeam
     'SDN'
+
+    Or we can construct the id from all the information:
     
     >>> gid2 = common.GameId()
     >>> gid2.homeTeam = 'ARI'
@@ -127,8 +135,13 @@ class GameId(object):
     >>> gid2.day = 22
     >>> print(gid2)
     ARI200009220
-    '''
     
+    Last digit is optional:
+    
+    >>> gid = common.GameId('SDN20130409')
+    >>> str(gid)
+    'SDN201304090'
+    '''
     def __init__(self, gameId=None):
         self.gameId = gameId
         self.year = 0
@@ -158,7 +171,6 @@ class GameId(object):
         self.gameNum = matched.group(5)
         if self.gameNum == '':
             self.gameNum = "0"
-
 
 
 #---------------------
@@ -266,34 +278,7 @@ class Timer(object):
             t = self._tDif
         return str(round(t,3))
 
-    
 
-
-def getGameHomeScore(gId):
-    from daseki import game # @UnresolvedImport
-    g = game.Game(gId)
-    return gId, g.runs.home
-
-
-def runDemo(team):
-    from daseki import game # @UnresolvedImport
-    gc = game.GameCollection()
-    gc.team = team
-    gc.parse()
-    if team == 'BOS':
-        time.sleep(4)
-    return team, len(gc.games)
-
-def runDemo2(team, year):
-    from daseki import game # @UnresolvedImport
-    gc = game.GameCollection()
-    gc.team = team
-    gc.yearStart = year
-    gc.yearEnd = year
-    gc.parse()
-    if team == 'BOS':
-        time.sleep(4)
-    return team, len(gc.games)
 
 #----------
 def sortModules(moduleList):

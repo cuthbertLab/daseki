@@ -1,1 +1,2 @@
-__all__ = ['testRunner', 'timeGraphs']
+__all__ = ['commonTest', 'coverageDS', 'multiprocessTest',
+           'retroTest', 'testRunner', 'testSinglCoreAll']

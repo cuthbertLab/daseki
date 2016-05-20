@@ -19,7 +19,7 @@ import os
 import unittest
 from pprint import pprint as pp
 
-from daseki.retro import basic, play, parser
+from daseki.retro import basic, play, parser, protoGame
 from daseki import common
 from daseki import core
 from daseki import player # @UnresolvedImport
@@ -197,7 +197,7 @@ class Game(common.ParentType):
         >>> g.runs
         Runs(visitor=3, home=9)
         '''
-        pg = parser.protoGameById(self.id)
+        pg = protoGame.protoGameById(self.id)
         return self.mergeProto(pg, finalize=True)
 
 

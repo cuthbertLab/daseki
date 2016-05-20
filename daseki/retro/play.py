@@ -29,9 +29,6 @@ stored in the RunnerEvent and PlayEvent objects associated with each Play object
 '''
 import re
 
-HOME = 1
-VISITOR = 0
-
 DEBUG = False
 
 NON_ERROR_PAREN_THROW_RE = re.compile(r'\(\d+\/?T?H?\)')

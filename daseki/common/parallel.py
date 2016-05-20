@@ -15,6 +15,7 @@ __all__ = ['runParallel',
            ]
 
 import multiprocessing
+import time
 from concurrent import futures
 
 from daseki.exceptionsDS import DasekiException
@@ -126,6 +127,15 @@ def cpus():
 #     '''
 #     return pickleMod.loads(pickleMod.dumps(obj, protocol=-1))
 
+def demo_GameHomeScore(gId):
+    '''
+    
+    '''
+    from daseki import game # @UnresolvedImport
+    g = game.Game(gId)
+    return gId, g.runs.home
+
+
 def multicore(func):
     '''
     Pseudo-decorator to run a function concurrently on multiple cores a list 
@@ -133,18 +143,18 @@ def multicore(func):
     
     (It is not a real decorator because they produce unpickleable functions.  Sad...)
     
-    getGameHomeScore is defined in common as follows:
+    demo_GameHomeScore is defined in common as follows:
     
-        def getGameHomeScore(gId):
+        def demo_GameHomeScore(gId):
              g = game.Game(gId)
              return gId, g.runs.home
     
     We can't put it in the docs because of pickle limitations.
     
     >>> import time
-    >>> from daseki.common import getGameHomeScore, multicore
+    >>> from daseki.common.parallel import demo_GameHomeScore, multicore
     >>> gameList = ['SDN201304090', 'SFN201409280', 'SLN201408140', 'SLN201408160', 'WAS201404250']
-    >>> gFunc = multicore(getGameHomeScore)
+    >>> gFunc = multicore(demo_GameHomeScore)
     >>> t = time.time()
     >>> for gid, runs in gFunc(gameList):
     ...     print(gid, runs)
@@ -158,7 +168,7 @@ def multicore(func):
     Without multicore:
     
     >>> t = time.time()
-    >>> for gid, runs in [getGameHomeScore(g) for g in gameList]:
+    >>> for gid, runs in [demo_GameHomeScore(g) for g in gameList]:
     ...     unused = (gid, runs)
     >>> tDelta2 = time.time() - t
     >>> tDelta1 < tDelta2 * .9
@@ -202,9 +212,31 @@ def multicore(func):
                         yield res
                 else:
                     raise DasekiException(
-                        'Cannot Parallelize arguments of type {0}'.format(argType))
-        
+                        'Cannot Parallelize arguments of type {0}'.format(argType))        
     return bg_f
+
+
+def runDemo(team):
+    from daseki import game # @UnresolvedImport
+    gc = game.GameCollection()
+    gc.team = team
+    gc.parse()
+    if team == 'BOS':
+        time.sleep(4)
+    return team, len(gc.games)
+
+def runDemo2(team, year):
+    from daseki import game # @UnresolvedImport
+    gc = game.GameCollection()
+    gc.team = team
+    gc.yearStart = year
+    gc.yearEnd = year
+    gc.parse()
+    if team == 'BOS':
+        time.sleep(4)
+    return team, len(gc.games)
+
+
 if __name__ == "__main__":
     import daseki
     daseki.mainTest()

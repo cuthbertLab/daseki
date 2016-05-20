@@ -8,6 +8,6 @@
 # Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
-__ALL__ = 'basic datatypeBase gameLogs parser pitch play test'.split() 
+__ALL__ = 'basic datatypeBase eventFile gameLogs parser pitch play protoGame'.split() 
 
-from daseki.retro import basic, datatypeBase, gameLogs, parser, pitch, play, test 
+from daseki.retro import basic, datatypeBase, gameLogs, parser, pitch, play 

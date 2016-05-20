@@ -143,10 +143,12 @@ class Info(RetroData):
     
     __slots__ = ('recordType', 'dataInfo')
     record = 'info'
-    _gameRelatedTypes = ("visteam hometeam date number " + 
+    _gameRelatedTypes = (
+        "visteam hometeam date number " + 
         "starttime daynight usedh pitches umphome ump1b ump2b ump3b umplf umprf " + 
         "fieldcond precip sky temp winddir windspeed timeofgame attendance site " + 
-        "wp lp save gwrbi htbf")  
+        "wp lp save gwrbi htbf"
+        )  
         # htbf -- home team batted first! https://github.com/natlownes/retrosheet_api_gae
     gameRelatedTypes = _gameRelatedTypes.split()
     _administrativeTypes = ("edittime howscored inputprogvers " + 
