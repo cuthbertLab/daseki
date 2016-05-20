@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# Name:         commonTest.py
+# Name:         test/commonTest.py
 # Purpose:      Things common to testing
 #
 # Authors:      Christopher Ariza

@@ -1,6 +1,13 @@
-HOME = 1
-VISITOR = 0
-
+# -*- coding: utf-8 -*-
+#-------------------------------------------------------------------------------
+# Name:         test/retroTest.py
+# Purpose:      Tests of Retrosheet information
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015-16 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#-------------------------------------------------------------------------------
 import unittest
 import os
 from daseki import common
@@ -56,12 +63,12 @@ class TestExternal(unittest.TestCase):
                         gamesPitched[visitorTeam] = [0, 0, 0]
                     if not g.hasDH():
                         gamesPitched[visitorTeam][0] += 1
-                        starters = g.starters(VISITOR)
+                        starters = g.starters(common.TeamNum.VISITOR)
                         startingPitcher = starters[-1] # TODO: get by position
                         #print(startingPitcher.name)
                         for r in g.recordsByType('play'):
                             if (r.inning <= 2 and 
-                                    r.visitOrHome == VISITOR and 
+                                    r.visitOrHome == common.TeamNum.VISITOR and 
                                     r.playerId == startingPitcher.id):
                                 #print("********Yup")
                                 gamesPitched[visitorTeam][r.inning] += 1
@@ -143,10 +150,6 @@ class TestExternal(unittest.TestCase):
         erm = core.ExpectedRunMatrix()
         
         for g in gc.games:
-            #if 'SDN' in g.infoByType('hometeam'):
-            #    SD = TeamNum.HOME
-            #else:
-            #    SD = TeamNum.VISITOR
             for hi in g.halfInnings:
                 #if hi.visitOrHome != SD:
                 #    continue
