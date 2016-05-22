@@ -308,7 +308,7 @@ def sortModules(moduleList):
 #------------------------
 
 
-class SlottedObject(object):
+class SlottedObjectMixin(object):
     r'''
     Provides template for classes implementing slots allowing it to be pickled
     properly.
@@ -318,7 +318,7 @@ class SlottedObject(object):
     a single play or plate appearence.
     
     >>> import pickle
-    >>> class BatAngle(common.SlottedObject):
+    >>> class BatAngle(common.SlottedObjectMixin):
     ...     __slots__ = ('horizontal', 'vertical')
     >>> s = BatAngle()
     >>> s.horizontal = 35
@@ -360,7 +360,7 @@ class SlottedObject(object):
         for slot, value in state.items():
             setattr(self, slot, value)
 
-class ParentType(SlottedObject):
+class ParentMixin(SlottedObjectMixin):
 
     __slots__ = ('_parent',)
     

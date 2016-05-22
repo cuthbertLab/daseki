@@ -53,7 +53,6 @@ class Adjustment(RetroData):
     '''
     __slots__ = ('playerId', 'hand')
     
-    #@common.keyword_only_args('parent')
     def __init__(self, playerId, hand=None, parent=None):
         super().__init__(parent=parent)
         self.playerId = playerId
@@ -70,7 +69,7 @@ class Adjustment(RetroData):
 class BattingAdjustment(Adjustment):
     record = 'badj'
     __slots__ = ()
-    #@common.keyword_only_args('parent')
+
     def __init__(self, playerId, hand=None, parent=None):
         super().__init__(playerId, hand, parent=parent)
 
@@ -103,7 +102,7 @@ class Data(RetroData):
     __slots__ = ('dataType', 'playerId', 'runs')
     
     record = 'data'
-    #@common.keyword_only_args('parent')
+
     def __init__(self, dataType, playerId, runs, *, parent=None):
         super().__init__(parent=parent)
         if dataType != 'er':
@@ -125,7 +124,7 @@ class Comment(RetroData):
     '''
     __slots__ = ('comment',)
     record = 'com'
-    #@common.keyword_only_args('parent')
+
     def __init__(self, comment, *, parent=None):
         super().__init__(parent=parent)
         self.comment = comment
@@ -139,8 +138,7 @@ class Comment(RetroData):
 class Info(RetroData):
     '''
     Defines a single retrosheet info record
-    '''
-    
+    '''    
     __slots__ = ('recordType', 'dataInfo')
     record = 'info'
     _gameRelatedTypes = (

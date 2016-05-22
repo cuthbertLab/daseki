@@ -11,7 +11,7 @@
 from daseki import common
 
 
-class RetroData(common.ParentType):
+class RetroData(common.ParentMixin):
     __slots__ = ('associatedComment', 'playNumber', '_parent')
     
     record = 'unknown'

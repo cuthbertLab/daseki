@@ -13,7 +13,7 @@ visitorNames = ["visitor", "home"]
 del(_positionNames)
 
 
-class PlayerYear(common.ParentType):
+class PlayerYear(common.ParentMixin):
     '''
     Represents everything that a player does in a year, currently regular season only.
     '''
@@ -22,7 +22,7 @@ class PlayerYear(common.ParentType):
         super().__init__(parent=parent)
         
 
-class PlayerGame(common.ParentType):
+class PlayerGame(common.ParentMixin):
     '''
     Represents everything that a player does in one game.
     '''
@@ -433,7 +433,7 @@ class PlayerGame(common.ParentType):
         return allPAs
         
 
-class LineupCard(common.ParentType):
+class LineupCard(common.ParentMixin):
     '''
     Represents all of the players for a given team for a given game.
 

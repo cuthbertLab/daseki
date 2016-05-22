@@ -42,7 +42,7 @@ from daseki.common import warn
 from daseki import core
 
 
-class PlateAppearance(common.ParentType):
+class PlateAppearance(common.ParentMixin):
     '''
     Represents a plateAppearance (even one that
     should not count for OBP such as Catcher's Interference) by the player and each 
@@ -161,7 +161,7 @@ class Play(datatypeBase.RetroData):
     
     record = 'play'
     visitorNames = ["visitor", "home"]
-    #@common.keyword_only_args('parent')
+    
     def __init__(self, 
                  inning=0, visitOrHome=0, 
                  playerId="", count="", 
@@ -280,13 +280,14 @@ class Play(datatypeBase.RetroData):
         return self._runnerEvent
 
     
-class RunnerAdvance(common.ParentType):
+class RunnerAdvance(common.ParentMixin):
     '''
     Characterizes a single runner advance event.
     '''
     __slots__ = ('_raw', 'afterMods', 'playerId', 'isImplied', 
                  'baseBefore', 'baseAfter', 'isOut', 'numErrors', 'errorPositions')
-    def __init__(self, raw="", playerId=None):
+    def __init__(self, raw="", playerId=None, *, parent=None):
+        super().__init__(parent=parent)
         #self.superRaw = None # see setRaw
         self._raw = None
         self.afterMods = None
@@ -427,7 +428,7 @@ class RunnerAdvance(common.ParentType):
         else:
             return False
 
-class RunnerEvent(common.ParentType):
+class RunnerEvent(common.ParentMixin):
     '''
     An object that, given the information from a Play object and a list of runners before the event
     can figure out who is on each base after the event.
@@ -681,7 +682,7 @@ class RunnerEvent(common.ParentType):
                 return True
         return False
 
-class PlayEvent(common.ParentType):
+class PlayEvent(common.ParentMixin):
     '''
     Definitely the most complex single parsing job. What actually happened in the play, from
     the batter's perspective
@@ -750,7 +751,17 @@ class PlayEvent(common.ParentType):
         >>> pe.basesStolen
         ['2']
         
-        # TODO - isOut false if afterEvent matches WP?
+
+        >>> pe = retro.play.PlayEvent()
+        >>> pe.matchStrikeout('K+WP')
+        True
+        >>> pe.strikeOut
+        True
+        >>> pe.isOut # ???
+        True
+
+
+        # TODO - should isOut be False if afterEvent matches WP?
         '''
         if bb.startswith('K'):
             self.strikeOut = True
@@ -1133,7 +1144,7 @@ class PlayEvent(common.ParentType):
             self.modifiers = bs[1:]
         else:
             self.modifiers = []
-
+        
 
          
     def eraseBaseRunnerIfNoError(self, playCode, fullPlay):
@@ -1209,6 +1220,9 @@ class PlayEvent(common.ParentType):
         
 
     def defaults(self):
+        '''
+        Set a whole mess of defaults
+        '''
         self.isOut = False # is the batter out on the play
         self.isSafe = False # ??? in case of, say, a SB play, etc., both can be False
         self.fielders = tuple()

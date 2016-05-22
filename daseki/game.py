@@ -45,7 +45,7 @@ eventsToClasses = {
                    'play': play.Play,
                    }
 
-class GameCollection(common.SlottedObject):
+class GameCollection(common.SlottedObjectMixin):
     '''
     a collection of Game objects, in some order...
     
@@ -156,7 +156,7 @@ class GameCollection(common.SlottedObject):
         return self.games
 
 
-class Game(common.ParentType):
+class Game(common.ParentMixin):
     '''
     A Game records information about a game.
     

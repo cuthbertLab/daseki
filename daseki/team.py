@@ -101,7 +101,7 @@ def teamInfoForCode(code):
             return t
     return None
 
-class Team(common.ParentType):
+class Team(common.ParentMixin):
     '''
     Represents a single team, possibly at a single time.
     

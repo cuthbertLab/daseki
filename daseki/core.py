@@ -28,7 +28,7 @@ from daseki.exceptionsDS import DasekiException
 
 
 
-class HalfInning(common.ParentType):
+class HalfInning(common.ParentMixin):
     '''
     >>> g = game.Game('SDN201304090')
     >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
@@ -291,7 +291,7 @@ class HalfInning(common.ParentType):
                 
 
 
-class BaseRunners(common.ParentType):
+class BaseRunners(common.ParentMixin):
     '''
     A relatively lightweight object for dealing with baserunners.
     
