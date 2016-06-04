@@ -402,8 +402,12 @@ class TestSlow(unittest.TestCase):
             visitRuns = g.runs.visitor
             homeRuns = g.runs.home
             gl = GameLog(gId)
-            self.assertEqual(visitRuns, gl.visitRuns, "{0}: PlayData {1} GameLog {2}".format(gId, visitRuns, gl.visitRuns))
-            self.assertEqual(homeRuns, gl.homeRuns, "{0}: PlayData {1} GameLog {2}".format(gId, homeRuns, gl.homeRuns))
+            self.assertEqual(visitRuns, 
+                             gl.visitRuns, 
+                             "{0}: PlayData {1} GameLog {2}".format(gId, visitRuns, gl.visitRuns))
+            self.assertEqual(homeRuns, 
+                             gl.homeRuns, 
+                             "{0}: PlayData {1} GameLog {2}".format(gId, homeRuns, gl.homeRuns))
 
 if __name__ == "__main__":
     import daseki

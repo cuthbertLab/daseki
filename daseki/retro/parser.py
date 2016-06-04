@@ -67,7 +67,7 @@ class YearDirectory(object):
         '''
         Parses all the event files and returns them as a list.
         '''
-        if any(self._eventFiles):
+        if self._eventFiles:
             return self._eventFiles
         errors = []
         # 5x slower!
@@ -78,7 +78,7 @@ class YearDirectory(object):
                 self._eventFiles.append(self._parseOneEventFile(efn))
             #except Exception:
             #    errors.append(efn)
-        if any(errors):
+        if errors:
             print("These files had errors: ", errors)
         return self._eventFiles
                 
@@ -87,7 +87,7 @@ class YearDirectory(object):
         '''
         returns all EventFiles in the directory.
         '''
-        if any(self._eventFiles):
+        if self._eventFiles:
             return self._eventFiles
         self.parseEventFiles()
         return self._eventFiles
@@ -110,7 +110,7 @@ class YearDirectory(object):
         '''
         ret = []
         for ev in self.eventFiles:
-            ret += ev.byTeam(teamCode)
+            ret += ev.protoGamesByTeam(teamCode)
         return ret
 
     def byPark(self, teamCode):

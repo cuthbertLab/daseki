@@ -31,7 +31,7 @@ def teamList():
 
     :rtype: TeamInfo
     '''
-    if any(_teamList):
+    if _teamList:
         return _teamList
     filePath = os.path.join(common.dataFilePath(), 'currentNames.csv')
     with codecs.open(filePath, 'r', 'latin-1') as f:

@@ -40,93 +40,6 @@ from daseki import common
 from daseki.exceptionsDS import RetrosheetException
 from daseki.common import warn
 from daseki import core
-
-
-class PlateAppearance(common.ParentMixin):
-    '''
-    Represents a plateAppearance (even one that
-    should not count for OBP such as Catcher's Interference) by the player and each 
-    element in that list is itself a list of all Play objects representing that
-    plate appearance as well as any substitutions or other events that take place during
-    the PA.
-    '''
-    def __init__(self, *, parent=None):
-        super().__init__(parent=parent)
-        self.startPlayNumber = -1
-        self.endPlayNumber = -1
-        self.inningNumber = None
-        self.visitOrHome = common.TeamNum.VISITOR
-        self.batterId = None
-        self.pitcherId = None
-        self.outsBefore = -1
-        self.plateAppearanceInInning = 0
-        self.events = []
-        self.isIncomplete = False # sub in the middle of the inning
-        
-    def append(self, e):
-        self.events.append(e)
-
-    def __getattr__(self, attr):
-        le = self.lastEvent
-        if le is None:
-            raise IndexError("'%s' object has events to search for attributes on" % 
-                             (self.__class__.__name__,))
-        if hasattr(le, attr):
-            return getattr(le, attr)
-        elif hasattr(le.playEvent, attr):
-            return getattr(le.playEvent, attr)
-        elif hasattr(le.runnerEvent, attr):
-            return getattr(le.runnerEvent, attr)
-        else:
-            raise AttributeError("'%s' object has no attribute '%s'" % 
-                                 (self.__class__.__name__, attr))
-        
-    
-    @property
-    def outsAfter(self):
-        outs = 0
-        for p in self.events:
-            if p.record != 'play':
-                continue
-            outs += p.outsMadeOnPlay
-        return self.outsBefore + outs
-    
-    @property
-    def lastEvent(self):
-        for i in range(len(self.events)):
-            j = len(self.events) - (i+1)
-            if self.events[j].record == 'play':
-                return self.events[j]
-        return None
-
-    @property
-    def battingOrder(self):
-        '''
-        >>> g = game.Game('SDN201304090')
-        >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
-        >>> pa0 = hi.plateAppearances[0]
-        >>> pa0.battingOrder
-        5 
-        '''
-        g = self.parentByClass('Game')
-        if g is None:
-            return None
-        p = g.playerById(self.batterId)
-        if p is None:
-            return None
-        return p.battingOrder
-
-    
-    def __repr__(self):
-        incomplete = ""
-        if self.isIncomplete is True:
-            incomplete = "(I)"
-
-        return "<%s.%s %s-%s%s: %s: %r>" % (self.__module__, self.__class__.__name__, 
-                          self.inningNumber, self.plateAppearanceInInning, incomplete,
-                          self.batterId, 
-                          self.events)
-
     
         
 class Play(datatypeBase.RetroData):
@@ -163,9 +76,12 @@ class Play(datatypeBase.RetroData):
     visitorNames = ["visitor", "home"]
     
     def __init__(self, 
-                 inning=0, visitOrHome=0, 
-                 playerId="", count="", 
-                 pitches="", raw="", 
+                 inning=0, 
+                 visitOrHome=0, 
+                 playerId="", 
+                 count="", 
+                 pitches="", 
+                 raw="", 
                  *, 
                  parent=None):
         super().__init__(parent=parent)
@@ -286,6 +202,7 @@ class RunnerAdvance(common.ParentMixin):
     '''
     __slots__ = ('_raw', 'afterMods', 'playerId', 'isImplied', 
                  'baseBefore', 'baseAfter', 'isOut', 'numErrors', 'errorPositions')
+    
     def __init__(self, raw="", playerId=None, *, parent=None):
         super().__init__(parent=parent)
         #self.superRaw = None # see setRaw
@@ -720,6 +637,12 @@ class PlayEvent(common.ParentMixin):
 
     @property
     def isHit(self):
+        '''
+        returns True if this play counts as a hit.
+        
+        False doesn't mean it counts against the BA.  Only if isAtBat is True
+        and isHit is False should it count that way.
+        '''
         if self.single or self.double or self.triple or self.homeRun:
             return True
         else:
@@ -1103,6 +1026,7 @@ class PlayEvent(common.ParentMixin):
             self.eraseBaseRunnerIfNoError('PO', bb)
             return True
         return False
+
 
     parseMethodOrder = (matchStrikeout, matchBaseOnBalls, matchNoPlay,
                         # SF / SH affects atBat status, but is in modifier. TODO: catch this.

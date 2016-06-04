@@ -8,14 +8,11 @@
 # Copyright:    Copyright © 2014-15 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
-from __future__ import print_function
-from __future__ import division
-
-
 import copy
 
 from daseki.test.testRunner import mainTest # @UnresolvedImport
 from daseki import common
+from daseki import plateAppearance
 from daseki.common import TeamNum # @UnresolvedImport
 from daseki.exceptionsDS import DasekiException
 
@@ -78,48 +75,47 @@ class HalfInning(common.ParentMixin):
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
         >>> pp(hi.plateAppearances)        
-        [<daseki.retro.play.PlateAppearance 8-1: gyorj001: 
+        [<daseki.plateAppearance.PlateAppearance 8-1: gyorj001: 
             [<daseki.retro.play.Play b8: gyorj001:NP>, 
              <daseki.player.Sub visitor,8: Jerry Hairston (hairj002):thirdbase>, 
              <daseki.retro.play.Play b8: gyorj001:NP>, 
              <daseki.player.Sub visitor,9: Nick Punto (puntn001):shortstop>, 
              <daseki.retro.play.Play b8: gyorj001:W>]>,
-         <daseki.retro.play.PlateAppearance 8-2: amara001: 
+         <daseki.plateAppearance.PlateAppearance 8-2: amara001: 
             [<daseki.retro.play.Play b8: amara001:PB.1-2>, 
              <daseki.retro.play.Play b8: amara001:W>]>,
-         <daseki.retro.play.PlateAppearance 8-3: maybc001: 
+         <daseki.plateAppearance.PlateAppearance 8-3: maybc001: 
             [<daseki.retro.play.Play b8: maybc001:NP>, 
              <daseki.player.Sub visitor,5: Matt Guerrier (guerm001):pitcher>, 
              <daseki.retro.play.Play b8: maybc001:14/SH/BG.2-3;1-2>]>,
-         <daseki.retro.play.PlateAppearance 8-4: hundn001: 
+         <daseki.plateAppearance.PlateAppearance 8-4: hundn001: 
             [<daseki.retro.play.Play b8: hundn001:FC6/G.3XH(62);2-3>]>,
-         <daseki.retro.play.PlateAppearance 8-5: denoc001: 
+         <daseki.plateAppearance.PlateAppearance 8-5: denoc001: 
             [<daseki.retro.play.Play b8: denoc001:S9/G.3-H;1-2>]>,
-         <daseki.retro.play.PlateAppearance 8-6: cabre001: 
+         <daseki.plateAppearance.PlateAppearance 8-6: cabre001: 
             [<daseki.retro.play.Play b8: cabre001:W.2-3;1-2>]>,
-         <daseki.retro.play.PlateAppearance 8-7: venaw001: 
+         <daseki.plateAppearance.PlateAppearance 8-7: venaw001: 
             [<daseki.retro.play.Play b8: venaw001:NP>, 
              <daseki.player.Sub visitor,5: Luis Cruz (cruzl001):thirdbase>, 
              <daseki.retro.play.Play b8: venaw001:NP>, 
              <daseki.player.Sub visitor,8: J.P. Howell (howej003):pitcher>, 
              <daseki.retro.play.Play b8: venaw001:T8/L.3-H;2-H;1-H>]>,
-         <daseki.retro.play.PlateAppearance 8-8(I): thayd001: 
+         <daseki.plateAppearance.PlateAppearance 8-8(I): thayd001: 
             [<daseki.retro.play.Play b8: thayd001:NP>, 
              <daseki.player.Sub home,3: Jesus Guzman (guzmj005):pinchhitter>]>,
-         <daseki.retro.play.PlateAppearance 8-8: guzmj005: 
+         <daseki.plateAppearance.PlateAppearance 8-8: guzmj005: 
             [<daseki.retro.play.Play b8: guzmj005:W>]>,
-         <daseki.retro.play.PlateAppearance 8-9: alony001: 
+         <daseki.plateAppearance.PlateAppearance 8-9: alony001: 
             [<daseki.retro.play.Play b8: alony001:S6/G.3-H;1-2>]>,
-         <daseki.retro.play.PlateAppearance 8-10: gyorj001: 
+         <daseki.plateAppearance.PlateAppearance 8-10: gyorj001: 
             [<daseki.retro.play.Play b8: gyorj001:W.2-3;1-2>]>,
-         <daseki.retro.play.PlateAppearance 8-11: amara001: 
+         <daseki.plateAppearance.PlateAppearance 8-11: amara001: 
             [<daseki.retro.play.Play b8: amara001:K>]>]
         '''
-        from daseki.retro import play
-        if any(self._plateAppearances):
+        if self._plateAppearances:
             return self._plateAppearances
 
-        thisPA = play.PlateAppearance(parent=self)
+        thisPA = plateAppearance.PlateAppearance(parent=self)
         thisPA.visitOrHome = self.visitOrHome
         thisPA.inningNumber = self.inningNumber
         thisPA.batterId = self.events[0].playerId
@@ -142,7 +138,7 @@ class HalfInning(common.ParentMixin):
                     
                 plateAppearanceInInning += 1
 
-                thisPA = play.PlateAppearance(parent=self)
+                thisPA = plateAppearance.PlateAppearance(parent=self)
                 thisPA.startPlayNumber = p.playNumber
                 thisPA.visitOrHome = self.visitOrHome
                 thisPA.inningNumber = self.inningNumber

@@ -64,9 +64,7 @@ class BoxScore(object):
         #b.append(self.error())
         #b.append(self.dblplay())
         b.append(self.lob())
-        dbl = self.dbl()
-        if any(dbl):
-            b.append(dbl)
+        b.append(self.dbl())
         b.append(self.tpl())
         b.append(self.hr())
         #b.append(self.sb())

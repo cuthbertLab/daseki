@@ -77,7 +77,7 @@ class EventFile(object):
         return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
                                   stripName)
     
-    def byTeam(self, teamCode):
+    def protoGamesByTeam(self, teamCode):
         '''
         Returns a list of all ProtoGames representing a game played by a single team
         (home or away).
@@ -87,7 +87,7 @@ class EventFile(object):
         >>> evf = retro.eventFile.EventFile('2010SLN.EVN')
         >>> evf
         <daseki.retro.eventFile.EventFile 2010SLN.EVN>
-        >>> evf.byTeam('SDN')
+        >>> evf.protoGamesByTeam('SDN')
         [<daseki.retro.protoGame.ProtoGame SLN201009160: SDN at SLN>, 
          <daseki.retro.protoGame.ProtoGame SLN201009170: SDN at SLN>, 
          <daseki.retro.protoGame.ProtoGame SLN201009180: SDN at SLN>, 

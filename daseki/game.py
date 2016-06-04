@@ -8,8 +8,6 @@
 # Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
-from __future__ import division
-from __future__ import print_function
 
 DEBUG = False
 
@@ -66,8 +64,8 @@ class GameCollection(common.SlottedObjectMixin):
     def __init__(self):
         super().__init__()
         self.games = []
-        self.yearStart = 2014
-        self.yearEnd = 2014
+        self.yearStart = 2015
+        self.yearEnd = 2015
         self.team = None
         self.park = None
         self.usesDH = None
@@ -118,10 +116,12 @@ class GameCollection(common.SlottedObjectMixin):
                   usesDH + daseki.__version__ + '.p')
         return hashFN
     
-    def _saveToPickle(self):
+    def save(self):
         pfn = os.path.join(common.getDefaultRootTempDir(), self._pickleFN())
-        pickle.dump(self, pfn, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(pfn, 'wb') as pFileHandle:
+            pickle.dump(self.games, pFileHandle, protocol=pickle.HIGHEST_PROTOCOL)
     
+
 #     def _parseOne(self, pgIndex):
 #         pg = self.protoGames[pgIndex]
 #         g = Game(parent=self)
@@ -139,7 +139,15 @@ class GameCollection(common.SlottedObjectMixin):
         '''
         Parse all the files in the year range, filtered by team or park
         '''
-        #print("Parsing {0}".format(self.yearStart))
+        ## Pickling only resulted in a 20% speedup for subsequent calls, but a 3x
+        ## slowdown for first call -- not worth it.
+#         if not forceSource:
+#             pfn = os.path.join(common.getDefaultRootTempDir(), self._pickleFN())
+#             if os.path.exists(pfn):
+#                 with open(pfn, 'rb') as pFileHandle:
+#                     self.games = pickle.load(pFileHandle)
+#                 return
+#         
         if len(self.protoGames) == 0:
             self.addMatchingProtoGames()
         
@@ -153,6 +161,8 @@ class GameCollection(common.SlottedObjectMixin):
             unused_errors = g.mergeProto(pg, finalize=True)
             self.games.append(g)
         self.sortGames()
+#         if not forceSource:
+#             self.save()
         return self.games
 
 
@@ -590,5 +600,5 @@ class TestSlow(unittest.TestCase):
 
 if __name__ == '__main__':
     from daseki import mainTest
-    mainTest(Test) #Test # TestSlow
+    mainTest(TestSlow) #Test # TestSlow
 
