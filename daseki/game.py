@@ -15,16 +15,18 @@ import pickle
 import datetime
 import os
 import unittest
-from pprint import pprint as pp
-
-from daseki.retro import basic, play, parser, protoGame
-from daseki import common
-from daseki import core
-from daseki import player # @UnresolvedImport
-from daseki import team # @UnresolvedImport
-from daseki.common import TeamNum
 
 from collections import namedtuple, OrderedDict
+from pprint import pprint as pp
+
+from daseki import common
+from daseki import core
+from daseki import player
+from daseki import team 
+from daseki.common import TeamNum
+from daseki.retro import basic, play, parser, protoGame
+from daseki.exceptionsDS import GameParseException
+
 
 Runs = namedtuple('Runs', 'visitor home')
 LeftOnBase = namedtuple('LeftOnBase', 'visitor home')
@@ -61,12 +63,12 @@ class GameCollection(common.SlottedObjectMixin):
     __slots__ = ('games', 'yearStart', 'yearEnd', 'team', 
                  'park', 'usesDH', 'protoGames', 'seasonType')
     
-    def __init__(self):
+    def __init__(self, yearStart=2015, yearEnd=None, team=None):
         super().__init__()
         self.games = []
-        self.yearStart = 2015
-        self.yearEnd = 2015
-        self.team = None
+        self.yearStart = yearStart
+        self.yearEnd = yearEnd or yearStart
+        self.team = team
         self.park = None
         self.usesDH = None
         self.protoGames = []
@@ -140,7 +142,8 @@ class GameCollection(common.SlottedObjectMixin):
         Parse all the files in the year range, filtered by team or park
         '''
         ## Pickling only resulted in a 20% speedup for subsequent calls, but a 3x
-        ## slowdown for first call -- not worth it.
+        ## slowdown for first call -- not worth it.  Oh, and one season was 792 MB!
+        
 #         if not forceSource:
 #             pfn = os.path.join(common.getDefaultRootTempDir(), self._pickleFN())
 #             if os.path.exists(pfn):
@@ -332,8 +335,13 @@ class Game(common.ParentMixin):
                 err = "Event Error in {0}: {1}: {2}".format(protoGame.id, str(e), str(d))
                 common.warn(err) 
                 errors.append(err)
+                
+        # pylint: disable=broad-except
         if finalize is True:
-            self.finalizeParsing()
+            try:
+                self.finalizeParsing()
+            except Exception as exc:
+                raise GameParseException("Error in %s: %s" % (self.id, str(exc))) from exc
         return errors
 
     def finalizeParsing(self):
@@ -385,11 +393,11 @@ class Game(common.ParentMixin):
                     lastVisitOrHome = r.visitOrHome
                 r.runnersBefore = lastRunners
                 r.runnersBefore.parent = r
-                r.getPlayEvent().parse() 
-                r.getRunnerEvent().parse()
+                unused = r.playEvent    # this will call Parse() on each, with good exception
+                unused = r.runnerEvent  # handling and caching
                 lastRunners = r.runnersAfter.copy()
             else:
-                raise Exception("should only have play and sub records.")
+                raise GameParseException("should only have play and sub records.")
             if thisHalfInning is not None:
                 thisHalfInning.endPlayNumber = playNumber
                 thisHalfInning.append(r)

@@ -40,7 +40,9 @@ from daseki import common
 from daseki.exceptionsDS import RetrosheetException
 from daseki.common import warn
 from daseki import core
-    
+
+class PlayParseException(RetrosheetException):
+    pass
         
 class Play(datatypeBase.RetroData):
     '''
@@ -174,16 +176,25 @@ class Play(datatypeBase.RetroData):
     def runnerEvent(self):
         if self._runnerEvent is not None:
             return self._runnerEvent
-        revt = self.getRunnerEvent()
-        revt.parse()
+        # pylint: disable=broad-except
+        try:
+            revt = self.getRunnerEvent()
+            revt.parse()
+        except Exception as exc:
+            raise PlayParseException("RunnerEvent error in %r: %s" % (self, exc)) from exc
         return self._runnerEvent
         
     @property
     def playEvent(self):
         if self._playEvent is not None:
             return self._playEvent
-        pevt = self.getPlayEvent()
-        pevt.parse()
+
+        # pylint: disable=broad-except
+        try:
+            pevt = self.getPlayEvent()
+            pevt.parse()
+        except Exception as exc:
+            raise PlayParseException("PlayEvent error in %r: %s" % (self, exc)) from exc
         return self._playEvent
 
     def getPlayEvent(self):

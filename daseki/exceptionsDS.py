@@ -7,3 +7,6 @@ class DasekiException(Exception):
 
 class RetrosheetException(DasekiException):
     pass
+
+class GameParseException(DasekiException):
+    pass
