@@ -45,7 +45,7 @@ eventsToClasses = {
                    'play': play.Play,
                    }
 
-class GameCollection(common.SlottedObjectMixin):
+class GameCollection():
     '''
     a collection of Game objects, in some order...
     
@@ -60,9 +60,6 @@ class GameCollection(common.SlottedObjectMixin):
     >>> gc.park
     'SDN'
     '''}
-    __slots__ = ('games', 'yearStart', 'yearEnd', 'team', 
-                 'park', 'usesDH', 'protoGames', 'seasonType')
-    
     def __init__(self, yearStart=2015, yearEnd=None, team=None):
         super().__init__()
         self.games = []
@@ -73,10 +70,14 @@ class GameCollection(common.SlottedObjectMixin):
         self.usesDH = None
         self.protoGames = []
         self.seasonType = 'regular'
+        self.overrideDirectory = None
         
     def addMatchingProtoGames(self):
         for y in range(self.yearStart, self.yearEnd + 1):
-            yd = parser.YearDirectory(y, seasonType=self.seasonType)
+            yd = parser.YearDirectory(y, 
+                                      seasonType=self.seasonType,)
+            if self.overrideDirectory:
+                yd.overrideDirectory = self.overrideDirectory
             pgs = []
             if self.team is not None:
                 pgs = yd.byTeam(self.team)
@@ -124,13 +125,6 @@ class GameCollection(common.SlottedObjectMixin):
             pickle.dump(self.games, pFileHandle, protocol=pickle.HIGHEST_PROTOCOL)
     
 
-#     def _parseOne(self, pgIndex):
-#         pg = self.protoGames[pgIndex]
-#         g = Game(parent=self)
-#         unused_errors = g.mergeProto(pg, finalize=True)
-#         self.games.append(g)
-#         return None
-
     def sortGames(self):
         '''
         Sort games by date then team.
@@ -161,7 +155,13 @@ class GameCollection(common.SlottedObjectMixin):
 #     
         for pg in self.protoGames:
             g = Game(parent=self)
-            unused_errors = g.mergeProto(pg, finalize=True)
+            unused_errors = g.mergeProto(pg)
+            # pylint: disable=broad-except
+            try:
+                g.finalizeParsing()
+            except Exception as exc:
+                raise GameParseException("Error in %s: %s" % (g.id, str(exc))) from exc
+
             self.games.append(g)
         self.sortGames()
 #         if not forceSource:
@@ -176,7 +176,7 @@ class Game(common.ParentMixin):
     Each game record is held somewhere in the `.records` list.
     Each half-inning is stored in the halfInnings list.
     '''
-    __slots__ = ('id', 'records', 'lineupHome', 'lineupVisitor', 'lineupCards', 'halfInnings')
+    __slots__ = ('id', 'records', 'lineupHome', 'lineupVisitor', 'lineupCards', 'halfInnings',)
     
     def __init__(self, gameId=None, *, parent=None):
         super().__init__(parent=parent)
@@ -211,7 +211,9 @@ class Game(common.ParentMixin):
         Runs(visitor=3, home=9)
         '''
         pg = protoGame.protoGameById(self.id)
-        return self.mergeProto(pg, finalize=True)
+        errors = self.mergeProto(pg)
+        self.finalizeParsing()
+        return errors
 
 
     def halfInningByNumber(self, number, visitOrHome):
@@ -314,7 +316,7 @@ class Game(common.ParentMixin):
             lob[hi.visitOrHome] += hi.leftOnBase
         return LeftOnBase(lob[TeamNum.VISITOR], lob[TeamNum.HOME])
 
-    def mergeProto(self, protoGame, finalize=True):
+    def mergeProto(self, protoGame):
         '''
         The mergeProto function takes a ProtoGame object and loads all of these records into the
         records list as event objects.
@@ -331,17 +333,11 @@ class Game(common.ParentMixin):
             try:
                 rec = eventClass(*eventData, parent=self)
                 self.records.append(rec)
-            except TypeError as e:
+            except (TypeError, ValueError) as e:
                 err = "Event Error in {0}: {1}: {2}".format(protoGame.id, str(e), str(d))
                 common.warn(err) 
                 errors.append(err)
                 
-        # pylint: disable=broad-except
-        if finalize is True:
-            try:
-                self.finalizeParsing()
-            except Exception as exc:
-                raise GameParseException("Error in %s: %s" % (self.id, str(exc))) from exc
         return errors
 
     def finalizeParsing(self):
@@ -535,7 +531,7 @@ class Test(unittest.TestCase):
     def xtestInningIteration(self):
         g1 = self.games[0]
         h1 = g1.halfInnings[0]
-        pp(h1.__dict__)
+        
         pp(h1.following)
         pp(g1.halfInnings[1])
         while h1 is not None:
@@ -548,7 +544,7 @@ class Test(unittest.TestCase):
         unused_totalWrong = 0
         for i, g in enumerate(self.games):
             unused_totalWrong += self.checkSaneOuts(g)
-        
+        self.assertEqual(unused_totalWrong, 0)
 
     def checkSaneOuts(self, g):
         totalHalfInnings = len(g.halfInnings)
@@ -608,5 +604,5 @@ class TestSlow(unittest.TestCase):
 
 if __name__ == '__main__':
     from daseki import mainTest
-    mainTest(TestSlow) #Test # TestSlow
+    mainTest(Test) #Test and/or TestSlow
 

@@ -177,8 +177,12 @@ class Info(RetroData):
             di = None
             
         if di is not None and recordType in self.intTypes:
-            di = int(di)
-        
+            try:
+                di = int(di)
+            except ValueError:
+                ## Uncomment the next line after known errors are merged into Retrosheet.
+                #print("Error to fix: ", recordType, self.parentByClass('Game'))
+                di = 0
         
         self.dataInfo = di 
 

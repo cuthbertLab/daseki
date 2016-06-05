@@ -106,6 +106,8 @@ class Team(common.ParentMixin):
     Represents a single team, possibly at a single time.
     
     >>> expos = team.Team('MON')
+    >>> expos
+    <daseki.team.Team Montreal Expos (MON)>
     >>> expos.city
     'Montreal'
     >>> expos.country
@@ -134,6 +136,15 @@ class Team(common.ParentMixin):
         
         self._currentCode = None
         self.code = code
+
+    def __repr__(self):
+        teamRepr = self.city
+        if self.nickname is not None:
+            teamRepr += " " + self.nickname
+        teamRepr += " (" + self.code + ")"
+        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
+                                  teamRepr)
+        
 
     def _getCode(self):
         return self._currentCode

@@ -38,28 +38,46 @@ class YearDirectory(object):
     def __init__(self, year, seasonType='regular'):
         self.year = year
         self.seasonType = seasonType
-        dirName = common.dataRetrosheetByType(seasonType)
-        self.dirName = dirName
-        allFiles = os.listdir(dirName)
         self.eventFileNames = []
         self.rosterFileNames = []
         self.teamFileName = None
         self._eventFiles = []
+
+        self.dirName = None
+        self.overrideDirectory = None
+        self._files = []
+
+    @property
+    def files(self):
+        if self._files:
+            return self._files
+
+        if self.overrideDirectory:
+            dirName = self.overrideDirectory
+        else:
+            dirName = common.dataRetrosheetByType(self.seasonType)
+
+        self.dirName = dirName
+        allFiles = os.listdir(dirName)
         
         files = []
         for f in allFiles:
-            if str(year) not in f:
+            if str(self.year) not in f:
                 continue
             files.append(f)
-            if f.endswith('.EVA') or f.endswith('.EVN'):
+            if (f.endswith('.EVA') 
+                    or f.endswith('.EVN') 
+                    or f.endswith('.EVE') # all-star-game
+                ):
                 self.eventFileNames.append(f)
             elif f.endswith('.ROS'):
                 self.rosterFileNames.append(f)
             elif f.startswith('TEAM'):
                 self.teamFileName = f
     
-        self.files = files
-        
+        self._files = files
+        return files
+
     def _parseOneEventFile(self, efn):
         return EventFile(os.path.join(self.dirName, efn))
     
@@ -69,6 +87,7 @@ class YearDirectory(object):
         '''
         if self._eventFiles:
             return self._eventFiles
+        unused_files = self.files
         errors = []
         # 5x slower!
 #         for ef in common.multicore(self._parseOneEventFile)(self.eventFileNames):

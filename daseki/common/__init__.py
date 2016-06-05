@@ -332,7 +332,7 @@ class SlottedObjectMixin(object):
     
     ### CLASS VARIABLES ###
 
-    __slots__ = ()
+    __slots__ = ('__weakref__')
 
     ### SPECIAL METHODS ###
 
@@ -366,7 +366,8 @@ class ParentMixin(SlottedObjectMixin):
     
     def __init__(self, parent=None):
         self._parent = None
-        self.parent = parent
+        if parent is not None:
+            self.parent = parent
 
     def __getstate__(self):
         pValue = getattr(self, '_parent', None)
@@ -399,12 +400,17 @@ class ParentMixin(SlottedObjectMixin):
             return None
 
     def _getParent(self):
-        if isinstance(self._parent, weakref.ref):
-            return self._parent()
+        _p = self._parent
+        if _p is None:
+            return _p
+        elif isinstance(_p, weakref.ref):
+            return _p()
         else:
-            return self._parent
+            return _p
         
     def _setParent(self, referent):
+        if referent is None:
+            return
         try:
             self._parent = weakref.ref(referent)
         # if referent is None, will raise a TypeError

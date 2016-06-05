@@ -21,6 +21,7 @@ class TestExternal(unittest.TestCase):
         for pg in yd.byTeam('SDN'):
             g = Game()
             g.mergeProto(pg)
+            g.finalizeParsing()
             att = g.infoByType('attendance')
             print(g.id, att)
             attd += int(att)
@@ -96,6 +97,8 @@ class TestExternal(unittest.TestCase):
         ev = EventFile(os.path.join(common.dataRetrosheetEvent(), 'regular', '2014SDN.EVN'))
         g = Game()
         g.mergeProto(ev.protoGames[0])
+        g.finalizeParsing()
+
         for p in g.recordsByType('play'):
             e = p.playEvent
             print(p.inning, p.visitOrHome, p.playerId, e.basicBatter, e.isOut, e.isSafe, e.raw)
@@ -109,6 +112,7 @@ class TestExternal(unittest.TestCase):
         for pg in ev.protoGames:
             g = Game()
             g.mergeProto(pg)
+            g.finalizeParsing()
             r = g.runs
             gl = gameLogs.GameLog(g.id)
             #print(g.id, g.runs)

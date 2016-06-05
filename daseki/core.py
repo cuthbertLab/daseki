@@ -316,7 +316,7 @@ class BaseRunners(common.ParentMixin):
     'elina'
     '''
     __slots__ = ('first', 'second', 'third', '_iterindex') 
-    #@common.keyword_only_args('parent')
+
     def __init__(self, first=False, second=False, third=False, *, parent=None):
         super().__init__(parent=parent)
         self.first = first
@@ -431,7 +431,9 @@ class BaseRunners(common.ParentMixin):
             raise IndexError('item must be an int')
 
     def copy(self):
-        return self.__class__(self.first, self.second, self.third, parent=self.parent)
+        new = self.__class__(self.first, self.second, self.third)
+        new._parent = self._parent
+        return new
 
 
 
