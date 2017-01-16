@@ -5,14 +5,14 @@
 #
 # Authors:      Michael Scott Cuthbert
 #
-# Copyright:    Copyright © 2014-16 Michael Scott Cuthbert / cuthbertLab
+# Copyright:    Copyright © 2014-17 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
 '''
 Daseki is a toolkit for computational baseball analysis, developed by
 Michael Scott Cuthbert (Associate Prof. MIT).
 
-Copyright 2014-16 Michael Scott Cuthbert / cuthbertLab
+Copyright 2014-17 Michael Scott Cuthbert / cuthbertLab
 '''
 __all__ = [
            'dwcompat',

@@ -21,6 +21,8 @@ TeamInfo = namedtuple('TeamInfo', 'authCode code league division ' +
 
 def teamList():
     '''
+    Reads in the currentNames.csv file and outputs a TeamInfo named
+    
     >>> tl = team.teamList()
     >>> tl[0]
     TeamInfo(authCode='ANA', code='LAA', 

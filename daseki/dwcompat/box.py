@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------
+# Name:         dwcompat/box
+# Purpose:      Drop in replacement for "box" DiamondWare.
+#
+# Authors:      Michael Scott Cuthbert
+#
+# Copyright:    Copyright © 2015, 17 Michael Scott Cuthbert / cuthbertLab
+# License:      BSD, see license.txt
+#------------------------------------------------------------------------------
 
 from daseki.common import TeamNum
 from daseki import game
@@ -9,6 +19,9 @@ class BoxScore(object):
         self.game = game.Game(gameId)
     
     def box(self):
+        '''
+        Returns the entire box score for a game
+        '''
         b = []
         b.append(self.topInfo())
         #b.append(self.mainBox())
@@ -18,6 +31,13 @@ class BoxScore(object):
         return '\n'.join(b)
     
     def topInfo(self):
+        '''
+        Returns the information for the game day, location, day night, etc.
+        
+        >>> bs = dwcompat.box.BoxScore('NYA200904180')
+        >>> print(bs.topInfo(), end='')
+        Game of 4/18/2009 -- Cleveland at New York (D)
+        '''
         g = self.game
         s = '     Game of '
         s += '{0.month}/{0.day}/{0.year}'.format(g.date)
@@ -31,6 +51,12 @@ class BoxScore(object):
         return s
     
     def lineScore(self):
+        '''
+        >>> bs = dwcompat.box.BoxScore('SDN201403300')
+        >>> print(bs.lineScore(), end='')
+        Los Angeles      000 010 000 -- 1
+        San Diego        000 000 03x -- 3        
+        '''
         g = self.game
         lines = {TeamNum.VISITOR: "", TeamNum.HOME: ""}
         maxInnings = g.numInnings
@@ -59,6 +85,32 @@ class BoxScore(object):
                                           g.runs.home)
         return b
     
+    
+    def pitchingInfo(self):
+        '''
+        >>> bs = dwcompat.box.BoxScore('SDN201403300')
+        >>> print(bs.pitchingInfo(), end='')
+          Los Angeles           IP  H  R ER BB SO
+        <BLANKLINE>
+        <BLANKLINE>
+          San Diego             IP  H  R ER BB SO
+        <BLANKLINE>
+        '''
+        g = self.game
+        r = []
+        r.append("  {0:22s}IP  H  R ER BB SO".format(g.visitingTeam.location))
+        r.append(self.oneSidePitching(TeamNum.VISITOR))
+        r.append("")
+        r.append("  {0:22s}IP  H  R ER BB SO".format(g.homeTeam.location))
+        r.append(self.oneSidePitching(TeamNum.HOME))
+        footnotes = []
+        r.extend(footnotes)
+        r.append("")
+        return '\n'.join(r)
+
+    def oneSidePitching(self, visitOrHome):
+        return("")
+    
     def bottom(self):
         b = []
         #b.append(self.error())
@@ -76,6 +128,13 @@ class BoxScore(object):
         return bs
     
     def lob(self):
+        '''
+        Returns the left on base information.
+        
+        >>> bs = dwcompat.box.BoxScore('SDN201403300')
+        >>> bs.lob()
+        'LOB -- Los Angeles 6, San Diego 6'   
+        '''
         g = self.game
         s = 'LOB -- '
         s += g.visitingTeam.location + " "
@@ -92,6 +151,10 @@ class BoxScore(object):
         2B -- Francisco B 2, DeRosa M
         
         where searchAttribute would be "double" and abbr would be "2B"
+        
+        >>> bs = dwcompat.box.BoxScore('NYA200904180')
+        >>> bs.countingStatHelper('triple', '3B')
+        '3B -- Ransom C'
         '''
         s = []
         game = self.game
@@ -123,13 +186,27 @@ class BoxScore(object):
 
 
     def time(self):
+        '''
+        Returns the time of game formatted as H:MM
+        
+        >>> bs = dwcompat.box.BoxScore('SDN201403300')
+        >>> bs.time()
+        'T -- 2:49'
+        '''
         g = self.game
         t = g.infoByType('timeofgame')
-        timeInfo = str(int(t/60)) + ':' + str(t % 60)
+        timeInfo = str(int(t/60)) + ':' + "%02d" %  (t % 60)
         s = 'T -- ' + timeInfo
         return s
     
     def attendance(self):
+        '''
+        Returns the total attendance for the game
+
+        >>> bs = dwcompat.box.BoxScore('NYA200904180')
+        >>> bs.attendance()
+        'A -- 45167'
+        '''
         g = self.game
         a = g.infoByType('attendance')
         return 'A -- ' + str(a)

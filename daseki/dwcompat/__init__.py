@@ -5,7 +5,7 @@
 #
 # Authors:      Michael Scott Cuthbert
 #
-# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# Copyright:    Copyright © 2015, 17 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
 #------------------------------------------------------------------------------
 __ALL__ = ['box']
