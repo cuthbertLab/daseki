@@ -145,7 +145,7 @@ class Info(RetroData):
         "visteam hometeam date number " + 
         "starttime daynight usedh pitches umphome ump1b ump2b ump3b umplf umprf " + 
         "fieldcond precip sky temp winddir windspeed timeofgame attendance site " + 
-        "wp lp save gwrbi htbf"
+        "wp lp save gwrbi htbf oscorer"
         )  
         # htbf -- home team batted first! https://github.com/natlownes/retrosheet_api_gae
     gameRelatedTypes = _gameRelatedTypes.split()

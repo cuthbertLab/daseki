@@ -41,7 +41,7 @@ class EventFile(object):
     They all will have a lot of data.  Unstripped lines of code:
     
     >>> len(evf.data)
-    12691
+    12772
     >>> for d in evf.data[0:3]:
     ...     print(d, end='')
     id,SLN201004120
