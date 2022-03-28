@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:         team.py
 # Purpose:      information about teams.
 #
@@ -7,7 +7,7 @@
 #
 # Copyright:    Copyright © 2015-16 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 from daseki import common
 from collections import namedtuple
 import csv
@@ -16,19 +16,27 @@ import datetime
 import os
 
 _teamList = []
-TeamInfo = namedtuple('TeamInfo', 'authCode code league division ' + 
-                                    'location nickname altnickname startDate endDate city state')
+TeamInfo = namedtuple(
+    'TeamInfo',
+    [
+        'authCode', 'code', 'league', 'division',
+        'location', 'nickname', 'altnickname', 'startDate', 'endDate',
+        'city', 'state',
+    ]
+)
+
 
 def teamList():
     '''
     Reads in the currentNames.csv file and outputs a TeamInfo named
-    
+
+    >>> from daseki import team
     >>> tl = team.teamList()
     >>> tl[0]
-    TeamInfo(authCode='ANA', code='LAA', 
-             league='AL', division='', 
-             location='Los Angeles', nickname='Angels', altnickname='', 
-             startDate='4/11/1961', endDate='9/1/1965', 
+    TeamInfo(authCode='ANA', code='LAA',
+             league='AL', division='',
+             location='Los Angeles', nickname='Angels', altnickname='',
+             startDate='4/11/1961', endDate='9/1/1965',
              city='Los Angeles', state='CA')
 
     :rtype: TeamInfo
@@ -41,18 +49,20 @@ def teamList():
             _teamList.append(TeamInfo(*t))
     return _teamList
 
-def teamInfoForCodeAndDate(code, dateStr, searchAuth=False):
+
+def teamInfoForCodeAndDate(code, dateStr, searchAuth=False) -> TeamInfo|None:
     '''
+    >>> from daseki import team
     >>> bees = team.teamInfoForCodeAndDate('BSN', '6/20/1938')
     >>> bees
-    TeamInfo(authCode='ATL', code='BSN', 
-             league='NL', division='', 
-             location='Boston', nickname='Bees', altnickname='', 
-             startDate='4/14/1936', endDate='9/29/1940', 
+    TeamInfo(authCode='ATL', code='BSN',
+             league='NL', division='',
+             location='Boston', nickname='Bees', altnickname='',
+             startDate='4/14/1936', endDate='9/29/1940',
              city='Boston', state='MA')
 
     Search authoritative codes is off by default:
- 
+
     >>> atlantaIn38 = team.teamInfoForCodeAndDate('ATL', '6/20/1938')
     >>> print(atlantaIn38)
     None
@@ -67,30 +77,30 @@ def teamInfoForCodeAndDate(code, dateStr, searchAuth=False):
         date = dateStr
     else:
         try:
-            date = datetime.datetime.strptime(dateStr, "%m/%d/%Y")
+            date = datetime.datetime.strptime(dateStr, '%m/%d/%Y')
         except ValueError:
-            date = datetime.datetime.strptime(dateStr, "%Y/%m/%d")        
-    
+            date = datetime.datetime.strptime(dateStr, '%Y/%m/%d')
+
     for t in tl:
         if searchAuth is False:
             searchCode = t.code
         else:
             searchCode = t.authCode
-            
+
         if code.upper() != searchCode:
             continue
         sdate = datetime.datetime.strptime(t.startDate, '%m/%d/%Y')
         if date < sdate:
             continue
-        if t.endDate == "":
+        if t.endDate == '':
             return t
-        edate = datetime.datetime.strptime(t.endDate, '%m/%d/%Y')
-        if date <= edate:
+        end_date = datetime.datetime.strptime(t.endDate, '%m/%d/%Y')
+        if date <= end_date:
             return t
     return None
-    
 
-def teamInfoForCode(code):
+
+def teamInfoForCode(code) -> TeamInfo|None:
     '''
     Returns a list of information for the code, with the most recent incarnation of
     the team preferred
@@ -103,10 +113,12 @@ def teamInfoForCode(code):
             return t
     return None
 
+
 class Team(common.ParentMixin):
     '''
     Represents a single team, possibly at a single time.
-    
+
+    >>> from daseki import team
     >>> expos = team.Team('MON')
     >>> expos
     <daseki.team.Team Montreal Expos (MON)>
@@ -117,36 +129,35 @@ class Team(common.ParentMixin):
     >>> expos.state # new abbreviation, not 'PQ'
     'QC'
     '''
-    regionreps = ('allegheny club', 'tampa bay')
-    statereps = ('california', 'colorado', 'florida', 'minnesota', 'texas')
-    
+    region_reps = ('allegheny club', 'tampa bay')
+    state_reps = ('california', 'colorado', 'florida', 'minnesota', 'texas')
+
     def __init__(self, code=None, date=None, *, parent=None):
         super().__init__(parent=parent)
         self.date = date
         self.authCode = None
-        self.organiztion = 'MLB'
+        self.organization = 'MLB'
         self.level = 'Majors'
         self.league = None
         self.division = None
         self.location = None
         self.city = None
-        self.state = None # Province, etc.
-        self.country = 'US' # 'Canada' for Toronto, Montreal.  Team may later include Japan, etc.
+        self.state = None  # Province, etc.
+        self.country = 'US'  # 'Canada' for Toronto, Montreal.  Team may later include Japan, etc.
 
         self.nickname = None
         self.alternativeNicknames = []
-        
+
         self._currentCode = None
         self.code = code
 
     def __repr__(self):
         teamRepr = self.city
         if self.nickname is not None:
-            teamRepr += " " + self.nickname
-        teamRepr += " (" + self.code + ")"
-        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
-                                  teamRepr)
-        
+            teamRepr += ' ' + self.nickname
+        teamRepr += ' (' + self.code + ')'
+        return f'<{self.__module__}.{self.__class__.__name__} {teamRepr}>'
+
 
     def _getCode(self):
         return self._currentCode
@@ -155,19 +166,21 @@ class Team(common.ParentMixin):
         self._currentCode = code
         if code is None:
             return
-        t1 = None
+
+        t1: TeamInfo|None
         if self.date is not None:
             t1 = teamInfoForCodeAndDate(code, self.date)
         else:
             t1 = teamInfoForCode(code)
         if t1 is None:
             return
+
         self.league = t1.league
-        if t1.division == "":
+        if t1.division == '':
             self.division = None
         else:
             self.division = t1.division
-        
+
         self.location = t1.location
         if self.location in ('Toronto', 'Montreal'):
             self.country = 'Canada'
@@ -177,10 +190,10 @@ class Team(common.ParentMixin):
             self.nickname = None
         else:
             self.nickname = t1.nickname
-        if t1.altnickname != "":
+        if t1.altnickname != '':
             self.alternativeNicknames = t1.altnickname.split(';')
-        
-    
+
+
     code = property(_getCode, _setCode, doc='''
         Gets or sets the code for the team, at the same time changing information if
         possible:
@@ -190,29 +203,32 @@ class Team(common.ParentMixin):
         >>> t.city
         'San Diego'
         ''')
-    
+
     @property
     def representsWholeState(self):
         '''
         True if the location is California, Colorado, etc. else False
-        
-        Of course the Angels never actually represented all of California. Who are we kidding?
-        
+
+        Of course the Angels never actually represented all of California.
+        Who are we kidding?
+
+        >>> from daseki import team
         >>> t = team.Team('CAL', '1/1/1980')
         >>> t.nickname
         'Angels'
         >>> t.representsWholeState
-        True        
+        True
         '''
         if self.location is None:
             return False
-        return self.location.lower() in self.statereps
+        return self.location.lower() in self.state_reps
 
     @property
     def representsRegion(self):
         '''
         True if the location is Tampa Bay, Allegheny Club; otherwise False
-        
+
+        >>> from daseki import team
         >>> t = team.Team('TBA')
         >>> t.nickname  # newest name first
         'Rays'
@@ -221,12 +237,12 @@ class Team(common.ParentMixin):
         '''
         if self.location is None:
             return False
-        return self.location.lower() in self.regionreps
-        
+        return self.location.lower() in self.region_reps
+
 
 
 if __name__ == '__main__':
     import daseki
     daseki.mainTest()
-    #teamList()
+    # teamList()
 

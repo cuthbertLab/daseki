@@ -1,39 +1,38 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:         dwcompat/box
-# Purpose:      Drop in replacement for "box" DiamondWare.
+# Purpose:      Drop in replacement for 'box' DiamondWare.
 #
 # Authors:      Michael Scott Cuthbert
 #
 # Copyright:    Copyright © 2015, 17 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
-#------------------------------------------------------------------------------
-
-from daseki.common import TeamNum
-from daseki import game
+# -----------------------------------------------------------------------------
 import unittest
+
+from ..common import TeamNum
+from .. import game
+
 
 class BoxScore(object):
     def __init__(self, gameId):
         self.game = game.Game(gameId)
-    
+
     def box(self):
         '''
         Returns the entire box score for a game
         '''
-        b = []
-        b.append(self.topInfo())
-        #b.append(self.mainBox())
-        b.append(self.lineScore())
-        #b.append(self.pitchers())
-        b.append(self.bottom())
+        b = [self.topInfo(), self.lineScore(), self.bottom()]
+        # b.append(self.mainBox())
+        # b.append(self.pitchers())
         return '\n'.join(b)
-    
+
     def topInfo(self):
         '''
         Returns the information for the game day, location, day night, etc.
-        
+
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('NYA200904180')
         >>> print(bs.topInfo(), end='')
         Game of 4/18/2009 -- Cleveland at New York (D)
@@ -49,18 +48,19 @@ class BoxScore(object):
         s += g.dayNight[0].upper()
         s += ')\n'
         return s
-    
+
     def lineScore(self):
         '''
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('SDN201403300')
         >>> print(bs.lineScore(), end='')
         Los Angeles      000 010 000 -- 1
-        San Diego        000 000 03x -- 3        
+        San Diego        000 000 03x -- 3
         '''
         g = self.game
-        lines = {TeamNum.VISITOR: "", TeamNum.HOME: ""}
+        lines = {TeamNum.VISITOR: '', TeamNum.HOME: ''}
         maxInnings = g.numInnings
-        
+
         for inning in range(1, maxInnings + 1):
             for teamNum in (TeamNum.VISITOR, TeamNum.HOME):
                 hi = g.halfInningByNumber(inning, teamNum)
@@ -69,25 +69,26 @@ class BoxScore(object):
                 else:
                     r = hi.runs
                     rStr = str(r)
-                    if r >= 10: # BOX does not justify
-                        rStr = '(' + rStr + ')' 
+                    if r >= 10:  # BOX does not justify
+                        rStr = '(' + rStr + ')'
 
                 if inning % 3 == 0 and inning != maxInnings:
                     rStr += ' '
                 lines[teamNum] += rStr
-        
-        b = ''        
-        b += '{0:17s}{1} -- {2}\n'.format(g.visitingTeam.location, 
-                                          lines[TeamNum.VISITOR], 
+
+        b = ''
+        b += '{0:17s}{1} -- {2}\n'.format(g.visitingTeam.location,
+                                          lines[TeamNum.VISITOR],
                                           g.runs.visitor)
-        b += '{0:17s}{1} -- {2}\n'.format(g.homeTeam.location, 
-                                          lines[TeamNum.HOME], 
+        b += '{0:17s}{1} -- {2}\n'.format(g.homeTeam.location,
+                                          lines[TeamNum.HOME],
                                           g.runs.home)
         return b
-    
-    
+
+
     def pitchingInfo(self):
         '''
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('SDN201403300')
         >>> print(bs.pitchingInfo(), end='')
           Los Angeles           IP  H  R ER BB SO
@@ -97,61 +98,61 @@ class BoxScore(object):
         <BLANKLINE>
         '''
         g = self.game
-        r = []
-        r.append("  {0:22s}IP  H  R ER BB SO".format(g.visitingTeam.location))
-        r.append(self.oneSidePitching(TeamNum.VISITOR))
-        r.append("")
-        r.append("  {0:22s}IP  H  R ER BB SO".format(g.homeTeam.location))
-        r.append(self.oneSidePitching(TeamNum.HOME))
+        r = [f'  {g.visitingTeam.location:22s}IP  H  R ER BB SO',
+             self.oneSidePitching(TeamNum.VISITOR), '',
+             f'  {g.homeTeam.location:22s}IP  H  R ER BB SO',
+             self.oneSidePitching(TeamNum.HOME)]
         footnotes = []
         r.extend(footnotes)
-        r.append("")
+        r.append('')
         return '\n'.join(r)
 
-    def oneSidePitching(self, visitOrHome):
-        return("")
-    
+    def oneSidePitching(self, _visitOrHome):
+        return('')
+
     def bottom(self):
-        b = []
-        #b.append(self.error())
-        #b.append(self.dblplay())
-        b.append(self.lob())
-        b.append(self.dbl())
-        b.append(self.tpl())
-        b.append(self.hr())
-        #b.append(self.sb())
-        #b.append(self.sh())
-        #b.append(self.wildpitch())
-        b.append(self.time())
-        b.append(self.attendance())
+        b = [self.lob(),
+             self.dbl(),
+             self.tpl(),
+             self.hr(),
+             self.time(),
+             self.attendance()
+             ]
+        # b.append(self.error())
+        # b.append(self.dblplay())
+        # b.append(self.sb())
+        # b.append(self.sh())
+        # b.append(self.wildpitch())
         bs = '\n'.join(b)
         return bs
-    
+
     def lob(self):
         '''
         Returns the left on base information.
-        
+
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('SDN201403300')
         >>> bs.lob()
-        'LOB -- Los Angeles 6, San Diego 6'   
+        'LOB -- Los Angeles 6, San Diego 6'
         '''
         g = self.game
         s = 'LOB -- '
-        s += g.visitingTeam.location + " "
+        s += g.visitingTeam.location + ' '
         s += str(g.leftOnBase.visitor)
         s += ', '
-        s += g.homeTeam.location + " "
+        s += g.homeTeam.location + ' '
         s += str(g.leftOnBase.home)
         return s
 
     def countingStatHelper(self, searchAttribute, abbr):
         '''
-        A helper function to produce lines such as 
-        
+        A helper function to produce lines such as
+
         2B -- Francisco B 2, DeRosa M
-        
+
         where searchAttribute would be "double" and abbr would be "2B"
-        
+
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('NYA200904180')
         >>> bs.countingStatHelper('triple', '3B')
         '3B -- Ransom C'
@@ -159,13 +160,13 @@ class BoxScore(object):
         s = []
         game = self.game
         statDict = game.battersByEvent(searchAttribute)
-        
+
         for pId in statDict:
             val = statDict[pId]
             if val == 1:
-                vStr = ""
+                vStr = ''
             else:
-                vStr = " " + str(val)
+                vStr = ' ' + str(val)
             player = game.playerById(pId)
             pName = player.lastPlusInitial()
             s.append(pName + vStr)
@@ -174,7 +175,7 @@ class BoxScore(object):
             return abbr + ' -- ' + sStr
         else:
             return ''
-            
+
     def dbl(self):
         return self.countingStatHelper('double', '2B')
 
@@ -188,21 +189,23 @@ class BoxScore(object):
     def time(self):
         '''
         Returns the time of game formatted as H:MM
-        
+
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('SDN201403300')
         >>> bs.time()
         'T -- 2:49'
         '''
         g = self.game
         t = g.infoByType('timeofgame')
-        timeInfo = str(int(t/60)) + ':' + "%02d" %  (t % 60)
+        timeInfo = str(int(t/60)) + ':' + f'{t % 60:02d}'
         s = 'T -- ' + timeInfo
         return s
-    
+
     def attendance(self):
         '''
         Returns the total attendance for the game
 
+        >>> from daseki import dwcompat
         >>> bs = dwcompat.box.BoxScore('NYA200904180')
         >>> bs.attendance()
         'A -- 45167'
@@ -210,13 +213,14 @@ class BoxScore(object):
         g = self.game
         a = g.infoByType('attendance')
         return 'A -- ' + str(a)
-    
-    
-    
+
+
+
 class TestExternal(unittest.TestCase):
-    
+
     def testBox(self):
-        unused_auth = '''     Game of 3/30/2014 -- Los Angeles at San Diego (N)
+        # noinspection SpellCheckingInspection
+        _unused_auth = '''     Game of 3/30/2014 -- Los Angeles at San Diego (N)
 
   Los Angeles        AB  R  H RBI    San Diego          AB  R  H RBI
 Crawford C, lf        4  0  1  1   Cabrera E, ss         2  1  0  0   
@@ -270,7 +274,8 @@ A -- 45567
         print('\n\n\n\n')
 
     def testHighScoring(self):
-        unused_auth = '''     Game of 4/18/2009 -- Cleveland at New York (D)
+        # noinspection SpellCheckingInspection
+        _unused_auth = '''     Game of 4/18/2009 -- Cleveland at New York (D)
 
   Cleveland          AB  R  H RBI    New York           AB  R  H RBI
 Sizemore G, cf        4  3  3  1   Jeter D, ss           2  0  0  0   

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
-# Name:        gameLogs.py
-# Purpose:     retrosheet game log file parsing
+# -----------------------------------------------------------------------------
+# Name:         gameLogs.py
+# Purpose:      retrosheet game log file parsing
 #
 # Authors:      Michael Scott Cuthbert
 #
-# Copyright:    Copyright © 2015 Michael Scott Cuthbert / cuthbertLab
+# Copyright:    Copyright © 2015-22 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import codecs
 import csv
 import os
@@ -18,22 +18,26 @@ from daseki import common
 
 GameLogCache = {}
 
+
 def gameLogFilePathForYear(year=2014):
     '''
     Find the path to the game log file for a given year.
-    
+
+    >>> from daseki import retro
     >>> glp = retro.gameLogs.gameLogFilePathForYear(2005)
     >>> glp.endswith('daseki/dataFiles/retrosheet/gamelog/GL2005.TXT')
     True
     '''
     yearStr = str(year)
     path = common.gameLogFilePath()
-    return os.path.join(path, "GL" + yearStr + ".TXT")
+    return os.path.join(path, f'GL{yearStr}.TXT')
+
 
 def gameLogsForYear(year=2014):
     '''
     Get all the game logs for a given year as a list of lists.
-    
+
+    >>> from daseki import retro
     >>> gls = retro.gameLogs.gameLogsForYear(2014)
     >>> len(gls)
     2430
@@ -44,7 +48,7 @@ def gameLogsForYear(year=2014):
 
     Second parse of the same logs will return from cache, so there's no
     penalty for reparsing multiple times.
-    
+
     >>> gls2 = retro.gameLogs.gameLogsForYear(2014)
     >>> gls2 is gls
     True
@@ -58,52 +62,56 @@ def gameLogsForYear(year=2014):
     GameLogCache[year] = data
     return data
 
+
 def gameLogRawById(gameId):
     '''
-    Find the game log that matches a given retrosheet ID as a 
+    Find the game log that matches a given retrosheet ID as a
     raw data list (use the GameLog object normally)
-    
+
+    >>> from daseki import retro
     >>> glRaw = retro.gameLogs.gameLogRawById('ARI201403220')
     >>> glRaw
     ['20140322', '0', 'Sat', 'LAN', 'NL', '1', 'ARI', 'NL', ...]
     '''
     gid = common.GameId(gameId)
     logs = gameLogsForYear(gid.year)
-    gameLogId = "{g.year:4d}{g.month:02d}{g.day:02d}".format(g=gid)
+    gameLogId = f'{gid.year:4d}{gid.month:02d}{gid.day:02d}'
     foundCorrectLogId = False
-    potentialGames = [] # for doubleHeaders
-    for l in logs:
-        if l[0] == gameLogId and l[6] == gid.homeTeam:
-            potentialGames.append(l)
+    potentialGames = []  # for doubleHeaders
+    for this_log in logs:
+        if this_log[0] == gameLogId and this_log[6] == gid.homeTeam:
+            potentialGames.append(this_log)
             foundCorrectLogId = True
-        elif l[0] != gameLogId and foundCorrectLogId is True:
+        elif this_log[0] != gameLogId and foundCorrectLogId is True:
             break
     if len(potentialGames) == 1:
         return potentialGames[0]
     elif len(potentialGames) > 1:
         for pg in potentialGames:
             gameNumber = pg[1]
-            if gid.gameNum == "1" and gameNumber in ('1', 'A'):
+            if gid.gameNum == '1' and gameNumber in ('1', 'A'):
                 return pg
-            elif gid.gameNum == "2" and gameNumber in ('2', 'B'):
+            elif gid.gameNum == '2' and gameNumber in ('2', 'B'):
                 return pg
-            elif gid.gameNum == "3" and gameNumber == "3": # triple header!
+            elif gid.gameNum == '3' and gameNumber == '3':  # triple header!
                 return pg
-        raise DasekiException("Could not find the right game for a double/triple header!")
+        raise DasekiException('Could not find the right game for a double/triple header!')
     return None
-        
+
+
 class GameLog(object):
     '''
     Get a nicer object that allows for accessing gameLog information
     by name. Also knows what information should be returned as an int
     and converts the data accordingly.
-    
+
+    >>> from daseki import retro
     >>> gl = retro.gameLogs.GameLog('ARI201403220')
     >>> gl.date
     '20140322'
     >>> gl.data[0] is gl.date
     True
-    
+
     >>> gl.gameNumber
     '0'
     >>> gl.dayOfWeek
@@ -112,7 +120,7 @@ class GameLog(object):
     'LAN'
     >>> gl.homeTeam
     'ARI'
-    
+
     >>> gl.visitRuns
     3
     >>> gl.homeRuns
@@ -279,7 +287,7 @@ class GameLog(object):
     homeStartingBat9Name 'Wade Miley'
     homeStartingBat9Position 1
     additionalInformation ''
-    acquisitionInformation 'Y'    
+    acquisitionInformation 'Y'
     '''
     labels = '''date gameNumber dayOfWeek visitTeam visitLeague visitTeamGameNumber
     homeTeam homeLeague homeTeamGameNumber visitRuns homeRuns 
@@ -335,20 +343,25 @@ class GameLog(object):
     additionalInformation 
     acquisitionInformation 
     '''.split()
-    intLabels = set('''visitTeamGameNumber homeTeamGameNumber visitRuns homeRuns numberOfOuts attendance lengthOfGame
+
+    intLabels = set('''visitTeamGameNumber 
+    homeTeamGameNumber visitRuns homeRuns 
+    numberOfOuts attendance lengthOfGame
     visitAtBats visitHits visitDoubles visitTriples visitHomeRuns visitRunsBattedIn
     visitSacrificeHits visitSacrificeFlies visitHitByPitch visitBaseOnBalls 
     visitBaseOnBallsIntentional visitStrikeouts visitStolenBases 
     visitCaughtStealing visitGroundedIntoDblPlay visitCatcherInterference 
     visitLeftOnBase 
-    visitPitchersUsed visitIndividualEarnedRuns visitTeamEarnedRuns visitWildPitches visitBalks 
+    visitPitchersUsed visitIndividualEarnedRuns visitTeamEarnedRuns 
+    visitWildPitches visitBalks 
     visitPutOuts visitAssists visitErrors visitPassedBalls visitDblPlays visitTplPlays 
     homeAtBats homeHits homeDoubles homeTriples homeHomeRuns homeRunsBattedIn
     homeSacrificeHits homeSacrificeFlies homeHitByPitch homeBaseOnBalls 
     homeBaseOnBallsIntentional homeStrikeouts homeStolenBases 
     homeCaughtStealing homeGroundedIntoDblPlay homeCatcherInterference 
     homeLeftOnBase 
-    homePitchersUsed homeIndividualEarnedRuns homeTeamEarnedRuns homeWildPitches homeBalks 
+    homePitchersUsed homeIndividualEarnedRuns homeTeamEarnedRuns 
+    homeWildPitches homeBalks 
     homePutOuts homeAssists homeErrors homePassedBalls homeDblPlays homeTplPlays 
     visitStartingBat1Position
     visitStartingBat2Position
@@ -369,12 +382,12 @@ class GameLog(object):
     homeStartingBat8Position
     homeStartingBat9Position
     '''.split())
-    
+
     def __init__(self, gameId=None):
         self.data = None
         if gameId is not None:
             self.data = gameLogRawById(gameId)
-    
+
     def __getattr__(self, attr):
         if attr in self.labels:
             v = self.data[self.labels.index(attr)]
@@ -382,33 +395,38 @@ class GameLog(object):
                 try:
                     v = int(v)
                 except ValueError:
-                    e = "{0} {1} {2}".format(attr, self.labels.index(attr) + 1, repr(v))
+                    e = '{0} {1} {2}'.format(attr, self.labels.index(attr) + 1, repr(v))
                     raise ValueError(e)
             return v
         return None
 
+
 class Test(unittest.TestCase):
     pass
+
 
 class TestSlow(unittest.TestCase):
     def testRunInformation(self):
         from daseki import game
         gc = game.GameCollection()
-        #gc.yearStart = 1995
-        #gc.yearEnd = 2009
-        gc.park = 'BAL' # doubleheader game makes a nice test.
+        # gc.yearStart = 1995
+        # gc.yearEnd = 2009
+        gc.park = 'BAL'  # doubleheader game makes a nice test.
         for g in gc.parse():
             gId = g.id
             visitRuns = g.runs.visitor
             homeRuns = g.runs.home
             gl = GameLog(gId)
-            self.assertEqual(visitRuns, 
-                             gl.visitRuns, 
-                             "{0}: PlayData {1} GameLog {2}".format(gId, visitRuns, gl.visitRuns))
-            self.assertEqual(homeRuns, 
-                             gl.homeRuns, 
-                             "{0}: PlayData {1} GameLog {2}".format(gId, homeRuns, gl.homeRuns))
+            self.assertEqual(
+                visitRuns,
+                gl.visitRuns,
+                f'{gId}: PlayData {visitRuns} GameLog {gl.visitRuns}')
+            self.assertEqual(
+                homeRuns,
+                gl.homeRuns,
+                f'{gId}: PlayData {homeRuns} GameLog {gl.homeRuns}')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     import daseki
     daseki.mainTest(Test)

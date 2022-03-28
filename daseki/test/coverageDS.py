@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         coverageM21.py
 # Purpose:      Starts Coverage w/ default arguments
 #
 # Authors:      Christopher Ariza
 #               Michael Scott Cuthbert
 #
-# Copyright:    Copyright © 2014-15 Michael Scott Cuthbert and the music21 Project
+# Copyright:    Copyright © 2014-22 Michael Scott Cuthbert
 # License:      LGPL or BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 omit_modules = [
                 'daseki/ext/*',
                 ]
+
 exclude_lines = [
                 r'\s*import daseki\s*',
                 r'\s*daseki.mainTest\(\)\s*',
                 ]
 
-def getCoverage():    
+
+def getCoverage():
     try:
         import coverage
         cov = coverage.coverage(omit=omit_modules)
@@ -28,6 +30,7 @@ def getCoverage():
     except ImportError:
         cov = None
     return cov
+
 
 def stopCoverage(cov):
     if cov is not None:

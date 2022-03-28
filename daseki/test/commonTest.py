@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:         test/commonTest.py
 # Purpose:      Things common to testing
 #
@@ -8,14 +8,14 @@
 #
 # Copyright:    Copyright © 2009-16 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 '''
 Things that are common to testing...
 '''
 import doctest
 import imp
 import os
-#import time
+# import time
 import types
 import warnings
 
@@ -24,7 +24,8 @@ import unittest.runner
 
 import daseki
 from daseki import common
-#from daseki.test import testRunner
+# from daseki.test import testRunner
+
 
 def defaultDoctestSuite(name=None):
     globs = __import__('daseki').__dict__.copy()
@@ -43,9 +44,10 @@ def defaultDoctestSuite(name=None):
 # from testRunner...
 # more silent type...
 
+
 class DasekiTestRunner(unittest.runner.TextTestRunner):
     def run(self, test):
-        "Run the given test case or test suite."
+        'Run the given test case or test suite.'
         result = self._makeResult()
         registerResult(result)
         result.failfast = self.failfast
@@ -60,10 +62,11 @@ class DasekiTestRunner(unittest.runner.TextTestRunner):
                 # noisy.  The -Wd and -Wa flags can be used to bypass this
                 # only when self.warnings is None.
                 if self.warnings in ['default', 'always']:
-                    warnings.filterwarnings('module',
-                            category=DeprecationWarning,
-                            message='Please use assert\w+ instead.')
-            #startTime = time.time()
+                    warnings.filterwarnings(
+                        'module',
+                        category=DeprecationWarning,
+                        message='Please use assert \\w+ instead.')
+            # startTime = time.time()
             startTestRun = getattr(result, 'startTestRun', None)
             if startTestRun is not None:
                 startTestRun()
@@ -73,8 +76,8 @@ class DasekiTestRunner(unittest.runner.TextTestRunner):
                 stopTestRun = getattr(result, 'stopTestRun', None)
                 if stopTestRun is not None:
                     stopTestRun()
-            #stopTime = time.time()
-        #timeTaken = stopTime - startTime
+            # stopTime = time.time()
+        # timeTaken = stopTime - startTime
         result.printErrors()
 
         expectedFails = unexpectedSuccesses = skipped = 0
@@ -89,32 +92,33 @@ class DasekiTestRunner(unittest.runner.TextTestRunner):
 
         infos = []
         if not result.wasSuccessful():
-            self.stream.write("FAILED")
+            self.stream.write('FAILED')
             failed, errored = len(result.failures), len(result.errors)
             if failed:
-                infos.append("failures=%d" % failed)
+                infos.append(f'failures={failed:d}')
             if errored:
-                infos.append("errors=%d" % errored)
+                infos.append(f'errors={errored:d}')
         else:
             pass
         if skipped:
-            infos.append("skipped=%d" % skipped)
+            infos.append(f'skipped={skipped:d}')
         if expectedFails:
-            infos.append("expected failures=%d" % expectedFails)
+            infos.append(f'expected failures={expectedFails:d}')
         if unexpectedSuccesses:
-            infos.append("unexpected successes=%d" % unexpectedSuccesses)
+            infos.append(f'unexpected successes={unexpectedSuccesses:d}')
         if infos:
-            self.stream.writeln(" (%s)" % (", ".join(infos),))
+            self.stream.writeln(' (%s)' % (', '.join(infos),))
         else:
             pass
         return result
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 class ModuleGather(object):
     r'''
     Utility class for gathering and importing all modules in the daseki
     package. Puts them in self.modulePaths.
-    
+
     >>> from daseki.test import commonTest
     >>> mg = commonTest.ModuleGather(useExtended=True)
     >>> #_DOCS_SHOW print mg.modulePaths[0]
@@ -124,28 +128,28 @@ class ModuleGather(object):
         self.dirParent = common.sourceFilePath()
         self.useExtended = useExtended
         self.modulePaths = []
-    
+
         self.moduleSkip = [
-            'testSingleCoreAll.py', 
+            'testSingleCoreAll.py',
             'multiprocessTest.py',
             ]
-        
+
         self.moduleSkipExtended = self.moduleSkip + [
             ]
         # run these first...
         self.slowModules = [
                             ]
 
-        
+
         # skip any path that contains this string
         self.pathSkip = [
-                         'obsolete', 
+                         'obsolete',
                          'ext',
                          ]
         self.pathSkipExtended = self.pathSkip + [
-                         'demos',                                                 
+                         'demos',
                         ]
-        
+
         self.moduleSkip = [x.replace('/', os.sep) for x in self.moduleSkip]
         self.moduleSkipExtended = [x.replace('/', os.sep) for x in self.moduleSkipExtended]
         self.pathSkip = [x.replace('/', os.sep) for x in self.pathSkip]
@@ -156,7 +160,7 @@ class ModuleGather(object):
         if autoWalk:
             self.walk()
 
-    def _visitFunc(self, args, dirname, names):
+    def _visitFunc(self, _args, dirname, names):
         '''
         append all module paths from _walk() to self.modulePaths.
         Utility function called from os.walk()
@@ -174,63 +178,63 @@ class ModuleGather(object):
         def manyCoreSortFunc(name):
             '''
             for many core systems, like the MacPro, running slowest modules first
-            helps there be fewer idle cores later 
+            helps there be fewer idle cores later
             '''
             name = name[len(self.dirParent) + 1:]
             name = name.replace('.py', '')
             return (name in self.slowModules, name)
 
         # the results of this are stored in self.curFiles, self.dirList
-        for dirpath, unused_dirnames, filenames in os.walk(self.dirParent):
+        for dirpath, _unused_dir_names, filenames in os.walk(self.dirParent):
             self._visitFunc(None, dirpath, filenames)
 
-        if common.cpus() > 4:# @UndefinedVariable
+        if common.cpus() > 4:
             self.modulePaths.sort(key=manyCoreSortFunc)
         else:
             self.modulePaths.sort()
 
-        #for p in self.modulePaths:
-        #    print p# self.modulePaths
+        # for p in self.modulePaths:
+        #     print(p) # self.modulePaths
         self.modulePaths.reverse()
 
     def _getName(self, fp):
         r'''
         Given full file path, find a name for the module with _ as the separator.
-        
+
         >>> from daseki.test import commonTest
         >>> mg = commonTest.ModuleGather()
         >>> #_DOCS_SHOW mg._getName(r'D:\Web\eclipse\daseki\daseki\core.py')
         'core'
         '''
-        fn = fp.replace(self.dirParent, '') # remove parent
+        fn = fp.replace(self.dirParent, '')  # remove parent
         if fn.startswith(os.sep):
             fn = fn[1:]
-        fn = fn.replace(os.sep, '_') # replace w/ _
+        fn = fn.replace(os.sep, '_')  # replace w/ _
         fn = fn.replace('.py', '')
         return fn
 
     def _getNamePeriod(self, fp):
         r'''
         Given full file path, find a name for the module with . as the separator.
-        
+
         >>> from daseki.test import commonTest
         >>> mg = commonTest.ModuleGather()
         >>> #_DOCS_SHOW mg._getName(r'D:\Web\eclipse\daseki\daseki\retro\basic.py')
         'retro.basic'
         '''
-        fn = fp.replace(self.dirParent, '') # remove parent
+        fn = fp.replace(self.dirParent, '')  # remove parent
         parts = [x for x in fn.split(os.sep) if x]
         if parts[-1] == '__init__.py':
             parts.pop()
-        fn = '.'.join(parts) # replace w/ period
+        fn = '.'.join(parts)  # replace w/ period
         fn = fn.replace('.py', '')
 
         return fn
-     
+
     def load(self, restoreEnvironmentDefaults=False):
         '''
         Return a list of module objects that are not in the skip list.
-        
+
         N.B. the list is a list of actual module objects not names,
         therefore cannot be pickled.
         '''
@@ -241,7 +245,7 @@ class ModuleGather(object):
                 modules.append(moduleObject)
         return modules
 
-    def getModule(self, fp, restoreEnvironmentDefaults = False):
+    def getModule(self, fp, restoreEnvironmentDefaults=False):
         '''
         gets one module object from the file path
         '''
@@ -249,7 +253,7 @@ class ModuleGather(object):
         ms = self.moduleSkip
         if self.useExtended:
             ms = self.moduleSkipExtended
-        
+
         for fnSkip in ms:
             if fp.endswith(fnSkip):
                 skip = True
@@ -261,32 +265,34 @@ class ModuleGather(object):
         if self.useExtended:
             ps = self.pathSkipExtended
 
-        
+
         for dirSkip in ps:
             if dirSkip in fp:
-                skip = True  
+                skip = True
                 break
         if skip:
             return None
         name = self._getName(fp)
-        #print(name, os.path.dirname(fp))
-        #fmFile, fmPathname, fmDescription = imp.find_module(name, os.path.dirname(fp) + os.sep)
+        # print(name, os.path.dirname(fp))
+        # fmFile, fmPathname, fmDescription = imp.find_module(name, os.path.dirname(fp) + os.sep)
         try:
-            #environLocal.printDebug(['import:', fp]) 
-            #mod = imp.load_module(name, fmFile, fmPathname, fmDescription)
+            # environLocal.printDebug(['import:', fp])
+            # mod = imp.load_module(name, fmFile, fmPathname, fmDescription)
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore', RuntimeWarning)
                 mod = imp.load_source(name, fp)
-        except Exception as excp: # this takes all exceptions!
-            print(['failed import:', fp, '\n', 
-                '\tEXCEPTION:', str(excp).strip()])
+        except Exception as exception:  # this takes all exceptions!
+            print([
+                'failed import:', fp, '\n',
+                '\t' + 'EXCEPTION:', str(exception).strip()
+            ])
             return None
         if restoreEnvironmentDefaults:
             if hasattr(mod, 'environLocal'):
                 mod.environLocal.restoreDefaults()
         return mod
 
-    def getModuleWithoutImp(self, fp, restoreEnvironmentDefaults = False):
+    def getModuleWithoutImp(self, fp, restoreEnvironmentDefaults=False):
         '''
         gets one module object from the file path without using Imp
         '''
@@ -296,14 +302,14 @@ class ModuleGather(object):
                 skip = True
                 break
         if skip:
-            return "skip"
+            return 'skip'
         for dirSkip in self.pathSkip:
             dirSkipSlash = os.sep + dirSkip + os.sep
             if dirSkipSlash in fp:
-                skip = True  
+                skip = True
                 break
         if skip:
-            return "skip"
+            return 'skip'
         moduleName = self._getNamePeriod(fp)
         moduleNames = moduleName.split('.')
         currentModule = daseki
@@ -311,11 +317,11 @@ class ModuleGather(object):
             if hasattr(currentModule, thisName):
                 currentModule = object.__getattribute__(currentModule, thisName)
                 if not isinstance(currentModule, types.ModuleType):
-                    return "notInTree"
+                    return 'notInTree'
             else:
-                return "notInTree"
+                return 'notInTree'
         mod = currentModule
-        
+
         if restoreEnvironmentDefaults:
             if hasattr(mod, 'environLocal'):
                 mod.environLocal.restoreDefaults()

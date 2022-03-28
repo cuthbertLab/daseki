@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:         __init__.py
-# Purpose:      Daseki -- A toolkit for computational baseball analysis 
+# Purpose:      Daseki -- A toolkit for computational baseball analysis
 #
 # Authors:      Michael Scott Cuthbert
 #
 # Copyright:    Copyright © 2014-15 Michael Scott Cuthbert / cuthbertLab
 # License:      BSD, see license.txt
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import copy
 
-from daseki.test.testRunner import mainTest # @UnresolvedImport
+from daseki.test.testRunner import mainTest
 from daseki import common
 from daseki import plateAppearance
-from daseki.common import TeamNum # @UnresolvedImport
+from daseki.common import TeamNum
 from daseki.exceptionsDS import DasekiException
 
 
@@ -27,6 +27,7 @@ from daseki.exceptionsDS import DasekiException
 
 class HalfInning(common.ParentMixin):
     '''
+    >>> from daseki import *
     >>> g = game.Game('SDN201304090')
     >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
     >>> hi
@@ -39,7 +40,8 @@ class HalfInning(common.ParentMixin):
     __slots__ = ('inningNumber', 'visitOrHome', 'events', '_iterindex',
                  '_prev', '_following', 'startPlayNumber', 'endPlayNumber',
                  '_plateAppearances')
-    def __init__(self, inningNumber = 1, visitOrHome = TeamNum.VISITOR, *, parent=None):
+
+    def __init__(self, inningNumber=1, visitOrHome=TeamNum.VISITOR, *, parent=None):
         super().__init__(parent=parent)
         self.inningNumber = inningNumber
         self.visitOrHome = visitOrHome
@@ -50,19 +52,19 @@ class HalfInning(common.ParentMixin):
         self.startPlayNumber = -1
         self.endPlayNumber = -1
         self._plateAppearances = []
-    
+
     def __repr__(self):
         p = self.parent
         if p is not None and p.id is not None:
             gi = p.id
         else:
-            gi = ""
-            
-        return "<%s.%s %s%s plays:%s-%s (%s)>" % (self.__module__, 
-                                                  self.__class__.__name__, 
-                                                  self.topBottom[0], 
-                                                  self.inningNumber, 
-                                                  self.startPlayNumber, 
+            gi = ''
+
+        return '<%s.%s %s%s plays:%s-%s (%s)>' % (self.__module__,
+                                                  self.__class__.__name__,
+                                                  self.topBottom[0],
+                                                  self.inningNumber,
+                                                  self.startPlayNumber,
                                                   self.endPlayNumber,
                                                   gi)
 
@@ -71,10 +73,11 @@ class HalfInning(common.ParentMixin):
     def plateAppearances(self):
         '''
         >>> from pprint import pprint as pp
-        
+        >>> from daseki import game
+
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(8, common.TeamNum.HOME)
-        >>> pp(hi.plateAppearances)        
+        >>> pp(hi.plateAppearances)
         [<daseki.plateAppearance.PlateAppearance 8-1: gyorj001:W>,
          <daseki.plateAppearance.PlateAppearance 8-2: amara001:W>,
          <daseki.plateAppearance.PlateAppearance 8-3: maybc001:14/SH/BG.2-3;1-2>,
@@ -101,17 +104,17 @@ class HalfInning(common.ParentMixin):
         outsInInning = 0
         plateAppearanceInInning = 1
         thisPA.startPlayNumber = self.events[0].playNumber
-        
-        for i,p in enumerate(self.events):
+
+        for i, p in enumerate(self.events):
             if p.record == 'play' and p.playerId != thisPA.batterId:
                 thisPA.endPlayNumber = p.playNumber - 1
                 self._plateAppearances.append(thisPA)
-                
+
                 if self.events[i - 1].record == 'sub':
                     # last PA ended with a sub -- this is the same PA
                     plateAppearanceInInning -= 1
                     thisPA.isIncomplete = True
-                    
+
                 plateAppearanceInInning += 1
 
                 thisPA = plateAppearance.PlateAppearance(parent=self)
@@ -131,16 +134,16 @@ class HalfInning(common.ParentMixin):
         self._plateAppearances.append(thisPA)
 
         return self._plateAppearances
-            
+
 
     @property
     def topBottom(self):
         if self.visitOrHome == common.TeamNum.VISITOR:
-            return "top"
+            return 'top'
         else:
-            return "bottom"
+            return 'bottom'
 
-    
+
     def _getPrev(self):
         '''
         Get or set the previous halfInning within the game.  Do not set to link between games.
@@ -149,34 +152,34 @@ class HalfInning(common.ParentMixin):
 
     def _setPrev(self, prev):
         self._prev = common.wrapWeakref(prev)
-        
+
     prev = property(_getPrev, _setPrev)
 
     def _getFollowing(self):
         '''
         Get or set the following halfInning within the game.  Do not set to link between games.
-        
+
         We do not use next to maintain Py2 compatibility with iterators.
         '''
         return common.unwrapWeakref(self._following)
 
     def _setFollowing(self, following):
         self._following = common.wrapWeakref(following)
-        
+
     following = property(_getFollowing, _setFollowing)
 
-        
+
     def append(self, other):
         self.events.append(other)
 
     def __iter__(self):
         self._iterindex = 0
         return self
-    
+
     def __next__(self):
         i = self._iterindex
         if i >= len(self.events):
-            raise StopIteration        
+            raise StopIteration
         self._iterindex += 1
         return self.events[i]
 
@@ -188,6 +191,7 @@ class HalfInning(common.ParentMixin):
 
     def subByNumber(self, pn):
         '''
+        >>> from daseki import game
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> hi
@@ -199,9 +203,10 @@ class HalfInning(common.ParentMixin):
             if p.record == 'sub' and p.playNumber == pn:
                 return p
         return None
-    
+
     def playByNumber(self, pn):
         '''
+        >>> from daseki import game
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.startPlayNumber
@@ -215,12 +220,13 @@ class HalfInning(common.ParentMixin):
             if p.record == 'play' and p.playNumber == pn:
                 return p
         return None
-    
+
     def lastPlay(self):
         '''
         return the last play of the half inning.  Useful for things
         like left-on-base.
-        
+
+        >>> from daseki import game
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.lastPlay()
@@ -230,13 +236,14 @@ class HalfInning(common.ParentMixin):
             if p.record == 'play':
                 return p
         raise DasekiException('No play in inning!')
-    
+
     @property
     def leftOnBase(self):
         '''
         returns the number of people left on base at the end of
         the inning.
-        
+
+        >>> from daseki import game
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInnings[0]
         >>> hi.leftOnBase
@@ -251,22 +258,23 @@ class HalfInning(common.ParentMixin):
             if r not in (False, None):
                 lob += 1
         return lob
-    
+
     @property
     def runs(self):
         r = 0
         for p in self.events:
             if p.record == 'play':
                 r += p.runnerEvent.runs
-                
+
         return r
-                
+
 
 
 class BaseRunners(common.ParentMixin):
     '''
     A relatively lightweight object for dealing with baserunners.
-    
+
+    >>> from daseki import core
     >>> br = core.BaseRunners(False, 'cuthbert', 'hamilton')
     >>> br
     <daseki.core.BaseRunners 1:False 2:cuthbert 3:hamilton>
@@ -281,9 +289,9 @@ class BaseRunners(common.ParentMixin):
     False
     cuthbert
     hamilton
-    
+
     Can pass in a parent object.
-    
+
     >>> br = core.BaseRunners(False, 'cuthbert', 'hamilton', parent=object)
     >>> br[1]
     'cuthbert'
@@ -291,9 +299,14 @@ class BaseRunners(common.ParentMixin):
     >>> br.third
     'elina'
     '''
-    __slots__ = ('first', 'second', 'third', '_iterindex') 
+    __slots__ = ('first', 'second', 'third', '_iterindex')
 
-    def __init__(self, first=False, second=False, third=False, *, parent=None):
+    def __init__(self,
+                 first: bool | str = False,
+                 second: bool | str = False,
+                 third: bool | str = False,
+                 *,
+                 parent=None):
         super().__init__(parent=parent)
         self.first = first
         self.second = second
@@ -303,11 +316,12 @@ class BaseRunners(common.ParentMixin):
             self.first = first[0]
             self.second = first[1]
             self.third = first[2]
-    
-    
+
+
     @property
     def play(self):
         '''
+        >>> from daseki import *
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(7, common.TeamNum.HOME)
         >>> p = hi.events[2]
@@ -325,11 +339,11 @@ class BaseRunners(common.ParentMixin):
         True
         '''
         return self.parentByClass('Play')
-    
+
     def playerEntranceObjects(self):
         '''
         get PlayerEntrance objects for each baserunner or None if no baserunner.
-        
+
         >>> g = game.Game('SDN201304090')
         >>> hi = g.halfInningByNumber(9, common.TeamNum.VISITOR)
         >>> p = hi.events[-1]
@@ -353,30 +367,31 @@ class BaseRunners(common.ParentMixin):
         for i in range(3):
             playerId = self[i]
             for j in order:
-                if j is None: # batting order 0
+                if j is None:  # batting order 0
                     continue
                 if j.id == playerId:
                     retObj[i] = j
         return retObj
-    
+
     def __repr__(self):
-        return "<%s.%s %s>" % (self.__module__, self.__class__.__name__, 
-                                  str(self))
+        return '<%s.%s %s>' % (self.__module__,
+                               self.__class__.__name__,
+                               str(self))
 
     def __str__(self):
-        return "1:%s 2:%s 3:%s" % (self.first, self.second, self.third)
-    
+        return '1:%s 2:%s 3:%s' % (self.first, self.second, self.third)
+
     def __iter__(self):
         self._iterindex = 0
         return self
-    
+
     def __next__(self):
         i = self._iterindex
         if i >= 3:
-            raise StopIteration        
+            raise StopIteration
         self._iterindex += 1
         return self[i]
-    
+
     def next(self):
         return self.__next__()
 
@@ -390,9 +405,9 @@ class BaseRunners(common.ParentMixin):
                 return self.second
             elif k == 2:
                 return self.third
-        except ValueError:           
+        except ValueError:
             raise IndexError('item must be an int')
-    
+
     def __setitem__(self, k, v):
         try:
             if k < 0 or k > 2:
@@ -403,7 +418,7 @@ class BaseRunners(common.ParentMixin):
                 self.second = v
             elif k == 2:
                 self.third = v
-        except ValueError:           
+        except ValueError:
             raise IndexError('item must be an int')
 
     def copy(self):
@@ -412,40 +427,42 @@ class BaseRunners(common.ParentMixin):
         return new
 
 
-
-
 # class PlateAppearance(object):
 #     def __init__(self, abbreviation=None):
 #         self.abbreviation = abbreviation
-#         
-# 
+#
+#
 # class BoxScore(object):
 #     pass
+
 
 class ExpectedRunMatrix(object):
     '''
     Represents the run situation for a given baserunning situation and number of outs.
-    
-    Numbers by default from 2011 MLB. 
-    
-    http://www.baseballprospectus.com/sortable/index.php?cid=975409    
+
+    Numbers by default from 2011 MLB.
+
+    https://www.baseballprospectus.com/sortable/index.php?cid=975409
     '''
     # 2011 MLB
     # (1st base occupied, 2nd occupied, 3rd occupied) : (0 outs, 1 out, 2 outs runs)
-    expectedRunsDefault = { (False, False, False): (0.4807, 0.2582, 0.0967),
-                            (False, False, True):  (1.3118, 0.899,  0.3545),
-                            (False, True,  False): (1.0631, 0.6492, 0.3137),
-                            (False, True,  True):  (1.8942, 1.29  , 0.5715),
-                            (True,  False, False): (0.85  , 0.5026, 0.2174),
-                            (True,  False, True):  (1.6811, 1.1434, 0.4752),
-                            (True,  True,  False): (1.4324, 0.8936, 0.4344),
-                            (True,  True,  True):  (2.2635, 1.5344, 0.6922),
-                          }
+    expectedRunsDefault = {
+        (False, False, False): (0.4807, 0.2582, 0.0967),
+        (False, False, True):  (1.3118, 0.8990, 0.3545),
+        (False, True,  False): (1.0631, 0.6492, 0.3137),
+        (False, True,  True):  (1.8942, 1.2900, 0.5715),
+        (True,  False, False): (0.8500, 0.5026, 0.2174),
+        (True,  False, True):  (1.6811, 1.1434, 0.4752),
+        (True,  True,  False): (1.4324, 0.8936, 0.4344),
+        (True,  True,  True):  (2.2635, 1.5344, 0.6922),
+    }
+
     def __init__(self):
         self.expectedRuns = copy.copy(self.expectedRunsDefault)
-        
+
     def runsForSituation(self, baseRunners, outs=0):
         '''
+        >>> from daseki import *
         >>> erm = core.ExpectedRunMatrix()
         >>> brr = core.BaseRunners(False, 'carmel', False)
         >>> erm.runsForSituation(brr, outs=2)
@@ -458,48 +475,50 @@ class ExpectedRunMatrix(object):
         thirdOccupied = False if baseRunners[2] in (False, None) else True
 
         return self.expectedRuns[firstOccupied, secondOccupied, thirdOccupied][outs]
-    
+
     def runsInherited(self, baseRunners, outs=0):
         '''
-        Returns the difference between the runs expected for the current base/outs situation 
+        Returns the difference between the runs expected for the current base/outs situation
         and the runs expected for the same number of outs with no one on base.
-        
+
+        >>> from daseki import *
         >>> erm = core.ExpectedRunMatrix()
         >>> brr = core.BaseRunners(False, 'nori', False)
         >>> erm.runsInherited(brr, outs=2)
         0.217
         '''
-        return round(self.runsForSituation(baseRunners, outs) - 
+        return round(self.runsForSituation(baseRunners, outs) -
                      self.runsForSituation((False, False, False), outs), 4)
-    
+
     def runsInheritedNotOutAdjusted(self, baseRunners, outs=0):
         '''
-        Returns the difference between the runs expected for the current base/outs situation and the 
+        Returns the difference between the runs expected for the current base/outs situation and the
         runs expected for NO OUTS with no one on base.
-        
+
+        >>> from daseki import *
         >>> erm = core.ExpectedRunMatrix()
         >>> brr = core.BaseRunners(False, 'kate', False)
         >>> erm.runsInheritedNotOutAdjusted(brr, outs=2)
         -0.167
         '''
-        return round(self.runsForSituation(baseRunners, outs) - 
+        return round(self.runsForSituation(baseRunners, outs) -
                      self.runsForSituation((False, False, False), 0), 4)
 
     def simpleRunsExpected(self, baseRunners, outs=0):
         '''
         returns the very simple, but pretty accurate, run expectation given in my blog post
-        http://prolatio.blogspot.com/2008/08/hate-stat-love-statter.html using the formula:
-        
+        https://prolatio.blogspot.com/2008/08/hate-stat-love-statter.html using the formula:
+
         ::
-        
+
             ER = (5 + total_runners + 3 * (total bases occupied))  * outs_left / 30
-        
-        
+
+        >>> from daseki import *
         >>> erm = core.ExpectedRunMatrix()
         >>> brr = core.BaseRunners(False, False, False)
         >>> erm.simpleRunsExpected(brr, 0)
         0.5
-        
+
         >>> for third in (False, True):
         ...     for second in (False, True):
         ...         for first in (False, True):
@@ -507,8 +526,8 @@ class ExpectedRunMatrix(object):
         ...                 brr = core.BaseRunners(first, second, third)
         ...                 sre = erm.simpleRunsExpected(brr, outs)
         ...                 re = erm.runsForSituation(brr, outs)
-        ...                 print("{0:5s} {1:5s} {2:5s} {3} {4:4.2f} {5:4.2f} {6:4.2f}".format(
-        ...                     str(first), str(second), str(third), 
+        ...                 print('{0:5s} {1:5s} {2:5s} {3} {4:4.2f} {5:4.2f} {6:4.2f}'.format(
+        ...                     str(first), str(second), str(third),
         ...                     outs, sre, re, sre - re))
         False False False 0 0.50 0.48 0.02
         False False False 1 0.33 0.26 0.08
@@ -542,8 +561,8 @@ class ExpectedRunMatrix(object):
         totalBasesOccupied = firstOccupied + 2 * secondOccupied + 3 * thirdOccupied
         totalRunners = firstOccupied + secondOccupied + thirdOccupied
         outsLeft = 3 - outs
-        erexp = (5 + totalRunners + 3 * totalBasesOccupied) * outsLeft/30.0
-        return erexp
+        er_exp = (5 + totalRunners + 3 * totalBasesOccupied) * outsLeft/30.0
+        return er_exp
 
 
 if __name__ == '__main__':
