@@ -89,14 +89,14 @@ class TestExternal(unittest.TestCase):
             totTot += totalGames
             totTotUsed += totalPitcherUsed
             totTot1st += i1
-            if (totalGames > 10):
+            if totalGames > 10:
                 print(tn, totalGames, totalPitcherUsed, percentage, i1, i2)
 
         percentage = int(100 * totTotUsed/totTot)
         print('***', totTot, totTotUsed, percentage, totTot1st)
 
     def events(self):
-        ev = EventFile(os.path.join(common.dataRetrosheetEvent(), 'regular', '2014SDN.EVN'))
+        ev = EventFile(os.path.join(common.dataRetrosheetSeasons(), '2014', '2014SDN.EVN'))
         g = Game()
         g.mergeProto(ev.protoGames[0])
         g.finalizeParsing()
@@ -112,7 +112,7 @@ class TestExternal(unittest.TestCase):
         # noinspection PyGlobalUndefined
         global DEBUG
         DEBUG = True
-        ev = EventFile(os.path.join(common.dataRetrosheetEvent(), 'regular', '2014SDN.EVN'))
+        ev = EventFile(os.path.join(common.dataRetrosheetSeasons(), '2014', '2014SDN.EVN'))
         for pg in ev.protoGames:
             g = Game()
             g.mergeProto(pg)

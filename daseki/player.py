@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 from daseki.exceptionsDS import RetrosheetException
 from daseki.retro.datatypeBase import RetroData
@@ -431,7 +432,7 @@ class LineupCard(common.ParentMixin):
     '''
 
     __slots__ = ('lineupData', 'playersByBattingOrder',
-                 'visitOrHome', 'teamAbbreviation', 'allPlayers')
+                 'visitOrHome', 'teamAbbreviation', 'allPlayers', '_parent')
 
     # @common.keyword_only_args('parent')
     def __init__(self, visitOrHome, *, parent=None):
@@ -468,7 +469,7 @@ class LineupCard(common.ParentMixin):
         return None
 
 
-    def add(self, playerEntrance):
+    def add(self, playerEntrance: PlayerEntrance):
         '''
         Adds a PlayerEntrance object to the lineup card
         '''
@@ -496,8 +497,7 @@ class LineupCard(common.ParentMixin):
         player.positions.append(playerEntrance.position)
 
 
-
-    def byPlayNumber(self, num):
+    def byPlayNumber(self, num: int):
         '''
         Return the substitution at a given play number.  The only one that should have
         multiple is playNumber -1
@@ -536,7 +536,7 @@ class LineupCard(common.ParentMixin):
         return [r.playNumber for r in self.lineupData
                 if startNumber <= r.playNumber <= endNumber]
 
-    def subsFor(self, player):
+    def subsFor(self, player: PlayerEntrance|int) -> PlayerEntrance|None:
         '''
         return the player card of the player that this player substituted for.
 
@@ -588,7 +588,6 @@ class LineupCard(common.ParentMixin):
             else:
                 return thisPlayer
         return None  # shouldn't happen unless -1 is given to begin with
-
 
 
     def multipleSubs(self, startNumber=0, endNumber=99999):
@@ -674,7 +673,7 @@ class LineupCard(common.ParentMixin):
          <daseki.player.Start home,8: Nick Hundley (hundn001):catcher>,
          <daseki.player.Sub home,9: Chris Denorfia (denoc001):leftfield>]
         '''
-        # store as batting position, so 0 will always be None for NL
+        # store as batting position, so 0 will always be None for none DH games
         batters = [None for _ in range(10)]
         for p in self.lineupData:
             if p.playNumber > playNumber:

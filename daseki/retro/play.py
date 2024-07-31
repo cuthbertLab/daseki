@@ -385,7 +385,7 @@ class RunnerAdvance():
         explicit = self.isUnearnedRunExplicit
         if explicit is not None:
             return explicit
-        if self.baseAfter is not 'H':
+        if self.baseAfter != 'H':
             return False
         return False
 

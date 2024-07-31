@@ -32,21 +32,24 @@ Runs = namedtuple('Runs', 'visitor home')
 LeftOnBase = namedtuple('LeftOnBase', 'visitor home')
 
 eventsToClasses = {
-                   'id': basic.Id,
-                   'version': basic.Version,
-                   'info': basic.Info,
-                   'badj': basic.BattingAdjustment,
-                   'padj': basic.PitchingAdjustment,
-                   'ladj': basic.OutOfOrderAdjustment,
-                   'data': basic.Data,
-                   'com': basic.Comment,
-                   'start': player.Start,
-                   'sub': player.Sub,
-                   'play': play.Play,
-                   }
+    'id': basic.Id,
+    'version': basic.Version,
+    'info': basic.Info,
+    'badj': basic.BattingAdjustment,
+    'padj': basic.PitchingAdjustment,
+    'ladj': basic.OutOfOrderAdjustment,
+    'radj': basic.RunnerAdjustment,
+    'presadj': basic.PitcherResponsibilityAdjustment,
+
+    'data': basic.Data,
+    'com': basic.Comment,
+    'start': player.Start,
+    'sub': player.Sub,
+    'play': play.Play,
+}
 
 
-class GameCollection():
+class GameCollection:
     '''
     a collection of Game objects, in some order...
 
@@ -71,13 +74,11 @@ class GameCollection():
         self.park = None
         self.usesDH = None
         self.protoGames = []
-        self.seasonType = 'regular'
         self.overrideDirectory = None
 
     def addMatchingProtoGames(self):
         for y in range(self.yearStart, self.yearEnd + 1):
-            yd = parser.YearDirectory(y,
-                                      seasonType=self.seasonType,)
+            yd = parser.YearDirectory(y)
             if self.overrideDirectory:
                 yd.overrideDirectory = self.overrideDirectory
             if self.team is not None:
@@ -173,7 +174,7 @@ class Game(common.ParentMixin):
     Each game record is held somewhere in the `.records` list.
     Each half-inning is stored in the halfInnings list.
     '''
-    __slots__ = ('id', 'records', 'lineupHome', 'lineupVisitor', 'lineupCards', 'halfInnings',)
+    __slots__ = ('id', 'records', 'lineupHome', 'lineupVisitor', 'lineupCards', 'halfInnings', '_parent')
 
     def __init__(self, gameId=None, *, parent=None):
         super().__init__(parent=parent)
@@ -588,7 +589,6 @@ class TestSlow(unittest.TestCase):
             gc = GameCollection()
             gc.yearStart = y
             gc.yearEnd = y
-            gc.seasonType = 'regular'
             print(f'Parsing {y}')
             gc.parse()
 

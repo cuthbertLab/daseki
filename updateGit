@@ -1,4 +1,5 @@
 #!/bin/bash
+# this is used to update the retrosheet submodule
 # see http://stackoverflow.com/questions/1030169/easy-way-pull-latest-of-all-submodules
 
 git pull 

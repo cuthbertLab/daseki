@@ -66,14 +66,11 @@ def dataRetrosheet():
     return os.path.join(dataFilePath(), 'retrosheet')
 
 
-def dataRetrosheetEvent():
-    return os.path.join(dataRetrosheet(), 'event')
+def dataRetrosheetSeasons():
+    return os.path.join(dataRetrosheet(), 'seasons')
 
-
-def dataRetrosheetByType(gameType='regular'):
-    if gameType not in ('asg', 'post', 'regular'):
-        raise DasekiException('gameType must be asg, post, or regular, not {0}'.format(gameType))
-    return os.path.join(dataRetrosheetEvent(), gameType)
+def dataRetrosheetYear(year: int):
+    return os.path.join(dataRetrosheetSeasons(), str(year))
 
 
 def gameLogFilePath():

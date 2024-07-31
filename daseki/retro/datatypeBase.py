@@ -23,3 +23,6 @@ class RetroData(common.ParentMixin):
         # playNumber is the number of the play in the game (counting home and visitor)
         # for a play record, it indicates the last play record to occur.
         # for a sub it indicates the play record after which it occurred.
+
+    def __repr__(self):
+        return f'<{self.__module__}.{self.__class__.__name__}>'

@@ -97,6 +97,51 @@ class OutOfOrderAdjustment(Adjustment):
         super().__init__(playerId, hand, parent=parent)
 
 
+
+
+class RunnerAdjustment(RetroData):
+    '''
+    Used in games beginning in 2020 in which an extra inning begins with a runner on 2nd.
+    '''
+    record = 'radj'
+
+    __slots__ = ('playerId', 'base')
+
+    def __init__(self, playerId, base: int = 2, *, parent=None):
+        super().__init__(parent=parent)
+        self.playerId = playerId
+        self.base = base
+
+    def __repr__(self):
+        return (f'<{self.__module__}.{self.__class__.__name__} ' 
+                f'{self.playerId}: {self.base}>')
+
+
+class PitcherResponsibilityAdjustment(RetroData):
+    '''
+    Not currently accounted for in stats.  Mostly occurred before 1940: the
+    "wrong" pitcher is held responsible for a batter.
+
+    PlayerId is the player who will get responsibility for the next play,
+    and base is the number of the base of the runner that the pitcher is
+    said to be responsible for.
+
+    See https://www.retrosheet.org/presadj.htm
+    '''
+    record = 'presadj'
+
+    __slots__ = ('playerId', 'base')
+
+    def __init__(self, playerId, base: int|None = None, *, parent=None):
+        super().__init__(parent=parent)
+        self.playerId = playerId
+        self.base = base
+
+    def __repr__(self):
+        return (f'<{self.__module__}.{self.__class__.__name__} ' 
+                f'{self.playerId}: {self.base}>')
+
+
 class Data(RetroData):
     '''
     At present, only earned runs data is generated
@@ -150,8 +195,12 @@ class Info(RetroData):
             'visteam hometeam date number '
             'starttime daynight usedh pitches umphome ump1b ump2b ump3b umplf umprf '
             'fieldcond precip sky temp winddir windspeed timeofgame attendance site '
-            'wp lp save gwrbi htbf oscorer'
+            'wp lp save gwrbi htbf oscorer gametype innings tiebreaker'
         )
+    # gametype added in 2023 -- regular is the default
+    # innings added in 2020 -- number of innings scheduled to play, if not 9.
+    #    pandemic doubleheaders in 2020 were scheduled for 7 innings each.
+    # tiebreaker added in 2020 -- will extra innings begin with a man on second?
     gameRelatedTypes = _gameRelatedTypes.split()
     _administrativeTypes = (
         'edittime howscored inputprogvers '
@@ -159,15 +208,15 @@ class Info(RetroData):
     )
     administrativeTypes = _administrativeTypes.split()
     knownTypes = gameRelatedTypes + administrativeTypes
-    del(_gameRelatedTypes)
-    del(_administrativeTypes)
+    del _gameRelatedTypes
+    del _administrativeTypes
     intTypes = 'number temp windspeed timeofgame attendance'.split()
 
     def __init__(self, recordType, dataInfo, *, parent=None):
         super().__init__(parent=parent)
         self.recordType = recordType
         if recordType not in self.knownTypes:
-            raise RetrosheetException(f'Unknown record type {recordType} for info record')
+            raise RetrosheetException(f'Unknown record type {recordType!r} for info record')
         # if len(dataInfo) > 1:
         #    raise RetrosheetException('should only have one entry for dataInfo, not %r' % dataInfo)
 
@@ -193,11 +242,11 @@ class Info(RetroData):
         self.dataInfo = di
 
     def __repr__(self):
-        return self.__class__.__name__
-        # return '<%s.%s %s:%s>' % (self.__module__,
-        #                           self.__class__.__name__,
-        #                           self.recordType,
-        #                           self.dataInfo)
+        # return self.__class__.__name__
+        return '<%s.%s %s:%s>' % (self.__module__,
+                                  self.__class__.__name__,
+                                  self.recordType,
+                                  self.dataInfo)
 
 if __name__ == '__main__':
     import daseki

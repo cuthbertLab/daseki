@@ -219,7 +219,7 @@ def eventFileById(gameId):
     True
     '''
     gid = common.GameId(gameId)
-    eventRegularDir = common.dataRetrosheetByType('regular')
+    eventRegularDir = common.dataRetrosheetYear(gid.year)
     for ef in os.listdir(eventRegularDir):
         if ef.startswith(str(gid.year) + gid.homeTeam + '.EV'):
             return eventRegularDir + os.sep + ef

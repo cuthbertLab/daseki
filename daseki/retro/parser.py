@@ -37,16 +37,15 @@ class YearDirectory(object):
     rosterFileNames -- list of (short) filenames in the directory that contain rosters for teams
     teamFileName -- string of the filename that gives the list of teams playing that year.
     '''
-    def __init__(self, year, seasonType='regular'):
-        self.year = year
-        self.seasonType = seasonType
+    def __init__(self, year: int):
+        self.year: int = year
         self.eventFileNames = []
         self.rosterFileNames = []
         self.teamFileName = None
         self._eventFiles = []
 
-        self.dirName = None
-        self.overrideDirectory = None
+        self.dirName: str = ''
+        self.overrideDirectory = ''
         self._files = []
 
     @property
@@ -57,15 +56,13 @@ class YearDirectory(object):
         if self.overrideDirectory:
             dirName = self.overrideDirectory
         else:
-            dirName = common.dataRetrosheetByType(self.seasonType)
+            dirName = os.sep.join([common.dataRetrosheetSeasons(), str(self.year)])
 
         self.dirName = dirName
         allFiles = os.listdir(dirName)
 
         files = []
         for f in allFiles:
-            if str(self.year) not in f:
-                continue
             files.append(f)
             if (f.endswith('.EVA')
                     or f.endswith('.EVN')
